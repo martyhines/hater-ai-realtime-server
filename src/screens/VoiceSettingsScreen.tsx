@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Slider from '@react-native-community/slider';
+import { Picker } from '@react-native-picker/picker';
 import TextToSpeechService, { VoiceSettings, VoiceOption } from '../services/textToSpeechService';
 
 interface VoiceSettingsScreenProps {
@@ -126,44 +127,7 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
     }
   };
 
-  const renderVoiceOption = (voice: VoiceOption) => (
-    <TouchableOpacity
-      key={voice.identifier}
-      style={[
-        styles.voiceOption,
-        selectedVoice === voice.identifier && styles.selectedVoiceOption,
-      ]}
-      onPress={() => handleVoiceChange(voice.identifier)}
-    >
-      <View style={styles.voiceInfo}>
-        <Text style={[
-          styles.voiceName,
-          selectedVoice === voice.identifier && styles.selectedVoiceName,
-        ]}>
-          {voice.name}
-        </Text>
-        <Text style={styles.voiceDetails}>
-          {voice.language} • {voice.quality} {voice.gender && `• ${voice.gender}`}
-        </Text>
-      </View>
-      <View style={styles.voiceActions}>
-        <TouchableOpacity
-          style={styles.testButton}
-          onPress={() => testVoice(voice.identifier)}
-          disabled={testingVoice}
-        >
-          {testingVoice ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Ionicons name="play" size={16} color="#fff" />
-          )}
-        </TouchableOpacity>
-        {selectedVoice === voice.identifier && (
-          <Ionicons name="checkmark-circle" size={24} color="#00ff00" />
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+
 
   if (loading) {
     return (
@@ -220,7 +184,36 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
           <Text style={styles.cardSubtitle}>
             Choose your preferred Siri voice for AI roasts
           </Text>
-          {availableVoices.map(renderVoiceOption)}
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedVoice}
+              onValueChange={handleVoiceChange}
+              style={styles.picker}
+              dropdownIconColor="#fff"
+              mode="dropdown"
+            >
+              {availableVoices.map((voice) => (
+                <Picker.Item
+                  key={voice.identifier}
+                  label={`${voice.name} (${voice.language}${voice.gender ? ` • ${voice.gender}` : ''})`}
+                  value={voice.identifier}
+                  color="#fff"
+                />
+              ))}
+            </Picker>
+          </View>
+          <TouchableOpacity
+            style={styles.testVoiceButton}
+            onPress={() => testVoice(selectedVoice)}
+            disabled={testingVoice}
+          >
+            {testingVoice ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Ionicons name="play" size={16} color="#fff" />
+            )}
+            <Text style={styles.testVoiceText}>Test Selected Voice</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Voice Parameters */}
@@ -385,46 +378,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
-  voiceOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+  pickerContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  selectedVoiceOption: {
-    backgroundColor: 'rgba(0, 255, 0, 0.2)',
-    borderColor: '#00ff00',
+    borderRadius: 8,
+    marginBottom: 16,
     borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  voiceInfo: {
-    flex: 1,
-  },
-  voiceName: {
-    fontSize: 16,
+  picker: {
     color: '#fff',
-    fontWeight: '500',
+    backgroundColor: 'transparent',
   },
-  selectedVoiceName: {
-    color: '#00ff00',
-  },
-  voiceDetails: {
-    fontSize: 12,
-    color: '#ccc',
-    marginTop: 2,
-  },
-  voiceActions: {
+  testVoiceButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFD93D',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
   },
-  testButton: {
-    backgroundColor: '#333',
-    padding: 8,
-    borderRadius: 6,
-    marginRight: 8,
+  testVoiceText: {
+    color: '#000',
+    fontWeight: '600',
+    marginLeft: 8,
   },
   sliderContainer: {
     marginBottom: 20,

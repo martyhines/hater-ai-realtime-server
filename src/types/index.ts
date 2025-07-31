@@ -24,6 +24,14 @@ export interface CustomModel {
   promptTemplate?: string; // Custom prompt formatting
 }
 
+export interface VoiceSettings {
+  voice: string;
+  rate: number;
+  pitch: number;
+  volume: number;
+  autoPlay: boolean;
+}
+
 export interface UserSettings {
   roastIntensity: 'mild' | 'medium' | 'savage';
   aiPersonality: 'sarcastic' | 'witty' | 'brutal' | 'playful' | 'streetsmart';
@@ -32,6 +40,7 @@ export interface UserSettings {
   allowCursing: boolean;
   customModels?: CustomModel[]; // Add custom models to settings
   personalization?: Record<string, any>; // Personalization quiz data
+  voiceSettings?: VoiceSettings; // Voice settings for text-to-speech
 }
 
 export interface AIPersonality {

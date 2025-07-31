@@ -25,6 +25,7 @@ import { CustomModelService } from '../services/customModelService';
 import { TogetherAIService } from '../services/togetherAIService';
 import { StorageService } from '../services/storageService';
 import { TikTokVideoService } from '../services/tikTokVideoService';
+import TextToSpeechService from '../services/textToSpeechService';
 
 type ChatScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
 
@@ -457,6 +458,14 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       });
     }
   };
+
+  const handleSpeakRoast = async () => {
+    try {
+      await TextToSpeechService.speakRoast(item.text);
+    } catch (error) {
+      console.error('Error speaking roast:', error);
+    }
+  };
     
     return (
       <View style={[styles.messageContainer, isUser ? styles.userMessage : styles.aiMessage]}>
@@ -470,6 +479,12 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
             </Text>
                           {!isUser && (
                 <View style={styles.shareButtons}>
+                  <TouchableOpacity
+                    style={styles.shareButton}
+                    onPress={handleSpeakRoast}
+                  >
+                    <Ionicons name="mic" size={16} color="#FFD93D" />
+                  </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.shareButton}
                     onPress={handleShareToTikTok}

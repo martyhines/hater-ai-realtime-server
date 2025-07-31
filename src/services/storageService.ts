@@ -254,6 +254,30 @@ export class StorageService {
     }
   }
 
+  // Save voice settings
+  async saveVoiceSettings(voiceSettings: any): Promise<void> {
+    try {
+      const settings = await this.getSettings() || {};
+      settings.voiceSettings = voiceSettings;
+      await AsyncStorage.setItem('userSettings', JSON.stringify(settings));
+      console.log('Voice settings saved');
+    } catch (error) {
+      console.error('Error saving voice settings:', error);
+      throw error;
+    }
+  }
+
+  // Get voice settings
+  async getVoiceSettings(): Promise<any | null> {
+    try {
+      const settings = await this.getSettings();
+      return settings?.voiceSettings || null;
+    } catch (error) {
+      console.error('Error getting voice settings:', error);
+      return null;
+    }
+  }
+
   // Check if any API key exists (for backward compatibility)
   async hasApiKey(): Promise<boolean> {
     try {
