@@ -24,7 +24,7 @@ export class TextToSpeechService {
   private currentUtterance: string = '';
 
   constructor() {
-    this.storage = new StorageService();
+    this.storage = StorageService.getInstance();
   }
 
   /**

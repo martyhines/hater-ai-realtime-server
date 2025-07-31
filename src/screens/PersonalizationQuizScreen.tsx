@@ -195,7 +195,7 @@ export default function PersonalizationQuizScreen() {
     
     try {
       // Save personalization data
-      const storage = new StorageService();
+      const storage = StorageService.getInstance();
       const currentSettings = await storage.getSettings();
       
       const updatedSettings: UserSettings = {

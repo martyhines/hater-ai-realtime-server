@@ -241,7 +241,7 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
               onValueChange={handleRateChange}
               minimumTrackTintColor="#00ff00"
               maximumTrackTintColor="#444"
-              thumbStyle={styles.sliderThumb}
+              thumbTintColor="#00ff00"
             />
           </View>
 
@@ -259,7 +259,7 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
               onValueChange={handlePitchChange}
               minimumTrackTintColor="#00ff00"
               maximumTrackTintColor="#444"
-              thumbStyle={styles.sliderThumb}
+              thumbTintColor="#00ff00"
             />
           </View>
 
@@ -277,7 +277,7 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
               onValueChange={handleVolumeChange}
               minimumTrackTintColor="#00ff00"
               maximumTrackTintColor="#444"
-              thumbStyle={styles.sliderThumb}
+              thumbTintColor="#00ff00"
             />
           </View>
         </View>
