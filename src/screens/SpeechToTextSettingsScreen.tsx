@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import Slider from '@react-native-community/slider';
-import StorageService from '../services/storageService';
+import { StorageService } from '../services/storageService';
 import { SpeechToTextSettings } from '../types';
 
 const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
@@ -211,6 +211,14 @@ const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation 
             Speech-to-text requires microphone permissions. The feature works best in quiet environments with clear speech.
           </Text>
         </View>
+
+        {/* Expo Go Limitation Card */}
+        <View style={styles.limitationCard}>
+          <Ionicons name="warning" size={24} color="#FF6B6B" />
+          <Text style={styles.limitationText}>
+            Note: Full speech recognition functionality requires a development build. In Expo Go, web-based speech recognition may be used as a fallback.
+          </Text>
+        </View>
       </View>
     </ScrollView>
   );
@@ -313,9 +321,25 @@ const styles = StyleSheet.create({
     borderColor: '#FFD93D',
     flexDirection: 'row',
     alignItems: 'flex-start',
+    marginBottom: 16,
   },
   infoText: {
     color: '#FFD93D',
+    fontSize: 14,
+    marginLeft: 12,
+    flex: 1,
+  },
+  limitationCard: {
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#FF6B6B',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  limitationText: {
+    color: '#FF6B6B',
     fontSize: 14,
     marginLeft: 12,
     flex: 1,
