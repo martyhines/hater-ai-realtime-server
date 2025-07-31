@@ -275,6 +275,16 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.personalizationButtonText}>Make It Personal</Text>
           </TouchableOpacity>
 
+          {/* Voice Settings Button */}
+          <TouchableOpacity
+            style={styles.voiceSettingsButton}
+            onPress={() => navigation.navigate('VoiceSettings')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="mic" size={24} color="#FFD93D" />
+            <Text style={styles.voiceSettingsButtonText}>Voice Settings</Text>
+          </TouchableOpacity>
+
           {/* Settings Button */}
           <TouchableOpacity
             style={styles.settingsButton}
@@ -455,6 +465,23 @@ const styles = StyleSheet.create({
   },
   personalizationButtonText: {
     color: '#4ECDC4',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  voiceSettingsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 217, 61, 0.1)',
+    borderWidth: 1,
+    borderColor: '#FFD93D',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  voiceSettingsButtonText: {
+    color: '#FFD93D',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,

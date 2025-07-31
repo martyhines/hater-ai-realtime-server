@@ -298,6 +298,22 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             />
           </View>
 
+          <TouchableOpacity
+            style={styles.preferenceItem}
+            onPress={() => navigation.navigate('VoiceSettings')}
+          >
+            <View style={styles.preferenceInfo}>
+              <Ionicons name="mic" size={24} color="#FFD93D" />
+              <View style={styles.preferenceText}>
+                <Text style={styles.preferenceTitle}>Voice Settings</Text>
+                <Text style={styles.preferenceDescription}>
+                  Configure Siri voice for AI roasts
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#ccc" />
+          </TouchableOpacity>
+
           {/* Clear API Key Button */}
           {isAIEnabled && (
             <TouchableOpacity
