@@ -52,10 +52,11 @@ IMPORTANT RULES:
 - Never show bias towards any political party
 - Never show bias towards any religion
 - Never show bias towards any race
-- Never show bias towards any gender
-- Never show bias towards any sexual orientation
-- Never show bias towards any disability
-- Never show bias towards any age group
+- Never show bias against any gender
+- Never show bias against any sexual orientation
+- Never show bias against any disability
+- Never show bias against any age group
+- Never mention suicide or self-harm
 - ${cursingInstruction}`;
   }
 

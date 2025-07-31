@@ -16,6 +16,7 @@ import TweetGeneratorScreen from './src/screens/TweetGeneratorScreen';
 import ScreenshotScreen from './src/screens/ScreenshotScreen';
 import PersonalizationQuizScreen from './src/screens/PersonalizationQuizScreen';
 import VoiceSettingsScreen from './src/screens/VoiceSettingsScreen';
+import SpeechToTextSettingsScreen from './src/screens/SpeechToTextSettingsScreen';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -39,6 +40,7 @@ export type RootStackParamList = {
   };
   PersonalizationQuiz: undefined;
   VoiceSettings: undefined;
+  SpeechToTextSettings: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -113,6 +115,11 @@ export default function App() {
             name="VoiceSettings" 
             component={VoiceSettingsScreen} 
             options={{ title: 'Voice Settings' }}
+          />
+          <Stack.Screen 
+            name="SpeechToTextSettings" 
+            component={SpeechToTextSettingsScreen} 
+            options={{ title: 'Speech-to-Text Settings' }}
           />
         </Stack.Navigator>
       </NavigationContainer>

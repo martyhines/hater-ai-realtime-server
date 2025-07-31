@@ -32,6 +32,13 @@ export interface VoiceSettings {
   autoPlay: boolean;
 }
 
+export interface SpeechToTextSettings {
+  language: string;
+  autoSend: boolean;
+  continuous: boolean;
+  timeout: number;
+}
+
 export interface UserSettings {
   roastIntensity: 'mild' | 'medium' | 'savage';
   aiPersonality: 'sarcastic' | 'witty' | 'brutal' | 'playful' | 'streetsmart';
@@ -41,6 +48,7 @@ export interface UserSettings {
   customModels?: CustomModel[]; // Add custom models to settings
   personalization?: Record<string, any>; // Personalization quiz data
   voiceSettings?: VoiceSettings; // Voice settings for text-to-speech
+  speechToTextSettings?: SpeechToTextSettings; // Speech-to-text settings
 }
 
 export interface AIPersonality {

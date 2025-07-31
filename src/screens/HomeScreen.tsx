@@ -211,6 +211,16 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.voiceSettingsButtonText}>Voice Settings</Text>
           </TouchableOpacity>
 
+          {/* Speech-to-Text Settings Button */}
+          <TouchableOpacity
+            style={styles.speechToTextSettingsButton}
+            onPress={() => navigation.navigate('SpeechToTextSettings')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="mic-outline" size={24} color="#4ECDC4" />
+            <Text style={styles.speechToTextSettingsButtonText}>Speech-to-Text Settings</Text>
+          </TouchableOpacity>
+
           {/* Enable AI Button */}
           <TouchableOpacity
             style={[styles.enableAiButton, isAIEnabled && styles.enableAiButtonActive]}
@@ -501,6 +511,23 @@ const styles = StyleSheet.create({
   },
   voiceSettingsButtonText: {
     color: '#FFD93D',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  speechToTextSettingsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+    borderWidth: 1,
+    borderColor: '#4ECDC4',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  speechToTextSettingsButtonText: {
+    color: '#4ECDC4',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,

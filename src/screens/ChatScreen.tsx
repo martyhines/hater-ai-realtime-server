@@ -26,6 +26,7 @@ import { TogetherAIService } from '../services/togetherAIService';
 import { StorageService } from '../services/storageService';
 import { TikTokVideoService } from '../services/tikTokVideoService';
 import TextToSpeechService from '../services/textToSpeechService';
+import SpeechToTextService from '../services/speechToTextService';
 
 type ChatScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
 
@@ -58,6 +59,11 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   });
   
   const flatListRef = useRef<FlatList>(null);
+
+  // Speech-to-text state
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcriptionText, setTranscriptionText] = useState('');
+  const [speechToTextSettings, setSpeechToTextSettings] = useState<any>(null);
 
   // Function to switch between available providers
   const switchProvider = async (provider: 'cohere' | 'huggingface' | 'openai' | 'gemini' | 'togetherai' | 'custom' | 'template') => {
@@ -265,6 +271,25 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     initializeAI();
   }, []);
 
+  // Load speech-to-text settings
+  useEffect(() => {
+    const loadSpeechToTextSettings = async () => {
+      try {
+        const storage = StorageService.getInstance();
+        const settings = await storage.getSpeechToTextSettings();
+        setSpeechToTextSettings(settings || {
+          language: 'en-US',
+          autoSend: true,
+          continuous: false,
+          timeout: 5000,
+        });
+      } catch (error) {
+        console.error('Error loading speech-to-text settings:', error);
+      }
+    };
+    loadSpeechToTextSettings();
+  }, []);
+
   // Reload settings when screen focuses (in case user changed settings)
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -366,6 +391,14 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     return unsubscribe;
   }, [navigation]);
 
+  // Cleanup speech-to-text service on unmount
+  useEffect(() => {
+    return () => {
+      const speechToTextService = SpeechToTextService.getInstance();
+      speechToTextService.destroy();
+    };
+  }, []);
+
   // Auto-scroll when keyboard appears
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
@@ -375,6 +408,72 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     });
     return () => keyboardDidShowListener.remove();
   }, []);
+
+  // Speech-to-text functions
+  const startRecording = async () => {
+    try {
+      const speechToTextService = SpeechToTextService.getInstance();
+      
+      // Update service settings with user preferences
+      if (speechToTextSettings) {
+        speechToTextService.updateSettings(speechToTextSettings);
+      }
+
+      const success = await speechToTextService.startRecording(
+        (result) => {
+          // Handle partial results
+          setTranscriptionText(result.text);
+        },
+        (error) => {
+          console.error('Speech recognition error:', error);
+          setIsRecording(false);
+        }
+      );
+
+      if (success) {
+        setIsRecording(true);
+        setTranscriptionText('');
+      }
+    } catch (error) {
+      console.error('Error starting speech recognition:', error);
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      const speechToTextService = SpeechToTextService.getInstance();
+      await speechToTextService.stopRecording();
+      setIsRecording(false);
+      
+      // Get the final result
+      const finalResult = speechToTextService.getLastResult();
+      const finalText = finalResult?.text || transcriptionText;
+      
+      // If auto-send is enabled and we have transcription text, send the message
+      if (speechToTextSettings?.autoSend && finalText.trim()) {
+        setInputText(finalText);
+        setTimeout(() => {
+          sendMessage();
+        }, 100);
+      } else if (finalText.trim()) {
+        // Just set the text for manual sending
+        setInputText(finalText);
+      }
+      
+      setTranscriptionText('');
+    } catch (error) {
+      console.error('Error stopping speech recognition:', error);
+      setIsRecording(false);
+    }
+  };
+
+  const handleVoiceButtonPress = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
 
   const sendMessage = async () => {
     if (!inputText.trim() || !aiService) return;
@@ -727,6 +826,26 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         {/* Input Section */}
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
+            {/* Voice Button */}
+            <TouchableOpacity
+              style={[styles.voiceButton, isRecording && styles.voiceButtonRecording]}
+              onPress={handleVoiceButtonPress}
+              disabled={isTyping}
+            >
+              <Ionicons
+                name={isRecording ? "stop" : "mic"}
+                size={20}
+                color={isRecording ? "#FF4444" : "#FFD93D"}
+              />
+            </TouchableOpacity>
+
+            {/* Transcription Display */}
+            {transcriptionText && (
+              <View style={styles.transcriptionContainer}>
+                <Text style={styles.transcriptionText}>{transcriptionText}</Text>
+              </View>
+            )}
+
             <TextInput
               style={styles.textInput}
               value={inputText}
@@ -868,6 +987,37 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: '#444',
+  },
+  voiceButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 217, 61, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 217, 61, 0.3)',
+  },
+  voiceButtonRecording: {
+    backgroundColor: 'rgba(255, 68, 68, 0.2)',
+    borderColor: 'rgba(255, 68, 68, 0.5)',
+  },
+  transcriptionContainer: {
+    position: 'absolute',
+    top: -40,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#4ECDC4',
+  },
+  transcriptionText: {
+    color: '#4ECDC4',
+    fontSize: 14,
+    fontStyle: 'italic',
   },
   loadingContainer: {
     flex: 1,
