@@ -190,7 +190,26 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 </Text>
               </View>
             </View>
+            <View style={styles.settingRow}>
+              <Ionicons name="mic" size={24} color="#fff" />
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingLabel}>Voice</Text>
+                <Text style={[styles.settingValue, { color: settings.voiceSettings?.autoPlay ? '#FF6B6B' : '#ccc' }]}>
+                  {settings.voiceSettings?.autoPlay ? 'Auto Play' : 'Tap Mic In Chat To Play'}
+                </Text>
+              </View>
           </View>
+          </View>
+
+          {/* Voice Settings Button */}
+          <TouchableOpacity
+            style={styles.voiceSettingsButton}
+            onPress={() => navigation.navigate('VoiceSettings')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="mic" size={24} color="#FFD93D" />
+            <Text style={styles.voiceSettingsButtonText}>Voice Settings</Text>
+          </TouchableOpacity>
 
           {/* Enable AI Button */}
           <TouchableOpacity

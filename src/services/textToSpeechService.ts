@@ -192,31 +192,33 @@ export class TextToSpeechService {
   async speakRoast(roastText: string, personality: string = 'brutal'): Promise<void> {
     const settings = await this.getVoiceSettings();
     
-    // Adjust voice settings based on personality
+    // Start with user's saved settings
     let voiceSettings = { ...settings };
     
+    // Apply personality adjustments on top of user settings (small multipliers)
     switch (personality) {
       case 'brutal':
-        voiceSettings.rate = 0.6; // Slightly faster for intensity
-        voiceSettings.pitch = 1.1; // Slightly higher pitch
+        voiceSettings.rate = Math.min(2.0, voiceSettings.rate * 1.1); // 10% faster
+        voiceSettings.pitch = Math.min(2.0, voiceSettings.pitch * 1.05); // 5% higher
         break;
       case 'playful':
-        voiceSettings.rate = 0.7; // Faster for energy
-        voiceSettings.pitch = 1.2; // Higher pitch for playfulness
+        voiceSettings.rate = Math.min(2.0, voiceSettings.rate * 1.15); // 15% faster
+        voiceSettings.pitch = Math.min(2.0, voiceSettings.pitch * 1.1); // 10% higher
         break;
       case 'streetsmart':
-        voiceSettings.rate = 0.5; // Slower, more deliberate
-        voiceSettings.pitch = 0.9; // Lower pitch for attitude
+        voiceSettings.rate = Math.max(0.1, voiceSettings.rate * 0.95); // 5% slower
+        voiceSettings.pitch = Math.max(0.5, voiceSettings.pitch * 0.95); // 5% lower
         break;
       case 'savage':
-        voiceSettings.rate = 0.55; // Medium-fast for impact
-        voiceSettings.pitch = 1.05; // Slightly elevated
+        voiceSettings.rate = Math.min(2.0, voiceSettings.rate * 1.08); // 8% faster
+        voiceSettings.pitch = Math.min(2.0, voiceSettings.pitch * 1.03); // 3% higher
         break;
       default:
-        // Use default settings
+        // Use user settings as-is
         break;
     }
 
+    console.log('🎤 Speaking roast with settings:', voiceSettings);
     await this.speak(roastText, voiceSettings);
   }
 }

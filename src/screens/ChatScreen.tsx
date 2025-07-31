@@ -407,6 +407,17 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       };
 
       setMessages(prev => [...prev, aiMessage]);
+
+      // Auto-play voice if enabled
+      try {
+        const voiceSettings = await TextToSpeechService.getVoiceSettings();
+        if (voiceSettings?.autoPlay) {
+          const personality = (aiService as any).settings?.aiPersonality || 'brutal';
+          await TextToSpeechService.speakRoast(aiResponse, personality);
+        }
+      } catch (error) {
+        console.log('Error with auto-play:', error);
+      }
     } catch (error) {
       console.error('Error generating AI response:', error);
       const errorMessage: Message = {
