@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Hater AI",
+    "slug": "hater-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a1a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.haterai.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "This app does not track user data across other apps."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a1a1a"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.haterai.app",
+      "versionCode": 1,
+      "permissions": []
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
+  }
+}
