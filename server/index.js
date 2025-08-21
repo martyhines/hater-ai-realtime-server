@@ -42,7 +42,6 @@ app.post('/realtime-token', async (req, res) => {
 
     const model = process.env.REALTIME_MODEL || 'gpt-4o-realtime-preview-2024-12-17';
     const voice = process.env.REALTIME_VOICE || 'alloy';
-    const ttl = Math.min(Math.max(parseInt(process.env.REALTIME_TTL || '60', 10), 30), 300); // 30–300s
 
     const resp = await fetch('https://api.openai.com/v1/realtime/sessions', {
       method: 'POST',
@@ -54,7 +53,6 @@ app.post('/realtime-token', async (req, res) => {
         model,
         voice,
         modalities: ['audio', 'text'],
-        ttl,
       }),
     });
 
