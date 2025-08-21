@@ -4,11 +4,20 @@ export const API_CONFIG = {
   OPENAI: {
     BASE_URL: 'https://api.openai.com/v1',
     MODEL: 'gpt-4',
-    MAX_TOKENS: 150,
+    MAX_TOKENS: 300,
     TEMPERATURE: 0.8,
     TOP_P: 0.9,
     FREQUENCY_PENALTY: 0.3,
     PRESENCE_PENALTY: 0.3,
+  },
+  
+  // OpenAI Realtime (voice) config
+  REALTIME: {
+    TOKEN_ENDPOINT: 'https://your-backend.example.com/realtime-token', // Replace with your backend URL that returns an ephemeral token
+    MODEL: 'gpt-4o-realtime-preview-2024-12-17',
+    BASE_URL: 'https://api.openai.com/v1/realtime',
+    APP_AUTH_TOKEN: 'replace-with-app-auth-token',
+    TEST_AUDIO_URL: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
   },
   
   // Rate limiting
@@ -30,6 +39,10 @@ export const getApiKey = (): string => {
   // In production, use environment variables
   // For development, you can set a default key here
   return process.env.OPENAI_API_KEY || 'your-openai-api-key-here';
+};
+
+export const getAppAuthToken = (): string => {
+  return process.env.APP_AUTH_TOKEN || API_CONFIG.REALTIME.APP_AUTH_TOKEN || '';
 };
 
 // API Key validation

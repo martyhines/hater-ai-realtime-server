@@ -9,6 +9,9 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { API_CONFIG } from '../config/api';
+import { requestRealtimeToken } from '../services/realtimeService';
+import { useRemoteAudio } from '../hooks/useRemoteAudio';
 import { Picker } from '@react-native-picker/picker';
 import Slider from '@react-native-community/slider';
 import { StorageService } from '../services/storageService';
@@ -22,6 +25,7 @@ const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation 
     timeout: 5000,
   });
   const [loading, setLoading] = useState(true);
+  const audio = useRemoteAudio(API_CONFIG.REALTIME.TEST_AUDIO_URL);
 
   const availableLanguages = [
     { code: 'en-US', name: 'English (US)' },
@@ -64,6 +68,29 @@ const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation 
     } catch (error) {
       console.error('Error saving speech-to-text settings:', error);
       Alert.alert('Error', 'Failed to save settings');
+    }
+  };
+
+  const handleRequestRealtimeToken = async () => {
+    try {
+      const token = await requestRealtimeToken();
+      console.log('Realtime token response:', token);
+      Alert.alert('Realtime Token', 'Token request succeeded. Check console logs.');
+    } catch (e: any) {
+      console.error('Realtime token error:', e);
+      Alert.alert('Error', e?.message ?? 'Token request failed');
+    }
+  };
+
+  const handlePlayTestAudio = async () => {
+    try {
+      if (!audio.isLoaded) {
+        await audio.load();
+      }
+      await audio.play();
+    } catch (e: any) {
+      console.error('Audio play error:', e);
+      Alert.alert('Audio Error', e?.message ?? 'Failed to play');
     }
   };
 
@@ -114,6 +141,21 @@ const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation 
       </View>
 
       <View style={styles.content}>
+        {/* Realtime + Audio Test */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Realtime/Audio Test</Text>
+          <Text style={styles.cardSubtitle}>Verify backend auth header and audio playback</Text>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <TouchableOpacity style={styles.testButton} onPress={handleRequestRealtimeToken}>
+              <Ionicons name="key" size={20} color="#000" />
+              <Text style={styles.testButtonText}>Request Token</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.testButton} onPress={handlePlayTestAudio}>
+              <Ionicons name="play" size={20} color="#000" />
+              <Text style={styles.testButtonText}>Play Test Audio</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         {/* Language Selection */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Language</Text>
@@ -343,6 +385,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 12,
     flex: 1,
+  },
+  testButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFD93D',
+    padding: 12,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  testButtonText: {
+    color: '#000',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   loadingText: {
     color: '#fff',
