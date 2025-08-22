@@ -1,0 +1,174 @@
+source "https://github.com/CocoaPods/Specs.git"
+require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
+require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
+
+require 'json'
+podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
+
+ENV['RCT_NEW_ARCH_ENABLED'] = '0' if podfile_properties['newArchEnabled'] == 'false'
+ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] = podfile_properties['EX_DEV_CLIENT_NETWORK_INSPECTOR']
+
+platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
+install! 'cocoapods',
+  :deterministic_uuids => false
+
+prepare_react_native_project!
+
+target 'HaterAI' do
+  use_expo_modules!
+
+  if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
+    config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
+  else
+    config_command = [
+      'npx',
+      'expo-modules-autolinking',
+      'react-native-config',
+      '--json',
+      '--platform',
+      'ios'
+    ]
+  end
+
+  config = use_native_modules!(config_command)
+
+  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
+  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
+  )
+
+  post_install do |installer|
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false,
+      :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
+    )
+
+    # Ensure C++ stdlib headers and flags are available for JSI/EXGL and app target
+    jsi_related_targets = [
+      'EXGL_CPP',
+      'ExpoGL',
+      'React-jsi',
+      'ReactCommon',
+      'React-Core',
+      'ExpoModulesCore',
+      'HaterAI'
+    ]
+
+    installer.pods_project.targets.each do |target|
+      next unless jsi_related_targets.include?(target.name)
+      target.build_configurations.each do |config|
+        header_paths = config.build_settings['HEADER_SEARCH_PATHS'] || '$(inherited)'
+        header_paths << ' $(SDKROOT)/usr/include/c++/v1'
+        header_paths << ' $(TOOLCHAIN_DIR)/usr/include/c++/v1'
+        config.build_settings['HEADER_SEARCH_PATHS'] = header_paths
+
+        system_paths = config.build_settings['SYSTEM_HEADER_SEARCH_PATHS'] || '$(inherited)'
+        system_paths << ' $(SDKROOT)/usr/include/c++/v1'
+        system_paths << ' $(TOOLCHAIN_DIR)/usr/include/c++/v1'
+        config.build_settings['SYSTEM_HEADER_SEARCH_PATHS'] = system_paths
+
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+        config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
+        # Disable libc++ standard library modules on Xcode 16+
+        config.build_settings['CLANG_USE_STDCPP_MODULES'] = 'NO'
+        cppflags = config.build_settings['OTHER_CPLUSPLUSFLAGS'] || '$(inherited)'
+        cppflags = cppflags.is_a?(Array) ? cppflags : [cppflags]
+        unless cppflags.any? { |f| f.include?('-stdlib=libc++') }
+          cppflags << '-stdlib=libc++'
+        end
+        unless cppflags.any? { |f| f.include?('-D_LIBCPP_HAS_NO_MODULES=1') }
+          cppflags << '-D_LIBCPP_HAS_NO_MODULES=1'
+        end
+        unless cppflags.any? { |f| f.include?('-fno-cxx-modules') }
+          cppflags << '-fno-cxx-modules'
+        end
+        # allow implicit clang modules for pods (needed by React/Yoga)
+        # Ensure stdlib headers are treated as system includes
+        unless cppflags.any? { |f| f.include?('$(SDKROOT)/usr/include/c++/v1') }
+          cppflags << '-isystem' << '$(SDKROOT)/usr/include/c++/v1'
+          cppflags << '-isystem' << '$(TOOLCHAIN_DIR)/usr/include/c++/v1'
+        end
+        config.build_settings['OTHER_CPLUSPLUSFLAGS'] = cppflags
+
+        cflags = config.build_settings['OTHER_CFLAGS'] || '$(inherited)'
+        cflags = cflags.is_a?(Array) ? cflags : [cflags]
+        unless cflags.any? { |f| f.include?('$(SDKROOT)/usr/include/c++/v1') }
+          cflags << '-isystem' << '$(SDKROOT)/usr/include/c++/v1'
+          cflags << '-isystem' << '$(TOOLCHAIN_DIR)/usr/include/c++/v1'
+        end
+        unless cflags.any? { |f| f.include?('-D_LIBCPP_HAS_NO_MODULES=1') }
+          cflags << '-D_LIBCPP_HAS_NO_MODULES=1'
+        end
+        unless cflags.any? { |f| f.include?('-fno-cxx-modules') }
+          cflags << '-fno-cxx-modules'
+        end
+        # allow implicit clang modules for pods (needed by React/Yoga)
+        config.build_settings['OTHER_CFLAGS'] = cflags
+      end
+    end
+
+    # Ensure ObjC modules enabled (for @import) across pods
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+      end
+    end
+
+    # Also disable modules for the app target(s)
+    installer.aggregate_targets.each do |aggregate_target|
+      aggregate_target.user_project.native_targets.each do |native_target|
+        native_target.build_configurations.each do |config|
+          config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+          config.build_settings['CLANG_USE_STDCPP_MODULES'] = 'NO'
+          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+          othcxx = config.build_settings['OTHER_CPLUSPLUSFLAGS'] || '$(inherited)'
+          othcxx = othcxx.is_a?(Array) ? othcxx : [othcxx]
+          unless othcxx.any? { |f| f.include?('-D_LIBCPP_HAS_NO_MODULES=1') }
+            othcxx << '-D_LIBCPP_HAS_NO_MODULES=1'
+          end
+          unless othcxx.any? { |f| f.include?('-fno-cxx-modules') }
+            othcxx << '-fno-cxx-modules'
+          end
+          # allow implicit clang modules for app target
+          config.build_settings['OTHER_CPLUSPLUSFLAGS'] = othcxx
+          othc = config.build_settings['OTHER_CFLAGS'] || '$(inherited)'
+          othc = othc.is_a?(Array) ? othc : [othc]
+          unless othc.any? { |f| f.include?('-D_LIBCPP_HAS_NO_MODULES=1') }
+            othc << '-D_LIBCPP_HAS_NO_MODULES=1'
+          end
+          unless othc.any? { |f| f.include?('-fno-cxx-modules') }
+            othc << '-fno-cxx-modules'
+          end
+          # allow implicit clang modules for app target
+          config.build_settings['OTHER_CFLAGS'] = othc
+        end
+      end
+    end
+
+    # Ensure C++ std modules disabled across pods
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_USE_STDCPP_MODULES'] = 'NO'
+      end
+    end
+
+    # This is necessary for Xcode 14, because it signs resource bundles by default
+    # when building for devices.
+    installer.target_installation_results.pod_target_installation_results
+      .each do |pod_name, target_installation_result|
+      target_installation_result.resource_bundle_targets.each do |resource_bundle_target|
+        resource_bundle_target.build_configurations.each do |config|
+          config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+        end
+      end
+    end
+  end
+end

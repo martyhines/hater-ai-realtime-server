@@ -78,7 +78,7 @@ AI Enemy:`;
   private buildRequestBody(prompt: string): any {
     const baseParams = {
       temperature: this.model.parameters.temperature || 0.9,
-      max_tokens: this.model.parameters.maxTokens || 150,
+      max_tokens: this.model.parameters.maxTokens || 300,
       top_p: this.model.parameters.topP || 1.0,
       frequency_penalty: this.model.parameters.frequencyPenalty || 0.0,
       presence_penalty: this.model.parameters.presencePenalty || 0.0,

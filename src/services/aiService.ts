@@ -173,6 +173,8 @@ export class AIService {
   private conversationHistory: Message[] = [];
   protected settings: UserSettings;
   protected contextAnalyzer: ContextAnalyzer;
+  // Tracks recently used template indices to avoid immediate repeats per persona+intensity
+  private recentTemplateOrder: Record<string, number[]> = {};
 
   constructor(settings: UserSettings) {
     this.settings = settings;
@@ -254,8 +256,8 @@ export class AIService {
   protected getRoastResponse(userContext?: UserContext): string {
     console.log('🔥 getRoastResponse called with context:', userContext);
     
-    // Get the personality key from the personality name
-    const personalityKey = this.personality.name.toLowerCase().split(' ')[1];
+    // Use the configured personality key from settings directly
+    const personalityKey = this.settings.aiPersonality;
     const templates = ROAST_TEMPLATES[personalityKey as keyof typeof ROAST_TEMPLATES];
     
     if (!templates) {
@@ -270,7 +272,19 @@ export class AIService {
       return templates.medium[0];
     }
     
-    let response = intensityTemplates[Math.floor(Math.random() * intensityTemplates.length)];
+    // Choose a template without immediate repeats using a shuffle-bag per persona+intensity
+    const bagKey = `${personalityKey}:${this.intensity}`;
+    if (!this.recentTemplateOrder[bagKey] || this.recentTemplateOrder[bagKey].length === 0) {
+      // Initialize or refresh bag with a shuffled list of indices
+      const indices = Array.from({ length: intensityTemplates.length }, (_, i) => i);
+      for (let i = indices.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      this.recentTemplateOrder[bagKey] = indices;
+    }
+    const nextIndex = this.recentTemplateOrder[bagKey].pop() as number;
+    let response = intensityTemplates[nextIndex];
     
     // If we have context, try to personalize the roast
     if (userContext) {

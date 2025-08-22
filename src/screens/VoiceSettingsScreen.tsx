@@ -14,6 +14,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Slider from '@react-native-community/slider';
 import { Picker } from '@react-native-picker/picker';
 import TextToSpeechService, { VoiceSettings, VoiceOption } from '../services/textToSpeechService';
+import RealtimeVoiceService from '../services/realtimeVoiceService';
+import { StorageService } from '../services/storageService';
 
 interface VoiceSettingsScreenProps {
   navigation: any;
@@ -31,11 +33,22 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
   const [loading, setLoading] = useState(true);
   const [testingVoice, setTestingVoice] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState<string>('');
+  const [realtimeEnabled, setRealtimeEnabled] = useState<boolean>(false);
+  const [realtimeSupported, setRealtimeSupported] = useState<boolean>(true);
 
   useEffect(() => {
     loadVoiceSettings();
     loadAvailableVoices();
+    initRealtimeInfo();
   }, []);
+
+  const initRealtimeInfo = async () => {
+    try {
+      const info = await RealtimeVoiceService.getSessionInfo();
+      setRealtimeSupported(info.isSupported);
+      setRealtimeEnabled(info.isEnabled);
+    } catch {}
+  };
 
   const loadVoiceSettings = async () => {
     try {
@@ -98,6 +111,24 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
     const newSettings = { ...voiceSettings, autoPlay };
     setVoiceSettings(newSettings);
     saveVoiceSettings(newSettings);
+  };
+
+  const handleRealtimeToggle = async (enabled: boolean) => {
+    try {
+      setRealtimeEnabled(enabled);
+      const storage = StorageService.getInstance();
+      const current = (await storage.getSettings()) || {};
+      await storage.saveSettings({ ...current, realtimeVoiceEnabled: enabled });
+      if (enabled) {
+        await RealtimeVoiceService.startSession();
+      } else {
+        await RealtimeVoiceService.stopSession();
+      }
+    } catch (e) {
+      setRealtimeEnabled(false);
+      console.log('Realtime toggle error:', e);
+      Alert.alert('Realtime Voice', 'Failed to toggle realtime voice.');
+    }
   };
 
   const testVoice = async (voiceIdentifier: string) => {
@@ -214,6 +245,28 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
             )}
             <Text style={styles.testVoiceText}>Test Selected Voice</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Realtime Voice (beta) */}
+        <View style={styles.card}>
+          <View style={styles.toggleContainer}>
+            <View style={styles.toggleInfo}>
+              <Text style={styles.toggleLabel}>Realtime Voice (OpenAI) — Beta</Text>
+              <Text style={styles.toggleDescription}>
+                Low-latency AI voice via OpenAI. Requires dev build; Siri remains default when off.
+              </Text>
+              {!realtimeSupported && (
+                <Text style={[styles.toggleDescription, { color: '#ff6b6b' }]}>Not supported on this build.</Text>
+              )}
+            </View>
+            <Switch
+              value={realtimeEnabled}
+              onValueChange={handleRealtimeToggle}
+              trackColor={{ false: '#444', true: '#00ff00' }}
+              thumbColor={realtimeEnabled ? '#fff' : '#f4f3f4'}
+              disabled={!realtimeSupported}
+            />
+          </View>
         </View>
 
         {/* Voice Parameters */}

@@ -9,9 +9,9 @@ import {
   ActivityIndicator,
   TextInput,
   Dimensions,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import ViewShot from 'react-native-view-shot';
 import { ScreenshotService, ScreenshotConfig } from '../services/screenshotService';
 
 interface ScreenshotScreenProps {
@@ -29,12 +29,39 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function ScreenshotScreen({ navigation, route }: ScreenshotScreenProps) {
   const { roastText, userName, messages } = route.params;
+  // Find the user's prompt that led to this roast
+  const [userPrompt, setUserPrompt] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [screenshotPath, setScreenshotPath] = useState<string | null>(null);
   const [format, setFormat] = useState<'portrait' | 'landscape'>('portrait');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const screenshotService = ScreenshotService.getInstance();
-  const viewShotRef = useRef<ViewShot>(null);
+  const captureRef = useRef<View>(null);
+
+  useEffect(() => {
+    try {
+      if (!messages || !Array.isArray(messages)) {
+        return;
+      }
+      const aiIndex = messages.findIndex((m: any) => m.text === roastText && m.sender === 'ai');
+      if (aiIndex > -1) {
+        for (let i = aiIndex - 1; i >= 0; i -= 1) {
+          const m = messages[i];
+          if (m && m.sender === 'user' && typeof m.text === 'string' && m.text.trim().length > 0) {
+            setUserPrompt(m.text.trim());
+            return;
+          }
+        }
+      }
+      // Fallback: last user message
+      const lastUser = [...messages].reverse().find((m: any) => m.sender === 'user' && m.text);
+      if (lastUser) {
+        setUserPrompt((lastUser.text as string).trim());
+      }
+    } catch (e) {
+      // Ignore extraction errors; prompt simply won't be shown
+    }
+  }, [messages, roastText]);
 
   const captureScreenshot = async () => {
     try {
@@ -50,11 +77,11 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
         theme,
       };
 
-      if (!viewShotRef.current) {
+      if (!captureRef.current) {
         throw new Error('View reference not available');
       }
 
-      const path = await screenshotService.captureChatScreenshot(viewShotRef, config);
+      const path = await screenshotService.captureChatScreenshot(captureRef, config);
       setScreenshotPath(path);
       
       Alert.alert(
@@ -96,7 +123,10 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
     if (!screenshotPath) return;
     
     try {
-      const success = await screenshotService.shareScreenshot(screenshotPath);
+      const hook = 'Got roasted by Hater AI 😈';
+      const link = 'https://hater.ai';
+      const caption = `${hook} ${link}`;
+      const success = await screenshotService.shareScreenshot(screenshotPath, caption);
       if (success) {
         Alert.alert(
           'Shared!', 
@@ -145,33 +175,39 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
         <View style={styles.previewSection}>
           <Text style={styles.sectionTitle}>Screenshot Preview</Text>
           <View style={styles.previewContainer}>
-            <ViewShot
-              ref={viewShotRef}
+            {/* Capture wrapper: dynamic size equals text bubble + padding */}
+            <View
+              ref={captureRef}
               style={[
-                styles.screenshotPreview,
-                format === 'portrait' ? styles.portraitPreview : styles.landscapePreview,
+                styles.captureWrapper,
                 theme === 'dark' ? styles.darkTheme : styles.lightTheme
               ]}
             >
-              {/* Chat Preview */}
-              <View style={styles.chatPreview}>
+              {userPrompt ? (
                 <View style={styles.messageContainer}>
-                  <View style={styles.aiMessage}>
-                                    <Text style={styles.aiText} numberOfLines={20}>
-                  {roastText}
-                </Text>
+                  <View style={styles.userMessage}>
+                    <Text style={styles.userText}>
+                      {userPrompt}
+                    </Text>
                   </View>
                 </View>
-              </View>
-
-              {/* App Branding Overlay */}
-              <View style={styles.brandingOverlay}>
-                <View style={styles.brandingContent}>
-                  <Text style={styles.appIcon}>🤖</Text>
-                  <Text style={styles.appName}>Hater AI</Text>
+              ) : null}
+              <View style={styles.messageContainer}>
+                <View style={styles.aiMessage}>
+                  <Text style={styles.aiText}>
+                    {roastText}
+                  </Text>
                 </View>
               </View>
-            </ViewShot>
+            </View>
+
+            {/* Keep branding visible in the preview area below, but not captured */}
+            <View style={styles.brandingStatic}>
+              <View style={styles.brandingContent}>
+                <Image source={require('../../assets/icon.png')} style={{width: 24, height: 24}}/>
+                <Text style={styles.appName}>Hater AI</Text>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -265,6 +301,15 @@ const styles = StyleSheet.create({
   previewContainer: {
     alignItems: 'center',
   },
+  captureWrapper: {
+    padding: 16, // controls extra space around bubble inside the capture
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#4ECDC4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    maxWidth: screenWidth * 0.9,
+  },
   screenshotPreview: {
     borderRadius: 12,
     overflow: 'hidden',
@@ -286,11 +331,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   chatPreview: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8, // Minimal padding to overlay
-    justifyContent: 'flex-start', // Move to top
+    display: 'none',
   },
   messageContainer: {
     marginBottom: 0, // Remove bottom margin to extend to overlay
@@ -303,22 +344,35 @@ const styles = StyleSheet.create({
     maxWidth: '95%', // Even wider since we have more space
     marginBottom: 8, // Minimal space to overlay
   },
+  userMessage: {
+    alignSelf: 'center',
+    backgroundColor: '#2f6fed',
+    padding: 16,
+    borderRadius: 16,
+    maxWidth: '95%',
+    marginBottom: 8,
+  },
   aiText: {
     color: '#FFFFFF',
     fontSize: 14,
     lineHeight: 20,
     flexWrap: 'wrap', // Allow text to wrap
   },
+  userText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    lineHeight: 20,
+    flexWrap: 'wrap',
+  },
   brandingOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    display: 'none',
+  },
+  brandingStatic: {
+    marginTop: 12,
     backgroundColor: 'rgba(0,0,0,0.8)',
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderRadius: 12,
   },
   brandingContent: {
     flexDirection: 'row',

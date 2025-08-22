@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { Platform, Share } from 'react-native';
 import ViewShot from 'react-native-view-shot';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
@@ -37,12 +37,12 @@ export class ScreenshotService {
         throw new Error('View reference is not available');
       }
 
+      // Capture at the view's natural size so the image bounds match the
+      // content (textbox) plus any padding applied to that wrapper.
       const options = {
         format: 'png' as const,
         quality: 0.9,
         result: 'tmpfile' as const,
-        width: config.format === 'portrait' ? 1080 : 1920,
-        height: config.format === 'portrait' ? 1920 : 1080,
       };
 
       const screenshotPath = await ViewShot.captureRef(viewRef, options);
@@ -87,7 +87,7 @@ export class ScreenshotService {
     }
   }
 
-  async shareScreenshot(screenshotPath: string): Promise<boolean> {
+  async shareScreenshot(screenshotPath: string, caption?: string): Promise<boolean> {
     try {
       console.log('Sharing screenshot:', screenshotPath);
       
@@ -97,12 +97,17 @@ export class ScreenshotService {
         console.log('Screenshot file does not exist:', screenshotPath);
         return false;
       }
-      
-      // In a real implementation, this would use expo-sharing
-      // For now, we'll just log the action
+
+      // Use React Native Share to open the system share sheet with image + text
+      await Share.share({
+        url: screenshotPath,
+        message: caption || '',
+        title: 'Share your Hater AI roast',
+      });
+
       console.log('Screenshot ready for sharing:', screenshotPath);
       console.log('File size:', fileInfo.size, 'bytes');
-      
+
       return true;
     } catch (error) {
       console.error('Error sharing screenshot:', error);

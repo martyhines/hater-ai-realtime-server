@@ -12,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { API_CONFIG } from '../config/api';
 import { requestRealtimeToken } from '../services/realtimeService';
 import { useRemoteAudio } from '../hooks/useRemoteAudio';
+import RealtimeVoiceService from '../services/realtimeVoiceService';
+import { FEATURES } from '../config/features';
 import { Picker } from '@react-native-picker/picker';
 import Slider from '@react-native-community/slider';
 import { StorageService } from '../services/storageService';
@@ -154,6 +156,44 @@ const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation 
               <Ionicons name="play" size={20} color="#000" />
               <Text style={styles.testButtonText}>Play Test Audio</Text>
             </TouchableOpacity>
+            {FEATURES.ENABLE_REALTIME_VOICE ? (
+              <>
+                <TouchableOpacity
+                  style={styles.testButton}
+                  onPress={async () => {
+                    try {
+                      const info = await RealtimeVoiceService.getSessionInfo();
+                      if (!info.isSupported) {
+                        Alert.alert('Not supported', 'Install dev build with react-native-webrtc');
+                        return;
+                      }
+                      await RealtimeVoiceService.startSession();
+                      Alert.alert('Realtime', 'Voice session started');
+                    } catch (e: any) {
+                      console.error('Start realtime error:', e);
+                      Alert.alert('Error', e?.message ?? 'Failed to start');
+                    }
+                  }}
+                >
+                  <Ionicons name="mic" size={20} color="#000" />
+                  <Text style={styles.testButtonText}>Start Voice</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.testButton}
+                  onPress={async () => {
+                    try {
+                      await RealtimeVoiceService.stopSession();
+                      Alert.alert('Realtime', 'Voice session stopped');
+                    } catch (e: any) {
+                      // ignore
+                    }
+                  }}
+                >
+                  <Ionicons name="stop" size={20} color="#000" />
+                  <Text style={styles.testButtonText}>Stop Voice</Text>
+                </TouchableOpacity>
+              </>
+            ) : null}
           </View>
         </View>
         {/* Language Selection */}

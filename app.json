@@ -16,7 +16,11 @@
       "bundleIdentifier": "com.haterai.app",
       "buildNumber": "1",
       "infoPlist": {
-        "NSUserTrackingUsageDescription": "This app does not track user data across other apps."
+        "NSUserTrackingUsageDescription": "This app does not track user data across other apps.",
+        "NSMicrophoneUsageDescription": "Allow Hater AI to access your microphone for speech input and voice features.",
+        "NSSpeechRecognitionUsageDescription": "Allow Hater AI to convert your speech to text for voice conversations.",
+        "NSPhotoLibraryUsageDescription": "Allow Hater AI to access your photo library to save screenshots.",
+        "NSPhotoLibraryAddUsageDescription": "Allow Hater AI to add screenshots to your photo library."
       }
     },
     "android": {

@@ -49,7 +49,7 @@ export class TogetherAIService extends AIService {
                 content: `${contextPrompt ? contextPrompt + '\n\n' : ''}${this.buildConversationContext()}\n\nUser: ${prompt}\nAI Enemy:`
               }
             ],
-            max_tokens: 150,
+            max_tokens: 300,
             temperature: 0.8,
             top_p: 0.9,
             frequency_penalty: 0.1,

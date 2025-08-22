@@ -49,6 +49,9 @@ export interface UserSettings {
   personalization?: Record<string, any>; // Personalization quiz data
   voiceSettings?: VoiceSettings; // Voice settings for text-to-speech
   speechToTextSettings?: SpeechToTextSettings; // Speech-to-text settings
+  // Voice: premium realtime voice toggle and basic monetization field
+  realtimeVoiceEnabled?: boolean; // OpenAI Realtime Voice (beta)
+  subscriptionTier?: 'free' | 'pro' | 'creator';
 }
 
 export interface AIPersonality {

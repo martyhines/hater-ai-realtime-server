@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { FEATURES } from '../config/features';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import { Message, UserSettings } from '../types';
@@ -296,9 +297,9 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       const reloadSettings = async () => {
         try {
           const storage = StorageService.getInstance();
-          const savedSettings = await storage.getSettings();
+          const savedSettings = (await storage.getSettings()) || {};
           console.log('🎯 ChatScreen - Loaded Settings:', savedSettings);
-          console.log('🎯 ChatScreen - Personalization Data:', savedSettings.personalization);
+          console.log('🎯 ChatScreen - Personalization Data:', (savedSettings as any)?.personalization);
           
           const settings: UserSettings = {
             roastIntensity: 'medium',
@@ -595,12 +596,14 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
                   >
                     <Ionicons name="mic" size={16} color="#FFD93D" />
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.shareButton}
-                    onPress={handleShareToTikTok}
-                  >
-                    <Ionicons name="videocam" size={16} color="#4ECDC4" />
-                  </TouchableOpacity>
+                  {FEATURES.ENABLE_TIKTOK_VIDEO ? (
+                    <TouchableOpacity
+                      style={styles.shareButton}
+                      onPress={handleShareToTikTok}
+                    >
+                      <Ionicons name="videocam" size={16} color="#4ECDC4" />
+                    </TouchableOpacity>
+                  ) : null}
                   <TouchableOpacity
                     style={styles.shareButton}
                     onPress={handleShareToTwitter}

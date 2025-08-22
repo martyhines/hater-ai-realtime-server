@@ -13,10 +13,10 @@ export const API_CONFIG = {
   
   // OpenAI Realtime (voice) config
   REALTIME: {
-    TOKEN_ENDPOINT: 'https://your-backend.example.com/realtime-token', // Replace with your backend URL that returns an ephemeral token
+    TOKEN_ENDPOINT: 'https://hater-ai-realtime-server.onrender.com/realtime-token', // Replace with your backend URL that returns an ephemeral token
     MODEL: 'gpt-4o-realtime-preview-2024-12-17',
     BASE_URL: 'https://api.openai.com/v1/realtime',
-    APP_AUTH_TOKEN: 'replace-with-app-auth-token',
+    APP_AUTH_TOKEN: 'afa04b22528235641df0302306fd9170',
     TEST_AUDIO_URL: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
   },
   

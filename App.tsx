@@ -12,6 +12,7 @@ import ApiKeyScreen from './src/screens/ApiKeyScreen';
 import CustomModelScreen from './src/screens/CustomModelScreen';
 import HowToCustomModelScreen from './src/screens/HowToCustomModelScreen';
 import TikTokVideoScreen from './src/screens/TikTokVideoScreen';
+import { FEATURES } from './src/config/features';
 import TweetGeneratorScreen from './src/screens/TweetGeneratorScreen';
 import ScreenshotScreen from './src/screens/ScreenshotScreen';
 import PersonalizationQuizScreen from './src/screens/PersonalizationQuizScreen';
@@ -91,11 +92,13 @@ export default function App() {
             component={HowToCustomModelScreen} 
             options={{ title: 'How to Add Custom Models' }}
           />
-          <Stack.Screen 
-            name="TikTokVideo" 
-            component={TikTokVideoScreen} 
-            options={{ title: 'Create TikTok Video' }}
-          />
+          {FEATURES.ENABLE_TIKTOK_VIDEO ? (
+            <Stack.Screen 
+              name="TikTokVideo" 
+              component={TikTokVideoScreen} 
+              options={{ title: 'Create TikTok Video' }}
+            />
+          ) : null}
           <Stack.Screen 
             name="TweetGenerator" 
             component={TweetGeneratorScreen} 
