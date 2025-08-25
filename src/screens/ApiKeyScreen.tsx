@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import { StorageService } from '../services/storageService';
+import { FEATURES } from '../config/features';
 
 type ApiKeyScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ApiKey'>;
 
@@ -328,6 +329,16 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Checking your AI setup...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!FEATURES.ENABLE_BYOK) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Managed billing is enabled. User API keys are disabled.</Text>
         </View>
       </SafeAreaView>
     );

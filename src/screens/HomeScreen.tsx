@@ -14,6 +14,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import { UserSettings } from '../types';
 import { StorageService } from '../services/storageService';
+import { FEATURES } from '../config/features';
 
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -222,6 +223,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </TouchableOpacity>
 
           {/* Enable AI Button */}
+          {FEATURES.ENABLE_BYOK ? (
           <TouchableOpacity
             style={[styles.enableAiButton, isAIEnabled && styles.enableAiButtonActive]}
             onPress={() => navigation.navigate('ApiKey')}
@@ -236,6 +238,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               {isAIEnabled ? "AI Settings" : "Enable Real AI"}
             </Text>
           </TouchableOpacity>
+          ) : null}
 
           {/* Main Action Button */}
           <TouchableOpacity

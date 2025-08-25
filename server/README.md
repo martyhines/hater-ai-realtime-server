@@ -19,11 +19,44 @@ Simple Express server that mints ephemeral OpenAI Realtime session tokens.
 - `REALTIME_TTL` seconds (30–300, default 60)
 - `PORT` (default 8787)
 
+Example `.env` for local dev:
+
+```
+OPENAI_API_KEY=sk-...your key...
+APP_AUTH_TOKEN=your-app-token
+ALLOWED_ORIGIN=*
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_RPM=30
+```
+
 ## Local Dev
 
 ```bash
 npm install --prefix server
 npm run server
+```
+
+Or run directly:
+
+```bash
+cd server
+npm i
+node index.js
+```
+
+Health check:
+
+```bash
+curl http://localhost:8787/health
+```
+
+Test chat proxy:
+
+```bash
+curl -X POST http://localhost:8787/v1/chat \
+  -H "Authorization: Bearer $APP_AUTH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"hi"}]}'
 ```
 
 ## Deploy to Render

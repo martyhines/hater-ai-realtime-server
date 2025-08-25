@@ -1,5 +1,29 @@
 // API Configuration
+// Resolve a sensible backend base URL for dev and prod
+const resolveBackendBaseUrl = (): string => {
+  try {
+    const env = (typeof process !== 'undefined' && (process as any).env && (process as any).env.BACKEND_BASE_URL) || '';
+    if (env) return env as string;
+
+    // In Expo dev, derive host IP and use port 8787
+    const Constants = require('expo-constants').default;
+    const hostUri: string | undefined = (Constants?.expoConfig as any)?.hostUri;
+    if (hostUri) {
+      const hostOnly = hostUri.split(':')[0];
+      return `http://${hostOnly}:8787`;
+    }
+  } catch (_e) {
+    // fallthrough to default
+  }
+  // Deployed default
+  return 'https://hater-ai-realtime-server.onrender.com';
+};
+
 export const API_CONFIG = {
+  // App backend configuration
+  BACKEND: {
+    BASE_URL: resolveBackendBaseUrl(),
+  },
   // OpenAI API Configuration
   OPENAI: {
     BASE_URL: 'https://api.openai.com/v1',

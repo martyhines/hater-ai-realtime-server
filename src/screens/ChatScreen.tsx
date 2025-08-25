@@ -169,18 +169,35 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
 
         console.log('Loaded settings:', settings);
 
-        // Start with template service by default for faster loading
+        // If BYOK is disabled, default to backend-powered OpenAI service
+        if (!FEATURES.ENABLE_BYOK) {
+          setAiService(new OpenAIService(settings, ''));
+          setIsAIEnabled(true);
+          setActiveProvider('openai');
+          const welcomeMessage: Message = {
+            id: 'welcome',
+            text: "Oh great, another human who thinks they're worth talking to. What do you want?",
+            sender: 'ai',
+            timestamp: new Date(),
+          };
+          setMessages([welcomeMessage]);
+          return;
+        }
+
+        // Start with template service by default for faster loading when BYOK enabled
         setAiService(new AIService(settings));
         setIsAIEnabled(false);
 
         // Check for all available providers
-        const [cohereKey, huggingfaceKey, openaiKey, geminiKey, togetherAIKey] = await Promise.all([
-          storage.getCohereKey(),
-          storage.getHuggingFaceKey(),
-          storage.getOpenAIKey(),
-          storage.getGeminiKey(),
-          storage.getTogetherAIKey(),
-        ]);
+        const [cohereKey, huggingfaceKey, openaiKey, geminiKey, togetherAIKey] = FEATURES.ENABLE_BYOK
+          ? await Promise.all([
+              storage.getCohereKey(),
+              storage.getHuggingFaceKey(),
+              storage.getOpenAIKey(),
+              storage.getGeminiKey(),
+              storage.getTogetherAIKey(),
+            ])
+          : [null, null, null, null, null];
 
         // Check for custom models
         const customModels = await storage.getCustomModels();
@@ -309,6 +326,14 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
             allowCursing: false,
             ...savedSettings,
           };
+
+          // If BYOK is disabled, keep using backend-powered OpenAI
+          if (!FEATURES.ENABLE_BYOK) {
+            setAiService(new OpenAIService(settings, ''));
+            setIsAIEnabled(true);
+            setActiveProvider('openai');
+            return;
+          }
 
           // Check for all available providers
           const [cohereKey, huggingfaceKey, openaiKey, geminiKey, togetherAIKey] = await Promise.all([
@@ -697,8 +722,8 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
             </Text>
           </View>
           
-          {/* Provider Switcher - Only show if multiple providers are available */}
-          {(availableProviders.cohere || availableProviders.togetherai || availableProviders.gemini || availableProviders.huggingface || availableProviders.openai || availableProviders.custom) && (
+          {/* Provider Switcher - Only show if BYOK enabled and multiple providers are available */}
+          {FEATURES.ENABLE_BYOK && (availableProviders.cohere || availableProviders.togetherai || availableProviders.gemini || availableProviders.huggingface || availableProviders.openai || availableProviders.custom) && (
             <View style={styles.providerSwitcher}>
               {availableProviders.cohere && (
                 <TouchableOpacity

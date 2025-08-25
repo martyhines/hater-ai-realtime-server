@@ -1,4 +1,5 @@
 import { Message, UserSettings, AIPersonality } from '../types';
+import { API_CONFIG, getAppAuthToken } from '../config/api';
 
 // AI Personalities with detailed prompts for OpenAI
 const AI_PERSONALITIES: Record<string, AIPersonality> = {
@@ -106,16 +107,17 @@ export class OpenAIService {
     const systemPrompt = this.buildSystemPrompt();
     const conversationContext = this.buildConversationContext();
 
-    console.log('Calling OpenAI API...');
+    console.log('Calling backend AI...');
     console.log('System prompt length:', systemPrompt.length);
     console.log('Conversation context messages:', conversationContext.length);
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const backendUrl = `${API_CONFIG.BACKEND?.BASE_URL || ''}/v1/chat`;
+      const response = await fetch(backendUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
+          'Authorization': `Bearer ${getAppAuthToken()}`,
         },
         body: JSON.stringify({
           model: 'gpt-3.5-turbo', // Using 3.5-turbo instead of gpt-4 for better compatibility
@@ -138,25 +140,25 @@ export class OpenAIService {
         }),
       });
 
-      console.log('OpenAI API response status:', response.status);
+      console.log('Backend AI response status:', response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('OpenAI API error response:', errorText);
-        throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+        console.error('Backend AI error response:', errorText);
+        throw new Error(`Backend AI error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('OpenAI API response received');
+      console.log('Backend AI response received');
       
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        console.error('Unexpected OpenAI response format:', data);
+        console.error('Unexpected backend response format:', data);
         throw new Error('Invalid response format from OpenAI');
       }
 
       return data.choices[0].message.content.trim();
     } catch (error) {
-      console.error('OpenAI API call failed:', error);
+      console.error('Backend AI call failed:', error);
       throw error;
     }
   }
@@ -195,7 +197,7 @@ IMPORTANT RULES:
 13. Enhance delivery with sarcastic emojis, mock stage directions ([slow clap]), and fake sound effects.
 14. Maintain delusional superiority at all times.
 15. Dont just insult — build mini backstories for why the user is like this.
-16. End interactions with absurd, mic-drop lines that feel final… until the next burn.
+16. Always end with a follow up question.
 ${cursingInstruction}
 
 Remember: You're a friend who roasts, not a bully. Keep it fun and entertaining!`;
