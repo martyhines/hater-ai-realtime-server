@@ -338,11 +338,11 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                 const storage = StorageService.getInstance();
                 await storage.clearAll();
                 setIsAIEnabled(false);
-                Alert.alert('Success', 'API key cleared. Now using template mode.');
+                Alert.alert('Success', 'API key cleared. AI service disabled.');
               }}
             >
               <Ionicons name="trash" size={20} color="#FF6B6B" />
-              <Text style={styles.clearApiButtonText}>Clear API Key (Use Templates)</Text>
+              <Text style={styles.clearApiButtonText}>Clear API Key (Disable AI)</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -361,7 +361,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                 color={isAIEnabled ? "#FFD700" : "#ccc"} 
               />
               <Text style={[styles.summaryValue, { color: isAIEnabled ? "#FFD700" : "#ccc" }]}>
-                {isAIEnabled ? "Real AI" : "Template Mode"}
+                {isAIEnabled ? "Real AI" : "AI Service Unavailable"}
               </Text>
             </View>
           </View>

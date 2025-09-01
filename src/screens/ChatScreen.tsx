@@ -42,7 +42,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   const [aiService, setAiService] = useState<AIService | OpenAIService | HuggingFaceService | CohereService | GeminiService | CustomModelService | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAIEnabled, setIsAIEnabled] = useState(false);
-  const [activeProvider, setActiveProvider] = useState<'cohere' | 'huggingface' | 'openai' | 'gemini' | 'togetherai' | 'custom' | 'template'>('template');
+  const [activeProvider, setActiveProvider] = useState<'cohere' | 'huggingface' | 'openai' | 'gemini' | 'togetherai' | 'custom'>('openai');
   const [availableProviders, setAvailableProviders] = useState<{
     cohere: boolean;
     huggingface: boolean;
@@ -67,11 +67,11 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   const [speechToTextSettings, setSpeechToTextSettings] = useState<any>(null);
 
   // Function to switch between available providers
-  const switchProvider = async (provider: 'cohere' | 'huggingface' | 'openai' | 'gemini' | 'togetherai' | 'custom' | 'template') => {
+  const switchProvider = async (provider: 'cohere' | 'huggingface' | 'openai' | 'gemini' | 'togetherai' | 'custom') => {
     try {
       const storage = StorageService.getInstance();
       const savedSettings = await storage.getSettings();
-      
+
       const settings: UserSettings = {
         roastIntensity: 'medium',
         aiPersonality: 'sarcastic',
@@ -80,11 +80,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         ...savedSettings,
       };
 
-      if (provider === 'template') {
-        setAiService(new AIService(settings));
-        setIsAIEnabled(false);
-        setActiveProvider('template');
-      } else if (provider === 'cohere' && availableProviders.cohere) {
+      if (provider === 'cohere' && availableProviders.cohere) {
         const cohereKey = await storage.getCohereKey();
         if (cohereKey) {
           setAiService(new CohereService(settings, cohereKey));
@@ -99,10 +95,15 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
             setIsAIEnabled(true);
             setActiveProvider('huggingface');
           } catch (error) {
-            console.log('Hugging Face service failed, falling back to template mode');
-            setAiService(new AIService(settings));
+            console.log('Hugging Face service failed');
             setIsAIEnabled(false);
-            setActiveProvider('template');
+            const errorMessage: Message = {
+              id: 'hf-error-switch',
+              text: "Hugging Face service unavailable. Please try a different AI provider.",
+              sender: 'ai',
+              timestamp: new Date(),
+            };
+            setMessages(prev => [...prev, errorMessage]);
           }
         }
       } else if (provider === 'openai' && availableProviders.openai) {
@@ -184,8 +185,8 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           return;
         }
 
-        // Start with template service by default for faster loading when BYOK enabled
-        setAiService(new AIService(settings));
+        // Start with no service - will show error if no providers available
+        setAiService(null);
         setIsAIEnabled(false);
 
         // Check for all available providers
@@ -234,53 +235,56 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
             setAiService(new HuggingFaceService(settings, huggingfaceKey));
             setIsAIEnabled(true);
             setActiveProvider('huggingface');
-          } catch (error) {
-            console.log('Hugging Face service failed, falling back to template mode');
-            setAiService(new AIService(settings));
-            setIsAIEnabled(false);
-            setActiveProvider('template');
-          }
+                      } catch (error) {
+              console.log('Hugging Face service failed');
+              setAiService(null);
+              setIsAIEnabled(false);
+              const errorMessage: Message = {
+                id: 'hf-error-focus',
+                text: "Hugging Face service unavailable. Please try a different AI provider.",
+                sender: 'ai',
+                timestamp: new Date(),
+              };
+              setMessages(prev => [...prev, errorMessage]);
+            }
         } else if (openaiKey) {
           console.log('OpenAI API key found, setting up OpenAI service');
           setAiService(new OpenAIService(settings, openaiKey));
           setIsAIEnabled(true);
           setActiveProvider('openai');
-        } else {
-          console.log('No API keys found, using template mode');
-          setAiService(new AIService(settings));
-          setIsAIEnabled(false);
-          setActiveProvider('template');
-        }
+                  } else {
+            console.log('No API keys found for BYOK');
+            setAiService(null);
+            setIsAIEnabled(false);
+            const errorMessage: Message = {
+              id: 'no-keys-focus',
+              text: "No AI service available. Please add API keys or enable the server.",
+              sender: 'ai',
+              timestamp: new Date(),
+            };
+            setMessages(prev => [...prev, errorMessage]);
+          }
 
         const welcomeMessage: Message = {
           id: 'welcome',
-          text: hasApiKey 
+          text: hasApiKey
             ? "Oh great, another human who thinks they're worth talking to. What do you want?"
-            : "Oh great, another human who thinks they're worth talking to. What do you want? (Using template responses - enable real AI for better roasts!)",
+            : "Oh great, another human who thinks you're worth talking to. What do you want? (AI service unavailable - check your connection!)",
           sender: 'ai',
           timestamp: new Date(),
         };
         setMessages([welcomeMessage]);
       } catch (error) {
         console.error('Error initializing AI:', error);
-        // Fallback to basic template service
-        const settings: UserSettings = {
-          roastIntensity: 'medium',
-          aiPersonality: 'sarcastic',
-          enableNotifications: true,
-          enableSound: true,
-          allowCursing: false,
-        };
-        setAiService(new AIService(settings));
+        // Show error to user instead of falling back to template
         setIsAIEnabled(false);
-        
-        const welcomeMessage: Message = {
-          id: 'welcome',
-          text: "Oh great, another human who thinks they're worth talking to. What do you want? (Template mode)",
+        const errorMessage: Message = {
+          id: 'error',
+          text: "Unable to connect to AI service. Please check your connection and try again.",
           sender: 'ai',
           timestamp: new Date(),
         };
-        setMessages([welcomeMessage]);
+        setMessages([errorMessage]);
       } finally {
         setIsLoading(false);
       }
@@ -380,10 +384,15 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
               setIsAIEnabled(true);
               setActiveProvider('huggingface');
             } catch (error) {
-              console.log('Hugging Face service failed, falling back to template mode');
-              setAiService(new AIService(settings));
+              console.log('Hugging Face service failed');
               setIsAIEnabled(false);
-              setActiveProvider('template');
+              const errorMessage: Message = {
+                id: 'hf-error',
+                text: "Hugging Face service unavailable. Please try a different AI provider.",
+                sender: 'ai',
+                timestamp: new Date(),
+              };
+              setMessages(prev => [...prev, errorMessage]);
             }
           } else if (openaiKey) {
             console.log('Switching to OpenAI service');
@@ -391,24 +400,27 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
             setIsAIEnabled(true);
             setActiveProvider('openai');
           } else {
-            console.log('No API keys found, using template mode');
-            setAiService(new AIService(settings));
+            console.log('No API keys found for BYOK');
             setIsAIEnabled(false);
-            setActiveProvider('template');
+            const errorMessage: Message = {
+              id: 'no-keys',
+              text: "No AI service available. Please add API keys or enable the server.",
+              sender: 'ai',
+              timestamp: new Date(),
+            };
+            setMessages(prev => [...prev, errorMessage]);
           }
         } catch (error) {
           console.error('Error reloading settings:', error);
-          // Fallback to template service
-          const settings: UserSettings = {
-            roastIntensity: 'medium',
-            aiPersonality: 'sarcastic',
-            enableNotifications: true,
-            enableSound: true,
-            allowCursing: false,
-          };
-          setAiService(new AIService(settings));
+          // Keep existing AI service but show error state
           setIsAIEnabled(false);
-          setActiveProvider('template');
+          const errorMessage: Message = {
+            id: 'reload-error',
+            text: "Connection to AI service lost. Please check your connection.",
+            sender: 'ai',
+            timestamp: new Date(),
+          };
+          setMessages(prev => [...prev, errorMessage]);
         }
       };
       reloadSettings();
@@ -679,7 +691,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         return 'OpenAI (gpt-3.5-turbo)';
       case 'custom':
         return 'Custom Model';
-      case 'template':
       default:
         return '';
     }
@@ -717,8 +728,8 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
               size={16}
               color={isAIEnabled ? "#FFD700" : "#ccc"}
             />
-            <Text style={[styles.aiStatusText, { color: isAIEnabled ? "#FFD700" : "#ccc" }]}> 
-              {isAIEnabled ? `Real AI${getModelName() ? ` (${getModelName()})` : ''}` : "Template Mode"}
+            <Text style={[styles.aiStatusText, { color: isAIEnabled ? "#FFD700" : "#ccc" }]}>
+              {isAIEnabled ? `Real AI${getModelName() ? ` (${getModelName()})` : ''}` : "AI Service Unavailable"}
             </Text>
           </View>
           
@@ -821,20 +832,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
                   </Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity
-                style={[
-                  styles.providerButton,
-                  activeProvider === 'template' && styles.activeProviderButton
-                ]}
-                onPress={() => switchProvider('template')}
-              >
-                <Text style={[
-                  styles.providerButtonText,
-                  activeProvider === 'template' && styles.activeProviderButtonText
-                ]}>
-                  Template
-                </Text>
-              </TouchableOpacity>
+
             </View>
           )}
         </View>

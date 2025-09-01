@@ -15,6 +15,12 @@ const resolveBackendBaseUrl = (): string => {
   } catch (_e) {
     // fallthrough to default
   }
+
+  // For local development, force localhost
+  if (__DEV__) {
+    return 'http://localhost:8787';
+  }
+
   // Deployed default
   return 'https://hater-ai-realtime-server.onrender.com';
 };

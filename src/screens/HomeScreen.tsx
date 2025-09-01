@@ -115,7 +115,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       condescending: { name: 'Condescending Carl', emoji: '🤓' },
       streetsmart: { name: 'Street Smart', emoji: '🔥' },
     };
-    return personalities[settings.aiPersonality];
+    const key = (settings.aiPersonality as keyof typeof personalities) || 'sarcastic';
+    return personalities[key] || personalities.sarcastic;
   };
 
   const getIntensityInfo = () => {
@@ -124,7 +125,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       medium: { name: 'Medium', color: '#FF9800' },
       savage: { name: 'Savage', color: '#F44336' },
     };
-    return intensities[settings.roastIntensity];
+    const key = (settings.roastIntensity as keyof typeof intensities) || 'medium';
+    return intensities[key] || intensities.medium;
   };
 
   const personality = getPersonalityInfo();
@@ -157,7 +159,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>AI Mode</Text>
                 <Text style={[styles.settingValue, { color: isAIEnabled ? "#FFD700" : "#ccc" }]}>
-                  {isAIEnabled ? "Real AI Enabled" : "Template Mode"}
+                  {isAIEnabled ? "Real AI Enabled" : "AI Service Unavailable"}
                 </Text>
               </View>
             </View>
@@ -288,12 +290,12 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 const storage = StorageService.getInstance();
                 await storage.clearAll();
                 setIsAIEnabled(false);
-                Alert.alert('Success', 'Switched to template mode!');
+                Alert.alert('Success', 'AI service disabled!');
               }}
               activeOpacity={0.7}
             >
               <Ionicons name="trash" size={20} color="#FF6B6B" />
-              <Text style={styles.clearApiButtonText}>Switch to Template Mode</Text>
+              <Text style={styles.clearApiButtonText}>Disable AI Service</Text>
             </TouchableOpacity>
           )}
 

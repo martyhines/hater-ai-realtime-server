@@ -1,4 +1,3 @@
-import Voice, { SpeechResultsEvent, SpeechErrorEvent } from '@react-native-voice/voice';
 import { Audio } from 'expo-av';
 import { Platform } from 'react-native';
 
@@ -20,6 +19,7 @@ class SpeechToTextService {
   private isRecording: boolean = false;
   private recordingTimeout: NodeJS.Timeout | null = null;
   private lastResult: TranscriptionResult | null = null;
+  private voiceModule: any = null;
   private settings: SpeechToTextSettings = {
     language: 'en-US',
     autoSend: true,
@@ -48,11 +48,15 @@ class SpeechToTextService {
     }
 
     try {
-      Voice.onSpeechStart = this.onSpeechStart.bind(this);
-      Voice.onSpeechEnd = this.onSpeechEnd.bind(this);
-      Voice.onSpeechResults = this.onSpeechResults.bind(this);
-      Voice.onSpeechError = this.onSpeechError.bind(this);
-      Voice.onSpeechPartialResults = this.onSpeechPartialResults.bind(this);
+      // Lazy-load native module only on supported builds
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const Voice = require('@react-native-voice/voice').default || require('@react-native-voice/voice');
+      this.voiceModule = Voice;
+      this.voiceModule.onSpeechStart = this.onSpeechStart.bind(this);
+      this.voiceModule.onSpeechEnd = this.onSpeechEnd.bind(this);
+      this.voiceModule.onSpeechResults = this.onSpeechResults.bind(this);
+      this.voiceModule.onSpeechError = this.onSpeechError.bind(this);
+      this.voiceModule.onSpeechPartialResults = this.onSpeechPartialResults.bind(this);
     } catch (error) {
       console.log('Native voice module not available, using web fallback');
       this.initializeWebSpeechRecognition();
@@ -126,7 +130,7 @@ class SpeechToTextService {
         }
       } else {
         // Start voice recognition
-        await Voice.start(this.settings.language);
+        await this.voiceModule?.start(this.settings.language);
       }
       
       // Set timeout for auto-stop
@@ -166,7 +170,7 @@ class SpeechToTextService {
         }
       } else {
         // Stop voice recognition
-        await Voice.stop();
+        await this.voiceModule?.stop();
       }
       
       console.log('🎤 Stopped speech recognition');
@@ -209,7 +213,7 @@ class SpeechToTextService {
     this.isRecording = false;
   }
 
-  private onSpeechResults(event: SpeechResultsEvent): void {
+  private onSpeechResults(event: any): void {
     if (event.value && event.value.length > 0) {
       const text = event.value[0];
       const confidence = (event as any).confidence?.[0] || 0.8;
@@ -225,7 +229,7 @@ class SpeechToTextService {
     }
   }
 
-  private onSpeechPartialResults(event: SpeechResultsEvent): void {
+  private onSpeechPartialResults(event: any): void {
     if (event.value && event.value.length > 0) {
       const text = event.value[0];
       console.log('🎤 Partial results:', text);
@@ -239,7 +243,7 @@ class SpeechToTextService {
     }
   }
 
-  private onSpeechError(event: SpeechErrorEvent): void {
+  private onSpeechError(event: any): void {
     console.error('🎤 Speech recognition error:', event.error);
     this.isRecording = false;
   }
@@ -286,7 +290,9 @@ class SpeechToTextService {
         this.webSpeechRecognition.abort();
       }
     } else {
-      Voice.destroy().then(Voice.removeAllListeners);
+      if (this.voiceModule) {
+        this.voiceModule.destroy().then(this.voiceModule.removeAllListeners);
+      }
     }
   }
 }
