@@ -466,22 +466,21 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           ))}
         </View>
 
-          {/* Clear API Key Button */}
-          {isAIEnabled && (
-            <TouchableOpacity
-              style={styles.clearApiButton}
-              onPress={async () => {
-                const storage = StorageService.getInstance();
-                await storage.clearAll();
-                setIsAIEnabled(false);
-                Alert.alert('Success', 'API key cleared. AI service disabled.');
-              }}
-            >
-              <Ionicons name="trash" size={20} color="#FF6B6B" />
-              <Text style={styles.clearApiButtonText}>Clear API Key (Disable AI)</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* Clear API Key Button */}
+        {isAIEnabled && (
+          <TouchableOpacity
+            style={styles.clearApiButton}
+            onPress={async () => {
+              const storage = StorageService.getInstance();
+              await storage.clearAll();
+              setIsAIEnabled(false);
+              Alert.alert('Success', 'API key cleared. AI service disabled.');
+            }}
+          >
+            <Ionicons name="trash" size={20} color="#FF6B6B" />
+            <Text style={styles.clearApiButtonText}>Clear API Key (Disable AI)</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Current Settings Summary */}
         <View style={styles.summaryCard}>
