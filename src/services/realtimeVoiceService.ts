@@ -7,15 +7,22 @@ import { StorageService } from './storageService';
 import { requestRealtimeToken } from './realtimeService';
 
 let WebRTC: any = null;
+let RTCPeerConnection: any = null;
+let mediaDevices: any = null;
+
 try {
 	// Lazy require to avoid breaking Expo Go when the module isn't present
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	WebRTC = require('react-native-webrtc');
+	if (WebRTC) {
+		RTCPeerConnection = WebRTC.RTCPeerConnection;
+		mediaDevices = WebRTC.mediaDevices;
+	}
 } catch (e) {
 	WebRTC = null;
+	RTCPeerConnection = null;
+	mediaDevices = null;
 }
-
-const { RTCPeerConnection, mediaDevices } = WebRTC || {};
 
 export interface RealtimeSessionInfo {
 	isSupported: boolean;

@@ -1,4 +1,4 @@
-import { Audio } from 'expo-av';
+import { requestRecordingPermissionsAsync } from 'expo-audio';
 import { Platform } from 'react-native';
 import { FEATURES } from '../config/features';
 
@@ -101,7 +101,7 @@ class SpeechToTextService {
         return true;
       }
       
-      const { status } = await Audio.requestPermissionsAsync();
+      const { status } = await requestRecordingPermissionsAsync();
       return status === 'granted';
     } catch (error) {
       console.error('Error requesting audio permissions:', error);

@@ -1,54 +1,45 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { Audio, AVPlaybackStatusSuccess } from 'expo-av';
+import { useEffect, useCallback } from 'react';
+import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 
 export function useRemoteAudio(sourceUrl?: string) {
-  const soundRef = useRef<Audio.Sound | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [durationMs, setDurationMs] = useState<number | null>(null);
-  const [positionMs, setPositionMs] = useState<number>(0);
-
-  const unload = useCallback(async () => {
-    if (soundRef.current) {
-      try { await soundRef.current.unloadAsync(); } catch {}
-      soundRef.current = null;
-      setIsLoaded(false);
-      setIsPlaying(false);
-      setDurationMs(null);
-      setPositionMs(0);
-    }
-  }, []);
+  const player = useAudioPlayer(sourceUrl);
+  const status = useAudioPlayerStatus(player);
 
   const load = useCallback(async (url?: string) => {
     const target = url ?? sourceUrl;
     if (!target) throw new Error('No audio URL provided');
-    await unload();
-    const { sound } = await Audio.Sound.createAsync({ uri: target }, { shouldPlay: false }, (status) => {
-      const s = status as AVPlaybackStatusSuccess;
-      if (s.isLoaded) {
-        setIsPlaying(s.isPlaying);
-        setDurationMs(s.durationMillis ?? null);
-        setPositionMs(s.positionMillis ?? 0);
-      }
-    });
-    soundRef.current = sound;
-    setIsLoaded(true);
-  }, [sourceUrl, unload]);
+    player.replace(target);
+  }, [sourceUrl, player]);
+
+  const unload = useCallback(async () => {
+    player.remove();
+  }, [player]);
 
   const play = useCallback(async () => {
-    if (!soundRef.current) throw new Error('Sound not loaded');
-    await soundRef.current.playAsync();
-  }, []);
+    if (!player.isLoaded) throw new Error('Sound not loaded');
+    player.play();
+  }, [player]);
 
   const pause = useCallback(async () => {
-    if (!soundRef.current) return;
-    await soundRef.current.pauseAsync();
-  }, []);
+    if (!player.isLoaded) return;
+    player.pause();
+  }, [player]);
 
   useEffect(() => {
-    return () => { unload(); };
-  }, [unload]);
+    return () => { 
+      player.remove(); 
+    };
+  }, [player]);
 
-  return { load, unload, play, pause, isLoaded, isPlaying, durationMs, positionMs };
+  return { 
+    load, 
+    unload, 
+    play, 
+    pause, 
+    isLoaded: status.isLoaded, 
+    isPlaying: status.isPlaying, 
+    durationMs: status.duration ? status.duration * 1000 : null, 
+    positionMs: status.currentTime ? status.currentTime * 1000 : 0 
+  };
 }
 
