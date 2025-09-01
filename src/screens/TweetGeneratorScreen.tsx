@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TweetGenerationService, Tweet, TweetGenerationConfig } from '../services/tweetGenerationService';
+import { TwitterShareService } from '../services/twitterShareService';
+import { FEATURES } from '../config/features';
 
 interface TweetGeneratorScreenProps {
   navigation: any;
@@ -106,10 +108,19 @@ export default function TweetGeneratorScreen({ navigation, route }: TweetGenerat
     if (!currentTweet) return;
     
     try {
-      const tweetText = tweetService.formatTweetForDisplay(currentTweet);
-      // In a real implementation, this would open Twitter with the tweet
-      console.log('Sharing to Twitter:', tweetText);
-      Alert.alert('Twitter Share', 'This would open Twitter with your tweet!');
+      const twitterService = TwitterShareService.getInstance();
+      
+      const success = await twitterService.shareToTwitter({
+        tweet: currentTweet,
+        includeAppLink: includeAppLink,
+        appStoreUrl: 'https://apps.apple.com/app/hater-ai' // Replace with your actual app store URL
+      });
+      
+      if (success) {
+        Alert.alert('Shared!', 'Tweet shared to Twitter successfully!');
+      } else {
+        Alert.alert('Share Failed', 'Failed to share to Twitter. Please try again.');
+      }
     } catch (error) {
       console.error('Error sharing to Twitter:', error);
       Alert.alert('Share Failed', 'Failed to share to Twitter.');
@@ -293,13 +304,15 @@ export default function TweetGeneratorScreen({ navigation, route }: TweetGenerat
                   <Text style={styles.shareButtonText}>Copy to Clipboard</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[styles.shareButton, styles.twitterButton]}
-                  onPress={shareToTwitter}
-                >
-                  <Ionicons name="logo-twitter" size={24} color="#FFFFFF" />
-                  <Text style={styles.shareButtonText}>Share to Twitter</Text>
-                </TouchableOpacity>
+                {FEATURES.ENABLE_TWITTER_SHARE && (
+                  <TouchableOpacity
+                    style={[styles.shareButton, styles.twitterButton]}
+                    onPress={shareToTwitter}
+                  >
+                    <Ionicons name="logo-twitter" size={24} color="#FFFFFF" />
+                    <Text style={styles.shareButtonText}>Share to Twitter</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>

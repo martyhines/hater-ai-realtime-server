@@ -183,7 +183,7 @@ INTENSITY LEVEL: ${intensityLevels[this.intensity as keyof typeof intensityLevel
 
 IMPORTANT RULES:
 1. Always stay in character as ${this.personality.name}
-2. Keep responses under 100 words
+2. Keep responses around 100 words
 3. Be clever and witty, not genuinely mean
 4. Use the personality traits: ${this.personality.traits.join(', ')}
 5. Respond to the user's message contextually

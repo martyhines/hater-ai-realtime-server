@@ -28,6 +28,7 @@ import { StorageService } from '../services/storageService';
 import { TikTokVideoService } from '../services/tikTokVideoService';
 import TextToSpeechService from '../services/textToSpeechService';
 import SpeechToTextService from '../services/speechToTextService';
+import { TwitterShareService } from '../services/twitterShareService';
 
 type ChatScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
 
@@ -586,10 +587,31 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleShareToTwitter = () => {
-    navigation.navigate('TweetGenerator', {
-      roastText: item.text,
-    });
+  const handleShareToTwitter = async () => {
+    try {
+      const twitterService = TwitterShareService.getInstance();
+      
+      const success = await twitterService.shareRoastToTwitter(
+        item.text,
+        true // include app link
+      );
+      
+      if (success) {
+        // Show success feedback
+        console.log('Roast shared to Twitter successfully');
+      } else {
+        // Fall back to tweet generator
+        navigation.navigate('TweetGenerator', {
+          roastText: item.text,
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing roast to Twitter:', error);
+      // Fall back to tweet generator
+      navigation.navigate('TweetGenerator', {
+        roastText: item.text,
+      });
+    }
   };
 
   const handleShareScreenshot = () => {
@@ -641,12 +663,14 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
                       <Ionicons name="videocam" size={16} color="#4ECDC4" />
                     </TouchableOpacity>
                   ) : null}
-                  <TouchableOpacity
-                    style={styles.shareButton}
-                    onPress={handleShareToTwitter}
-                  >
-                    <Ionicons name="logo-twitter" size={16} color="#1DA1F2" />
-                  </TouchableOpacity>
+                  {FEATURES.ENABLE_TWITTER_SHARE && (
+                    <TouchableOpacity
+                      style={styles.shareButton}
+                      onPress={handleShareToTwitter}
+                    >
+                      <Ionicons name="logo-twitter" size={16} color="#1DA1F2" />
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity
                     style={styles.shareButton}
                     onPress={handleShareScreenshot}
