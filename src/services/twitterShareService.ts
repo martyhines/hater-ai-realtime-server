@@ -1,7 +1,5 @@
 import { Platform, Linking } from 'react-native';
-import * as Sharing from 'expo-sharing';
 import * as Clipboard from 'expo-clipboard';
-import Share from 'react-native-share';
 import { Tweet } from './tweetGenerationService';
 
 export interface TwitterShareConfig {
@@ -35,12 +33,7 @@ export class TwitterShareService {
       // Try to open Twitter app first, then fall back to web
       const success = await this.openTwitterApp(shareText);
       
-      if (!success) {
-        // Fall back to general sharing
-        return await this.shareViaSystem(shareText);
-      }
-      
-      return true;
+      return success;
     } catch (error) {
       console.error('Error sharing to Twitter:', error);
       return false;
@@ -92,40 +85,21 @@ export class TwitterShareService {
         }
       }
       
-      return false;
+      // If no Twitter app, try web intent
+      try {
+        await Linking.openURL(`https://twitter.com/intent/tweet?text=${encodedText}`);
+        return true;
+      } catch (error) {
+        console.log('Failed to open Twitter web intent:', error);
+        return false;
+      }
     } catch (error) {
       console.error('Error opening Twitter app:', error);
       return false;
     }
   }
 
-  /**
-   * Share via system share sheet
-   */
-  private async shareViaSystem(text: string): Promise<boolean> {
-    try {
-      const shareOptions = {
-        title: 'Share Roast to Twitter',
-        message: text,
-        url: 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text),
-        social: Share.Social.TWITTER,
-      };
-      
-      await Share.shareSingle(shareOptions);
-      return true;
-    } catch (error) {
-      console.error('Error sharing via system:', error);
-      
-      // Final fallback - just copy to clipboard
-      try {
-        await this.copyToClipboard(text);
-        return true;
-      } catch (clipboardError) {
-        console.error('Error copying to clipboard:', clipboardError);
-        return false;
-      }
-    }
-  }
+
 
   /**
    * Copy text to clipboard as fallback
@@ -171,13 +145,11 @@ export class TwitterShareService {
   /**
    * Get the best sharing method available
    */
-  async getBestSharingMethod(): Promise<'twitter-app' | 'system-share' | 'web'> {
+  async getBestSharingMethod(): Promise<'twitter-app' | 'web'> {
     const twitterInstalled = await this.isTwitterInstalled();
     
     if (twitterInstalled) {
       return 'twitter-app';
-    } else if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      return 'system-share';
     } else {
       return 'web';
     }
