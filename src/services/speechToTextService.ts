@@ -35,7 +35,6 @@ class SpeechToTextService {
     if (FEATURES.ENABLE_REALTIME_VOICE) {
       this.initializeVoice();
     } else {
-      console.log('Voice features disabled by feature flag');
     }
   }
 
@@ -50,7 +49,6 @@ class SpeechToTextService {
     // Check if we're in Expo Go and need to use web fallback
     // Check if we're in Expo Go or web - use web fallback
     if (Platform.OS === 'web' || this.isExpoGo()) {
-      console.log('Running in Expo Go or web, using web fallback for speech recognition');
       this.initializeWebSpeechRecognition();
       return;
     }
@@ -66,9 +64,7 @@ class SpeechToTextService {
       this.voiceModule.onSpeechResults = this.onSpeechResults.bind(this);
       this.voiceModule.onSpeechError = this.onSpeechError.bind(this);
       this.voiceModule.onSpeechPartialResults = this.onSpeechPartialResults.bind(this);
-      console.log('Native voice module loaded successfully');
     } catch (error) {
-      console.log('Native voice module not available, using web fallback:', error);
       this.initializeWebSpeechRecognition();
     }
   }
@@ -156,7 +152,6 @@ class SpeechToTextService {
         }, this.settings.timeout);
       }
 
-      console.log('🎤 Started speech recognition');
       return true;
     } catch (error) {
       console.error('Error starting speech recognition:', error);
@@ -189,7 +184,6 @@ class SpeechToTextService {
         await this.voiceModule?.stop();
       }
       
-      console.log('🎤 Stopped speech recognition');
       return null; // Results will come through onSpeechResults
     } catch (error) {
       console.error('Error stopping speech recognition:', error);
@@ -221,11 +215,9 @@ class SpeechToTextService {
   }
 
   private onSpeechStart(): void {
-    console.log('🎤 Speech recognition started');
   }
 
   private onSpeechEnd(): void {
-    console.log('🎤 Speech recognition ended');
     this.isRecording = false;
   }
 
@@ -234,7 +226,6 @@ class SpeechToTextService {
       const text = event.value[0];
       const confidence = (event as any).confidence?.[0] || 0.8;
       
-      console.log('🎤 Speech results:', text, 'confidence:', confidence);
       
       // Store the result for retrieval
       this.lastResult = {
@@ -248,7 +239,6 @@ class SpeechToTextService {
   private onSpeechPartialResults(event: any): void {
     if (event.value && event.value.length > 0) {
       const text = event.value[0];
-      console.log('🎤 Partial results:', text);
       
       // Store partial result for real-time updates
       this.lastResult = {
@@ -279,14 +269,12 @@ class SpeechToTextService {
     }
 
     if (finalTranscript) {
-      console.log('🎤 Web speech results:', finalTranscript);
       this.lastResult = {
         text: finalTranscript,
         confidence: 0.8,
         isFinal: true,
       };
     } else if (interimTranscript) {
-      console.log('🎤 Web partial results:', interimTranscript);
       this.lastResult = {
         text: interimTranscript,
         confidence: 0.5,

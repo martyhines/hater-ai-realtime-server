@@ -96,7 +96,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
             setIsAIEnabled(true);
             setActiveProvider('huggingface');
           } catch (error) {
-            console.log('Hugging Face service failed');
             setIsAIEnabled(false);
             const errorMessage: Message = {
               id: 'hf-error-switch',
@@ -169,7 +168,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           ...savedSettings, // Override with saved settings if they exist
         };
 
-        console.log('Loaded settings:', settings);
 
         // If BYOK is disabled, default to backend-powered OpenAI service
         if (!FEATURES.ENABLE_BYOK) {
@@ -216,28 +214,23 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
 
         // Set the best available provider as default (Cohere > Together AI > Gemini > Hugging Face > OpenAI > Template)
         if (cohereKey) {
-          console.log('Cohere API key found, setting up Cohere service');
           setAiService(new CohereService(settings, cohereKey));
           setIsAIEnabled(true);
           setActiveProvider('cohere');
         } else if (togetherAIKey) {
-          console.log('Together AI API key found, setting up Together AI service');
           setAiService(new TogetherAIService(settings, togetherAIKey));
           setIsAIEnabled(true);
           setActiveProvider('togetherai');
         } else if (geminiKey) {
-          console.log('Gemini API key found, setting up Gemini service');
           setAiService(new GeminiService(settings, geminiKey));
           setIsAIEnabled(true);
           setActiveProvider('gemini');
         } else if (huggingfaceKey) {
-          console.log('Hugging Face API key found, setting up HuggingFace service');
           try {
             setAiService(new HuggingFaceService(settings, huggingfaceKey));
             setIsAIEnabled(true);
             setActiveProvider('huggingface');
                       } catch (error) {
-              console.log('Hugging Face service failed');
               setAiService(null);
               setIsAIEnabled(false);
               const errorMessage: Message = {
@@ -249,12 +242,10 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
               setMessages(prev => [...prev, errorMessage]);
             }
         } else if (openaiKey) {
-          console.log('OpenAI API key found, setting up OpenAI service');
           setAiService(new OpenAIService(settings, openaiKey));
           setIsAIEnabled(true);
           setActiveProvider('openai');
                   } else {
-            console.log('No API keys found for BYOK');
             setAiService(null);
             setIsAIEnabled(false);
             const errorMessage: Message = {
@@ -320,8 +311,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         try {
           const storage = StorageService.getInstance();
           const savedSettings = (await storage.getSettings()) || {};
-          console.log('🎯 ChatScreen - Loaded Settings:', savedSettings);
-          console.log('🎯 ChatScreen - Personalization Data:', (savedSettings as any)?.personalization);
           
           const settings: UserSettings = {
             roastIntensity: 'medium',
@@ -364,28 +353,23 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
 
           // Set the best available provider as default (Cohere > Together AI > Gemini > Hugging Face > OpenAI > Template)
           if (cohereKey) {
-            console.log('Switching to Cohere service');
             setAiService(new CohereService(settings, cohereKey));
             setIsAIEnabled(true);
             setActiveProvider('cohere');
           } else if (togetherAIKey) {
-            console.log('Switching to Together AI service');
             setAiService(new TogetherAIService(settings, togetherAIKey));
             setIsAIEnabled(true);
             setActiveProvider('togetherai');
           } else if (geminiKey) {
-            console.log('Switching to Gemini service');
             setAiService(new GeminiService(settings, geminiKey));
             setIsAIEnabled(true);
             setActiveProvider('gemini');
           } else if (huggingfaceKey) {
-            console.log('Switching to Hugging Face service');
             try {
               setAiService(new HuggingFaceService(settings, huggingfaceKey));
               setIsAIEnabled(true);
               setActiveProvider('huggingface');
             } catch (error) {
-              console.log('Hugging Face service failed');
               setIsAIEnabled(false);
               const errorMessage: Message = {
                 id: 'hf-error',
@@ -396,12 +380,10 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
               setMessages(prev => [...prev, errorMessage]);
             }
           } else if (openaiKey) {
-            console.log('Switching to OpenAI service');
             setAiService(new OpenAIService(settings, openaiKey));
             setIsAIEnabled(true);
             setActiveProvider('openai');
           } else {
-            console.log('No API keys found for BYOK');
             setIsAIEnabled(false);
             const errorMessage: Message = {
               id: 'no-keys',
@@ -453,7 +435,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   // Speech-to-text functions
   const startRecording = async () => {
     if (!FEATURES.ENABLE_REALTIME_VOICE) {
-      console.log('Voice features disabled');
       return;
     }
 
@@ -487,7 +468,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
 
   const stopRecording = async () => {
     if (!FEATURES.ENABLE_REALTIME_VOICE) {
-      console.log('Voice features disabled');
       return;
     }
 
@@ -566,7 +546,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           await TextToSpeechService.speakRoast(aiResponse, personality);
         }
       } catch (error) {
-        console.log('Error with auto-play:', error);
       }
     } catch (error) {
       console.error('Error generating AI response:', error);
@@ -610,7 +589,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       
       if (success) {
         // Show success feedback
-        console.log('Roast shared to Twitter successfully');
       } else {
         // Fall back to tweet generator
         navigation.navigate('TweetGenerator', {

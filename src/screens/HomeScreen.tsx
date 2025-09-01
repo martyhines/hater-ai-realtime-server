@@ -72,7 +72,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         isAIAvailable = true;
       }
       
-      console.log('Home Screen - AI Available:', isAIAvailable, 'BYOK:', FEATURES.ENABLE_BYOK);
       setIsAIEnabled(isAIAvailable);
     } catch (error) {
       console.error('Error checking AI status:', error);
@@ -115,7 +114,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             isAIAvailable = true;
           }
           
-          console.log('Home Screen Focus - AI Available:', isAIAvailable, 'BYOK:', FEATURES.ENABLE_BYOK);
           setIsAIEnabled(isAIAvailable);
         } catch (error) {
           console.error('Error checking AI status on focus:', error);

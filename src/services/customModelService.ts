@@ -159,9 +159,6 @@ AI Enemy:`;
       const prompt = this.formatPrompt(userMessage);
       const requestBody = this.buildRequestBody(prompt);
       
-      console.log('Calling Custom Model API...');
-      console.log('Full prompt:', prompt);
-      console.log('API Key (first 10 chars):', this.model.apiKey ? `${this.model.apiKey.substring(0, 10)}...` : 'None');
       
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -185,7 +182,6 @@ AI Enemy:`;
       }
 
       const data = await response.json();
-      console.log('Custom Model API response:', JSON.stringify(data, null, 2));
       
       const responseText = this.extractResponseText(data);
       

@@ -87,7 +87,7 @@ Hugging Face API Troubleshooting:
 
   private async testApiKey(): Promise<boolean> {
     try {
-      console.log('Testing Hugging Face API key validity...');
+
       
       const response = await fetch(
         'https://api-inference.huggingface.co/models/gpt2',
@@ -107,7 +107,7 @@ Hugging Face API Troubleshooting:
         }
       );
 
-      console.log('API key test response status:', response.status);
+
       
       if (response.status === 401) {
         console.error('Invalid Hugging Face API key');
@@ -116,10 +116,10 @@ Hugging Face API Troubleshooting:
         console.error('Rate limit exceeded during API key test');
         return false;
       } else if (response.status === 200) {
-        console.log('Hugging Face API key is valid');
+
         return true;
       } else {
-        console.log('API key test inconclusive, status:', response.status);
+
         return true; // Assume valid if not explicitly invalid
       }
     } catch (error) {
@@ -141,9 +141,8 @@ Hugging Face API Troubleshooting:
 
       for (const model of models) {
         try {
-          console.log(`Trying Hugging Face model: ${model}`);
-          console.log(`API Key length: ${this.apiKey.length}`);
-          console.log(`API Key starts with: ${this.apiKey.substring(0, 10)}...`);
+
+
           
           const response = await fetch(
             `https://api-inference.huggingface.co/models/${model}`,
@@ -167,12 +166,9 @@ Hugging Face API Troubleshooting:
             }
           );
 
-          console.log(`Response status for ${model}:`, response.status);
-          console.log(`Response headers for ${model}:`, Object.fromEntries(response.headers.entries()));
 
           if (response.ok) {
             const data = await response.json();
-            console.log(`Hugging Face API response from ${model}:`, data);
             
             if (Array.isArray(data) && data.length > 0 && data[0].generated_text) {
               let generatedText = data[0].generated_text;
@@ -187,28 +183,23 @@ Hugging Face API Troubleshooting:
               }
               
               if (generatedText.length > 10) {
-                console.log(`Successfully generated response from ${model}:`, generatedText);
                 return generatedText;
               }
             } else if (typeof data === 'string') {
               let responseText = data.replace(prompt, '').trim();
               if (responseText.length > 10) {
-                console.log(`Successfully generated response from ${model}:`, responseText);
                 return responseText;
               }
             }
             
-            console.log(`Model ${model} returned insufficient response, trying next model...`);
             continue;
           } else {
             const errorText = await response.text();
             console.error(`Hugging Face API error for ${model}:`, response.status, errorText);
             
             if (response.status === 404) {
-              console.log(`Model ${model} not available, trying next model...`);
               continue;
             } else if (response.status === 503) {
-              console.log(`Model ${model} is loading, trying next model...`);
               continue;
             } else if (response.status === 401) {
               console.error(`Authentication failed for ${model}. Check your API key.`);
@@ -217,7 +208,6 @@ Hugging Face API Troubleshooting:
               console.error(`Rate limit exceeded for ${model}.`);
               throw new Error('Hugging Face rate limit exceeded. Please wait a moment and try again.');
             } else if (response.status === 500) {
-              console.log(`Server error for ${model}, trying next model...`);
               continue;
             }
           }
@@ -271,9 +261,6 @@ Hugging Face API Troubleshooting:
       
       const fullPrompt = roastPrompts[Math.floor(Math.random() * roastPrompts.length)];
 
-      console.log('Calling Hugging Face API...');
-      console.log('Full prompt:', fullPrompt);
-      console.log('API Key (first 10 chars):', this.apiKey.substring(0, 10) + '...');
 
       const response = await this.callHuggingFace(fullPrompt);
       

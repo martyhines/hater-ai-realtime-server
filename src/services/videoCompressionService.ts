@@ -23,7 +23,6 @@ export class VideoCompressionService {
     settings: CompressionSettings = this.getDefaultSettings()
   ): Promise<string> {
     try {
-      console.log('Compressing video with settings:', settings);
       
       // Generate output path
       const fileName = `compressed_${Date.now()}.${settings.format}`;
@@ -33,7 +32,6 @@ export class VideoCompressionService {
       // In a real implementation, this would use FFmpeg to compress
       await this.createCompressedVideo(inputPath, outputPath, settings);
       
-      console.log('Video compressed successfully:', outputPath);
       return outputPath;
       
     } catch (error) {
@@ -156,7 +154,6 @@ export class VideoCompressionService {
 
   async optimizeForSocialMedia(videoPath: string, platform: 'tiktok' | 'instagram' | 'youtube'): Promise<string> {
     try {
-      console.log('Optimizing video for', platform);
       
       const platformSettings = this.getPlatformSettings(platform);
       const optimizedPath = await this.compressVideo(videoPath, platformSettings);
@@ -249,7 +246,6 @@ export class VideoCompressionService {
 
   async addWatermark(videoPath: string, watermarkText: string = 'Hater AI'): Promise<string> {
     try {
-      console.log('Adding watermark to video:', videoPath);
       
       const watermarkedPath = videoPath.replace('.mp4', '_watermarked.mp4');
       

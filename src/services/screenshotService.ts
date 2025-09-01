@@ -31,7 +31,6 @@ export class ScreenshotService {
     config: ScreenshotConfig
   ): Promise<string> {
     try {
-      console.log('Capturing chat screenshot...');
       
       if (!viewRef.current) {
         throw new Error('View reference is not available');
@@ -46,7 +45,6 @@ export class ScreenshotService {
       };
 
       const screenshotPath = await ViewShot.captureRef(viewRef, options);
-      console.log('Screenshot captured:', screenshotPath);
 
       // For now, just return the screenshot as-is
       // In production, you could add watermarks or branding here
@@ -62,23 +60,19 @@ export class ScreenshotService {
 
   async saveToGallery(screenshotPath: string): Promise<boolean> {
     try {
-      console.log('Saving screenshot to gallery:', screenshotPath);
       
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== 'granted') {
-        console.log('Media library permission denied');
         return false;
       }
 
       // Check if the file exists and is readable
       const fileInfo = await FileSystem.getInfoAsync(screenshotPath);
       if (!fileInfo.exists) {
-        console.log('Screenshot file does not exist:', screenshotPath);
         return false;
       }
 
       const asset = await MediaLibrary.createAssetAsync(screenshotPath);
-      console.log('Screenshot saved to gallery:', asset.uri);
       
       return true;
     } catch (error) {
@@ -89,12 +83,10 @@ export class ScreenshotService {
 
   async shareScreenshot(screenshotPath: string, caption?: string): Promise<boolean> {
     try {
-      console.log('Sharing screenshot:', screenshotPath);
       
       // Check if the file exists
       const fileInfo = await FileSystem.getInfoAsync(screenshotPath);
       if (!fileInfo.exists) {
-        console.log('Screenshot file does not exist:', screenshotPath);
         return false;
       }
 
@@ -105,8 +97,6 @@ export class ScreenshotService {
         title: 'Share your Hater AI roast',
       });
 
-      console.log('Screenshot ready for sharing:', screenshotPath);
-      console.log('File size:', fileInfo.size, 'bytes');
 
       return true;
     } catch (error) {

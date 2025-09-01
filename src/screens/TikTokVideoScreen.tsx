@@ -55,7 +55,6 @@ export default function TikTokVideoScreen({ navigation, route }: TikTokVideoScre
     try {
       setIsGenerating(true);
       setIsRendering(true);
-      console.log('Generating TikTok video with config:', videoConfig);
       
       // Generate video frames first
       const videoGenService = VideoGenerationService.getInstance();

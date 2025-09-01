@@ -94,8 +94,6 @@ app.post('/v1/chat', async (req, res) => {
       const auth = req.get('authorization') || '';
       const token = auth.startsWith('Bearer ') ? auth.substring(7) : '';
       const safe = (s) => (s ? `${s.slice(0, 4)}...${s.slice(-4)}` : '');
-      console.log('[chat] auth header:', safe(auth.replace('Bearer ', '')));
-      console.log('[chat] required token:', safe(requiredToken));
       if (token !== requiredToken) {
         console.warn('[chat] unauthorized request');
         return res.status(401).json({ error: 'Unauthorized' });
@@ -104,7 +102,6 @@ app.post('/v1/chat', async (req, res) => {
 
     // Rate limit per IP
     const ip = req.headers['x-forwarded-for']?.toString().split(',')[0].trim() || req.ip || 'unknown';
-    console.log('[chat] from ip:', ip);
     if (isRateLimited(ip)) {
       return res.status(429).json({ error: 'Rate limit exceeded. Please slow down.' });
     }
@@ -170,7 +167,6 @@ app.post('/v1/chat', async (req, res) => {
 
 const port = process.env.PORT || 8787;
 app.listen(port, () => {
-  console.log(`Realtime token server listening on :${port}`);
 });
 
 

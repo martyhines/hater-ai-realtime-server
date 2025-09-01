@@ -205,8 +205,6 @@ export default function PersonalizationQuizScreen() {
       
       await storage.saveSettings(updatedSettings);
       
-      console.log('💾 Saved Personalization Data:', answers);
-      console.log('💾 Updated Settings:', updatedSettings);
       
       Alert.alert(
         'Personalization Complete!',

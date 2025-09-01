@@ -84,8 +84,7 @@ Current conversation context:`;
     await this.handleRateLimiting();
 
     try {
-      console.log('Calling Google Gemini API...');
-      console.log('API Key (first 10 chars):', this.apiKey.substring(0, 10) + '...');
+
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
@@ -114,15 +113,15 @@ Current conversation context:`;
         }
       );
 
-      console.log('Gemini API response status:', response.status);
+
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Gemini API response:', data);
+
         
         if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
           const generatedText = data.candidates[0].content.parts[0].text;
-          console.log('Successfully generated response from Gemini:', generatedText);
+
           return generatedText;
         } else {
           console.error('Unexpected Gemini response format:', data);
@@ -164,16 +163,16 @@ Current conversation context:`;
 
       // Get saved personalization data and analyze context
       const savedPersonalization = this.settings.personalization;
-      console.log('🔍 Gemini - Saved Personalization Data:', savedPersonalization);
+
       
       const userContext = this.contextAnalyzer.analyzeUserInput(userMessage);
-      console.log('🔍 Gemini - User Context from Message:', userContext);
+
       
       const enrichedContext = this.enrichContextWithPersonalization(userContext, savedPersonalization);
-      console.log('🔍 Gemini - Enriched Context:', enrichedContext);
+
       
       const contextPrompt = this.contextAnalyzer.generateContextPrompt(enrichedContext);
-      console.log('🔍 Gemini - Context Prompt:', contextPrompt);
+
 
       const systemPrompt = this.buildSystemPrompt();
       const conversationContext = this.buildConversationContext();
@@ -187,7 +186,7 @@ ${conversationContext}
 User: ${userMessage}
 AI Enemy:`;
 
-      console.log('Full prompt for Gemini:', fullPrompt);
+
 
       const response = await this.callGemini(fullPrompt);
       

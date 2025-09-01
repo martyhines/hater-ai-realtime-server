@@ -194,17 +194,13 @@ export class AIService {
 
     // Get saved personalization data
     const savedPersonalization = this.settings.personalization;
-    console.log('🔍 Saved Personalization Data:', savedPersonalization);
     
     // Analyze context from user message and saved personalization
     const userContext = this.contextAnalyzer.analyzeUserInput(userMessage);
-    console.log('🔍 User Context from Message:', userContext);
     
     const enrichedContext = this.enrichContextWithPersonalization(userContext, savedPersonalization);
-    console.log('🔍 Enriched Context:', enrichedContext);
     
     const contextPrompt = this.contextAnalyzer.generateContextPrompt(enrichedContext);
-    console.log('🔍 Context Prompt:', contextPrompt);
 
     // Analyze message type for contextual response
     const messageType = this.analyzeMessageType(userMessage);
@@ -254,7 +250,6 @@ export class AIService {
   }
 
   protected getRoastResponse(userContext?: UserContext): string {
-    console.log('🔥 getRoastResponse called with context:', userContext);
     
     // Use the configured personality key from settings directly
     const personalityKey = this.settings.aiPersonality;
@@ -288,11 +283,8 @@ export class AIService {
     
     // If we have context, try to personalize the roast
     if (userContext) {
-      console.log('🔥 Personalizing roast with context:', userContext);
       response = this.personalizeRoast(response, userContext);
-      console.log('🔥 Personalized roast result:', response);
     } else {
-      console.log('🔥 No context provided, using generic roast');
     }
     
     // If cursing is allowed and we're in savage mode, occasionally add some mild cursing

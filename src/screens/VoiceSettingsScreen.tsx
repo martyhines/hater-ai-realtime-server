@@ -56,7 +56,6 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
       setVoiceSettings(settings);
       setSelectedVoice(settings.voice);
     } catch (error) {
-      console.log('Error loading voice settings:', error);
     }
   };
 
@@ -66,7 +65,6 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
       const voices = await TextToSpeechService.getAvailableVoices();
       setAvailableVoices(voices);
     } catch (error) {
-      console.log('Error loading available voices:', error);
     } finally {
       setLoading(false);
     }
@@ -77,7 +75,6 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
       await TextToSpeechService.saveVoiceSettings(newSettings);
       setVoiceSettings(newSettings);
     } catch (error) {
-      console.log('Error saving voice settings:', error);
       Alert.alert('Error', 'Failed to save voice settings');
     }
   };
@@ -126,7 +123,6 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
       }
     } catch (e) {
       setRealtimeEnabled(false);
-      console.log('Realtime toggle error:', e);
       Alert.alert('Realtime Voice', 'Failed to toggle realtime voice.');
     }
   };
@@ -136,7 +132,6 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
       setTestingVoice(true);
       await TextToSpeechService.testVoice(voiceIdentifier);
     } catch (error) {
-      console.log('Error testing voice:', error);
       Alert.alert('Error', 'Failed to test voice');
     } finally {
       setTestingVoice(false);
@@ -151,7 +146,6 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
         'brutal'
       );
     } catch (error) {
-      console.log('Error testing current settings:', error);
       Alert.alert('Error', 'Failed to test voice settings');
     } finally {
       setTestingVoice(false);

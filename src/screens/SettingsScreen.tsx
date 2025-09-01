@@ -105,7 +105,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     // Save to persistent storage
     const storage = StorageService.getInstance();
     await storage.saveSettings(newSettings);
-    console.log('Personality saved:', personality);
   };
 
   const updateIntensity = async (intensity: string) => {
@@ -115,7 +114,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     // Save to persistent storage
     const storage = StorageService.getInstance();
     await storage.saveSettings(newSettings);
-    console.log('Intensity saved:', intensity);
   };
 
   const toggleNotifications = async () => {
@@ -232,7 +230,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             isAIAvailable = true;
           }
           
-          console.log('Settings Screen - AI Available:', isAIAvailable, 'BYOK:', FEATURES.ENABLE_BYOK);
           setIsAIEnabled(isAIAvailable);
         } catch (error) {
           console.error('Error checking AI status in settings:', error);

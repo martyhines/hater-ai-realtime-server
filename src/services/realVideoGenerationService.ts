@@ -24,7 +24,6 @@ export class RealVideoGenerationService {
 
   async generateRealVideo(config: TikTokVideoConfig): Promise<string> {
     try {
-      console.log('Generating real video with config:', config);
       
       // Create video frames
       const frames = this.createVideoFrames(config);
@@ -38,7 +37,6 @@ export class RealVideoGenerationService {
       // Cache the video
       this.videoCache.set(config.roastText, videoPath);
       
-      console.log('Real video generated successfully:', videoPath);
       return videoPath;
       
     } catch (error) {
@@ -161,7 +159,6 @@ export class RealVideoGenerationService {
   private async generateFrameImages(frames: VideoFrame[]): Promise<VideoImage[]> {
     const videoImages: VideoImage[] = [];
     
-    console.log('Generating images for', frames.length, 'frames...');
     
     for (let i = 0; i < frames.length; i++) {
       const frame = frames[i];
@@ -176,7 +173,6 @@ export class RealVideoGenerationService {
       
       // Log progress every 30 frames
       if (i % 30 === 0) {
-        console.log(`Generated ${i + 1}/${frames.length} frame images`);
       }
     }
     
@@ -258,7 +254,6 @@ export class RealVideoGenerationService {
 
   private async combineImagesToVideo(videoImages: VideoImage[], config: TikTokVideoConfig): Promise<string> {
     try {
-      console.log('Combining', videoImages.length, 'images into video...');
       
       // Generate video file path
       const fileName = `real_roast_video_${Date.now()}.mp4`;
@@ -286,7 +281,6 @@ export class RealVideoGenerationService {
       // Create actual video file using a different approach
       await this.createVideoFromImages(videoImages, videoPath);
       
-      console.log('Video combination completed');
       return videoPath;
       
     } catch (error) {
@@ -346,7 +340,6 @@ ${videoImages.map((img, index) =>
       
       await FileSystem.writeAsStringAsync(outputPath, videoContent);
       
-      console.log('Video file created successfully (placeholder)');
       
     } catch (error) {
       console.error('Error creating video from images:', error);
@@ -380,7 +373,6 @@ ${videoImages.map((img, index) =>
       // Save as JSON for now (this prevents camera roll errors)
       await FileSystem.writeAsStringAsync(outputPath, JSON.stringify(minimalVideoData, null, 2));
       
-      console.log('Fallback video file created');
       
     } catch (error) {
       console.error('Error creating fallback video:', error);
@@ -390,10 +382,8 @@ ${videoImages.map((img, index) =>
 
   async addBackgroundMusic(videoPath: string, musicPath?: string): Promise<string> {
     try {
-      console.log('Adding background music to video:', videoPath);
       
       if (musicPath) {
-        console.log('Music would be added from:', musicPath);
         // In a real implementation, this would use FFmpeg to add audio
       }
       
@@ -406,7 +396,6 @@ ${videoImages.map((img, index) =>
 
   async compressVideo(videoPath: string, quality: 'low' | 'medium' | 'high' = 'medium'): Promise<string> {
     try {
-      console.log('Compressing video:', videoPath, 'Quality:', quality);
       
       // In a real implementation, this would use FFmpeg to compress
       return videoPath;
@@ -418,7 +407,6 @@ ${videoImages.map((img, index) =>
 
   async addWatermark(videoPath: string, watermarkText: string = 'Hater AI'): Promise<string> {
     try {
-      console.log('Adding watermark to video:', videoPath);
       
       // In a real implementation, this would add a watermark overlay
       return videoPath;

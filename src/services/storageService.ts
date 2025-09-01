@@ -36,35 +36,35 @@ export class StorageService {
       if (openaiKey) {
         await SecureStore.setItemAsync('openai_api_key', openaiKey);
         await AsyncStorage.removeItem('openai_api_key');
-        console.log('Migrated OpenAI API key to SecureStore');
+
       }
 
       // Migrate Hugging Face key if it exists in AsyncStorage
       if (huggingfaceKey) {
         await SecureStore.setItemAsync('huggingface_api_key', huggingfaceKey);
         await AsyncStorage.removeItem('huggingface_api_key');
-        console.log('Migrated Hugging Face API key to SecureStore');
+
       }
 
       // Migrate Cohere key if it exists in AsyncStorage
       if (cohereKey) {
         await SecureStore.setItemAsync('cohere_api_key', cohereKey);
         await AsyncStorage.removeItem('cohere_api_key');
-        console.log('Migrated Cohere API key to SecureStore');
+
       }
 
       // Migrate Gemini key if it exists in AsyncStorage
       if (geminiKey) {
         await SecureStore.setItemAsync('gemini_api_key', geminiKey);
         await AsyncStorage.removeItem('gemini_api_key');
-        console.log('Migrated Gemini API key to SecureStore');
+
       }
 
       // Migrate Together AI key if it exists in AsyncStorage
       if (togetherAIKey) {
         await SecureStore.setItemAsync('together_ai_api_key', togetherAIKey);
         await AsyncStorage.removeItem('together_ai_api_key');
-        console.log('Migrated Together AI API key to SecureStore');
+
       }
 
       this.migrationCompleted = true;
@@ -79,7 +79,7 @@ export class StorageService {
     try {
       await this.migrateApiKeys(); // Ensure migration runs
       await SecureStore.setItemAsync('openai_api_key', apiKey);
-      console.log('OpenAI API key saved to SecureStore');
+
     } catch (error) {
       console.error('Error saving OpenAI API key:', error);
       throw error;
@@ -91,7 +91,7 @@ export class StorageService {
     try {
       await this.migrateApiKeys(); // Ensure migration runs
       await SecureStore.setItemAsync('huggingface_api_key', apiKey);
-      console.log('Hugging Face API key saved to SecureStore');
+
     } catch (error) {
       console.error('Error saving Hugging Face API key:', error);
       throw error;
@@ -103,7 +103,7 @@ export class StorageService {
     try {
       await this.migrateApiKeys(); // Ensure migration runs
       await SecureStore.setItemAsync('cohere_api_key', apiKey);
-      console.log('Cohere API key saved to SecureStore');
+
     } catch (error) {
       console.error('Error saving Cohere API key:', error);
       throw error;
@@ -115,7 +115,7 @@ export class StorageService {
     try {
       await this.migrateApiKeys(); // Ensure migration runs
       const key = await SecureStore.getItemAsync('openai_api_key');
-      console.log('OpenAI API key retrieved from SecureStore:', key ? 'Present' : 'Null');
+
       return key;
     } catch (error) {
       console.error('Error getting OpenAI API key:', error);
@@ -128,7 +128,7 @@ export class StorageService {
     try {
       await this.migrateApiKeys(); // Ensure migration runs
       const key = await SecureStore.getItemAsync('huggingface_api_key');
-      console.log('Hugging Face API key retrieved from SecureStore:', key ? 'Present' : 'Null');
+
       return key;
     } catch (error) {
       console.error('Error getting Hugging Face API key:', error);
@@ -141,7 +141,7 @@ export class StorageService {
     try {
       await this.migrateApiKeys(); // Ensure migration runs
       const key = await SecureStore.getItemAsync('cohere_api_key');
-      console.log('Cohere API key retrieved from SecureStore:', key ? 'Present' : 'Null');
+
       return key;
     } catch (error) {
       console.error('Error getting Cohere API key:', error);
@@ -153,7 +153,7 @@ export class StorageService {
   async deleteOpenAIKey(): Promise<void> {
     try {
       await SecureStore.deleteItemAsync('openai_api_key');
-      console.log('OpenAI API key deleted from SecureStore');
+
     } catch (error) {
       console.error('Error deleting OpenAI API key:', error);
       throw error;
@@ -164,7 +164,7 @@ export class StorageService {
   async deleteHuggingFaceKey(): Promise<void> {
     try {
       await SecureStore.deleteItemAsync('huggingface_api_key');
-      console.log('Hugging Face API key deleted from SecureStore');
+
     } catch (error) {
       console.error('Error deleting Hugging Face API key:', error);
       throw error;
@@ -175,7 +175,7 @@ export class StorageService {
   async deleteCohereKey(): Promise<void> {
     try {
       await SecureStore.deleteItemAsync('cohere_api_key');
-      console.log('Cohere API key deleted from SecureStore');
+
     } catch (error) {
       console.error('Error deleting Cohere API key:', error);
       throw error;
@@ -187,7 +187,7 @@ export class StorageService {
     try {
       await this.migrateApiKeys(); // Ensure migration runs
       await SecureStore.setItemAsync('gemini_api_key', apiKey);
-      console.log('Gemini API key saved to SecureStore');
+
     } catch (error) {
       console.error('Error saving Gemini API key:', error);
       throw error;
@@ -199,7 +199,7 @@ export class StorageService {
     try {
       await this.migrateApiKeys(); // Ensure migration runs
       const key = await SecureStore.getItemAsync('gemini_api_key');
-      console.log('Gemini API key retrieved from SecureStore:', key ? 'Present' : 'Null');
+
       return key;
     } catch (error) {
       console.error('Error getting Gemini API key:', error);
@@ -211,7 +211,7 @@ export class StorageService {
   async deleteGeminiKey(): Promise<void> {
     try {
       await SecureStore.deleteItemAsync('gemini_api_key');
-      console.log('Gemini API key deleted from SecureStore');
+
     } catch (error) {
       console.error('Error deleting Gemini API key:', error);
       throw error;
@@ -223,7 +223,7 @@ export class StorageService {
     try {
       await this.migrateApiKeys(); // Ensure migration runs
       await SecureStore.setItemAsync('together_ai_api_key', apiKey);
-      console.log('Together AI API key saved to SecureStore');
+
     } catch (error) {
       console.error('Error saving Together AI API key:', error);
       throw error;
@@ -235,7 +235,7 @@ export class StorageService {
     try {
       await this.migrateApiKeys(); // Ensure migration runs
       const key = await SecureStore.getItemAsync('together_ai_api_key');
-      console.log('Together AI API key retrieved from SecureStore:', key ? 'Present' : 'Null');
+
       return key;
     } catch (error) {
       console.error('Error getting Together AI API key:', error);
@@ -247,7 +247,7 @@ export class StorageService {
   async deleteTogetherAIKey(): Promise<void> {
     try {
       await SecureStore.deleteItemAsync('together_ai_api_key');
-      console.log('Together AI API key deleted from SecureStore');
+
     } catch (error) {
       console.error('Error deleting Together AI API key:', error);
       throw error;
@@ -260,7 +260,7 @@ export class StorageService {
       const settings = await this.getSettings() || {};
       settings.voiceSettings = voiceSettings;
       await AsyncStorage.setItem('userSettings', JSON.stringify(settings));
-      console.log('Voice settings saved');
+
     } catch (error) {
       console.error('Error saving voice settings:', error);
       throw error;
@@ -284,7 +284,7 @@ export class StorageService {
       const settings = await this.getSettings() || {};
       settings.speechToTextSettings = speechToTextSettings;
       await AsyncStorage.setItem('userSettings', JSON.stringify(settings));
-      console.log('Speech-to-text settings saved');
+
     } catch (error) {
       console.error('Error saving speech-to-text settings:', error);
       throw error;
@@ -316,7 +316,7 @@ export class StorageService {
                      (cohereKey !== null && cohereKey.length > 0) ||
                      (geminiKey !== null && geminiKey.length > 0) ||
                      (togetherAIKey !== null && togetherAIKey.length > 0);
-      console.log('Has API key check:', hasKey);
+
       return hasKey;
     } catch (error) {
       console.error('Error checking API key:', error);
@@ -395,7 +395,7 @@ export class StorageService {
       await SecureStore.deleteItemAsync('cohere_api_key');
       await SecureStore.deleteItemAsync('gemini_api_key');
       await SecureStore.deleteItemAsync('together_ai_api_key');
-      console.log('API keys cleared from SecureStore');
+
     } catch (error) {
       console.error('Error clearing API keys:', error);
       throw error;
@@ -420,7 +420,7 @@ export class StorageService {
         ...settings,
         customModels
       });
-      console.log('Custom model saved:', model.name);
+
     } catch (error) {
       console.error('Error saving custom model:', error);
       throw error;
@@ -447,7 +447,7 @@ export class StorageService {
         ...settings,
         customModels: filteredModels
       });
-      console.log('Custom model deleted:', modelId);
+
     } catch (error) {
       console.error('Error deleting custom model:', error);
       throw error;
@@ -468,7 +468,7 @@ export class StorageService {
   async setUnlockedFeatures(features: string[]): Promise<void> {
     try {
       await AsyncStorage.setItem('unlocked_features', JSON.stringify(features));
-      console.log('Unlocked features saved:', features);
+
     } catch (error) {
       console.error('Error saving unlocked features:', error);
       throw error;
@@ -488,7 +488,7 @@ export class StorageService {
   async setSubscriptionStatus(status: any): Promise<void> {
     try {
       await AsyncStorage.setItem('subscription_status', JSON.stringify(status));
-      console.log('Subscription status saved:', status);
+
     } catch (error) {
       console.error('Error saving subscription status:', error);
       throw error;

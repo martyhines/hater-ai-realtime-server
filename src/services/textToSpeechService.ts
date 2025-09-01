@@ -49,7 +49,6 @@ export class TextToSpeechService {
         gender: voice.gender as 'Male' | 'Female',
       }));
     } catch (error) {
-      console.log('Error getting available voices:', error);
       return this.getDefaultVoices();
     }
   }
@@ -74,7 +73,6 @@ export class TextToSpeechService {
       const settings = await this.storage.getSettings();
       return settings?.voiceSettings || this.getDefaultVoiceSettings();
     } catch (error) {
-      console.log('Error getting voice settings:', error);
       return this.getDefaultVoiceSettings();
     }
   }
@@ -90,7 +88,6 @@ export class TextToSpeechService {
         voiceSettings: settings,
       });
     } catch (error) {
-      console.log('Error saving voice settings:', error);
     }
   }
 
@@ -129,26 +126,21 @@ export class TextToSpeechService {
         volume: finalSettings.volume,
         language: 'en-US',
         onStart: () => {
-          console.log('🎤 TTS Started speaking');
         },
         onDone: () => {
-          console.log('🎤 TTS Finished speaking');
           this.isPlaying = false;
           this.currentUtterance = '';
         },
         onStopped: () => {
-          console.log('🎤 TTS Stopped speaking');
           this.isPlaying = false;
           this.currentUtterance = '';
         },
         onError: (error) => {
-          console.log('🎤 TTS Error:', error);
           this.isPlaying = false;
           this.currentUtterance = '';
         },
       });
     } catch (error) {
-      console.log('Error speaking text:', error);
       this.isPlaying = false;
       this.currentUtterance = '';
     }
@@ -218,7 +210,6 @@ export class TextToSpeechService {
         break;
     }
 
-    console.log('🎤 Speaking roast with settings:', voiceSettings);
     await this.speak(roastText, voiceSettings);
   }
 }

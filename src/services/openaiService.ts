@@ -80,7 +80,7 @@ export class OpenAIService {
       
       // If it's a rate limit error, try again after a delay
       if (error.message && error.message.includes('429')) {
-        console.log('Rate limited, waiting 10 seconds before retry...');
+
         await new Promise(resolve => setTimeout(resolve, 10000));
         try {
           const retryResponse = await this.callOpenAI(userMessage);
@@ -107,9 +107,7 @@ export class OpenAIService {
     const systemPrompt = this.buildSystemPrompt();
     const conversationContext = this.buildConversationContext();
 
-    console.log('Calling backend AI...');
-    console.log('System prompt length:', systemPrompt.length);
-    console.log('Conversation context messages:', conversationContext.length);
+    
 
     try {
       const backendUrl = `${API_CONFIG.BACKEND?.BASE_URL || ''}/v1/chat`;
@@ -140,7 +138,7 @@ export class OpenAIService {
         }),
       });
 
-      console.log('Backend AI response status:', response.status);
+
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -149,7 +147,7 @@ export class OpenAIService {
       }
 
       const data = await response.json();
-      console.log('Backend AI response received');
+
       
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         console.error('Unexpected backend response format:', data);
@@ -172,7 +170,7 @@ export class OpenAIService {
 
     const allowCursing = this.settings.allowCursing;
     const cursingInstruction = allowCursing 
-      ? "11. You can use profanity and curse words when appropriate for the roast."
+      ? "11. You use profanity and curse words as much as possible for the roast."
       : "11. Do NOT use any profanity, curse words, or explicit language. Keep it clean.";
 
     return `You are ${this.personality.name}, an AI companion who roasts users in a fun, entertaining way. 
@@ -251,7 +249,7 @@ Remember: You're a friend who roasts, not a bully. Keep it fun and entertaining!
     // Wait at least 1 second between requests
     if (timeSinceLastRequest < 1000) {
       const waitTime = 1000 - timeSinceLastRequest;
-      console.log(`Rate limiting: waiting ${waitTime}ms`);
+
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
     

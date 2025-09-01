@@ -66,7 +66,6 @@ const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation 
       const storage = StorageService.getInstance();
       await storage.saveSpeechToTextSettings(newSettings);
       setSettings(newSettings);
-      console.log('Speech-to-text settings saved');
     } catch (error) {
       console.error('Error saving speech-to-text settings:', error);
       Alert.alert('Error', 'Failed to save settings');
@@ -76,7 +75,6 @@ const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation 
   const handleRequestRealtimeToken = async () => {
     try {
       const token = await requestRealtimeToken();
-      console.log('Realtime token response:', token);
       Alert.alert('Realtime Token', 'Token request succeeded. Check console logs.');
     } catch (e: any) {
       console.error('Realtime token error:', e);

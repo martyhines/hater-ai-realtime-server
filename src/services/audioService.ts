@@ -70,7 +70,6 @@ export class AudioService {
 
   async generateAudioTrack(trackId: string): Promise<string> {
     try {
-      console.log('Generating audio track:', trackId);
       
       // Create audio file path
       const fileName = `audio_${trackId}_${Date.now()}.mp3`;
@@ -83,7 +82,6 @@ export class AudioService {
       // Cache the audio
       this.audioCache.set(trackId, audioPath);
       
-      console.log('Audio track generated successfully:', audioPath);
       return audioPath;
       
     } catch (error) {
@@ -125,7 +123,6 @@ export class AudioService {
 
   async addAudioToVideo(videoPath: string, audioPath: string, outputPath: string): Promise<string> {
     try {
-      console.log('Adding audio to video:', videoPath, 'Audio:', audioPath);
       
       // In a real implementation, this would use FFmpeg to combine video and audio
       // For now, we'll create a combined file metadata
@@ -159,7 +156,6 @@ export class AudioService {
     intensity: 'low' | 'medium' | 'high'
   ): Promise<string> {
     try {
-      console.log('Creating custom audio:', { genre, duration, intensity });
       
       const fileName = `custom_audio_${genre}_${intensity}_${Date.now()}.mp3`;
       const audioPath = `${FileSystem.documentDirectory}${fileName}`;

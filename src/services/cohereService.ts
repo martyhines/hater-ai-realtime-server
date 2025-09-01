@@ -98,7 +98,7 @@ IMPORTANT RULES:
       }
 
       const data = await response.json();
-      console.log('Cohere API response:', data);
+
       
       if (data.generations && data.generations.length > 0 && data.generations[0].text) {
         return data.generations[0].text.trim();
@@ -123,16 +123,16 @@ IMPORTANT RULES:
 
       // Get saved personalization data and analyze context
       const savedPersonalization = this.settings.personalization;
-      console.log('🔍 Cohere - Saved Personalization Data:', savedPersonalization);
+
       
       const userContext = this.contextAnalyzer.analyzeUserInput(userMessage);
-      console.log('🔍 Cohere - User Context from Message:', userContext);
+
       
       const enrichedContext = this.enrichContextWithPersonalization(userContext, savedPersonalization);
-      console.log('🔍 Cohere - Enriched Context:', enrichedContext);
+
       
       const contextPrompt = this.contextAnalyzer.generateContextPrompt(enrichedContext);
-      console.log('🔍 Cohere - Context Prompt:', contextPrompt);
+
 
       const systemPrompt = this.buildSystemPrompt();
       
@@ -143,9 +143,7 @@ ${contextPrompt}
 User: ${userMessage}
 AI Enemy:`;
 
-      console.log('Calling Cohere API...');
-      console.log('Full prompt:', fullPrompt);
-      console.log('API Key (first 10 chars):', this.apiKey.substring(0, 10) + '...');
+
 
       const response = await this.callCohere(fullPrompt);
       

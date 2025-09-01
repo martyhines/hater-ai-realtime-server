@@ -28,7 +28,6 @@ export class TwitterShareService {
       // Format the tweet for sharing
       const shareText = this.formatTweetForSharing(tweet, includeAppLink, appStoreUrl);
       
-      console.log('Sharing to Twitter:', shareText);
       
       // Try to open Twitter app first, then fall back to web
       const success = await this.openTwitterApp(shareText);
@@ -80,7 +79,6 @@ export class TwitterShareService {
             return true;
           }
         } catch (error) {
-          console.log('Failed to open URL:', url, error);
           continue;
         }
       }
@@ -90,7 +88,6 @@ export class TwitterShareService {
         await Linking.openURL(`https://twitter.com/intent/tweet?text=${encodedText}`);
         return true;
       } catch (error) {
-        console.log('Failed to open Twitter web intent:', error);
         return false;
       }
     } catch (error) {
@@ -107,7 +104,6 @@ export class TwitterShareService {
   private async copyToClipboard(text: string): Promise<void> {
     try {
       await Clipboard.setStringAsync(text);
-      console.log('Text copied to clipboard:', text);
     } catch (error) {
       console.error('Error copying to clipboard:', error);
       throw error;

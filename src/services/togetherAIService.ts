@@ -26,8 +26,7 @@ export class TogetherAIService extends AIService {
     await this.handleRateLimiting();
 
     try {
-      console.log('Calling Together AI API...');
-      console.log('API Key (first 10 chars):', this.apiKey.substring(0, 10) + '...');
+
 
       const response = await fetch(
         'https://api.together.xyz/v1/chat/completions',
@@ -58,15 +57,15 @@ export class TogetherAIService extends AIService {
         }
       );
 
-      console.log('Together AI API response status:', response.status);
+
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Together AI API response:', data);
+
         
         if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
           const generatedText = data.choices[0].message.content;
-          console.log('Successfully generated response from Together AI:', generatedText);
+
           return generatedText;
         } else {
           console.error('Unexpected Together AI response format:', data);
@@ -153,16 +152,16 @@ Current conversation context:`;
     try {
       // Get saved personalization data and analyze context
       const savedPersonalization = this.settings.personalization;
-      console.log('🔍 Together AI - Saved Personalization Data:', savedPersonalization);
+
       
       const userContext = this.contextAnalyzer.analyzeUserInput(userMessage);
-      console.log('🔍 Together AI - User Context from Message:', userContext);
+
       
       const enrichedContext = this.enrichContextWithPersonalization(userContext, savedPersonalization);
-      console.log('🔍 Together AI - Enriched Context:', enrichedContext);
+
       
       const contextPrompt = this.contextAnalyzer.generateContextPrompt(enrichedContext);
-      console.log('🔍 Together AI - Context Prompt:', contextPrompt);
+
 
       const response = await this.callTogetherAI(userMessage, contextPrompt);
       

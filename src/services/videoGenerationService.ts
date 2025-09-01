@@ -29,7 +29,6 @@ export class VideoGenerationService {
 
   async generateVideo(config: TikTokVideoConfig): Promise<string> {
     try {
-      console.log('Generating real video with config:', config);
       
       // Create video frames from segments
       const frames = this.createVideoFrames(config);
@@ -44,7 +43,6 @@ export class VideoGenerationService {
       // Cache the video
       this.videoCache.set(config.roastText, videoPath);
       
-      console.log('Real video generated successfully:', videoPath);
       return videoPath;
       
     } catch (error) {
@@ -166,7 +164,6 @@ export class VideoGenerationService {
 
   private async renderVideoFrames(frames: VideoFrame[], outputPath: string, config: TikTokVideoConfig): Promise<void> {
     try {
-      console.log('Rendering video frames...');
       
       // For now, we'll create a video file using a different approach
       // Since direct video rendering is complex, we'll use a canvas-based approach
@@ -196,7 +193,6 @@ export class VideoGenerationService {
       // This is where you'd integrate with a real video processing library
       await this.createPlaceholderVideo(outputPath, videoMetadata);
       
-      console.log('Video rendering completed');
       
     } catch (error) {
       console.error('Error rendering video frames:', error);
@@ -246,13 +242,11 @@ This is a placeholder file. Replace with actual video processing.
 
   async addBackgroundMusic(videoPath: string, musicPath?: string): Promise<string> {
     try {
-      console.log('Adding background music to video:', videoPath);
       
       // In a real implementation, this would use FFmpeg to add audio
       // For now, we'll just return the original path
       
       if (musicPath) {
-        console.log('Music would be added from:', musicPath);
       }
       
       return videoPath;
@@ -264,7 +258,6 @@ This is a placeholder file. Replace with actual video processing.
 
   async compressVideo(videoPath: string, quality: 'low' | 'medium' | 'high' = 'medium'): Promise<string> {
     try {
-      console.log('Compressing video:', videoPath, 'Quality:', quality);
       
       // In a real implementation, this would use FFmpeg to compress
       // For now, we'll just return the original path
@@ -278,7 +271,6 @@ This is a placeholder file. Replace with actual video processing.
 
   async addWatermark(videoPath: string, watermarkText: string = 'Hater AI'): Promise<string> {
     try {
-      console.log('Adding watermark to video:', videoPath);
       
       // In a real implementation, this would add a watermark overlay
       // For now, we'll just return the original path

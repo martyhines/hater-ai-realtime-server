@@ -28,7 +28,6 @@ export class TweetGenerationService {
 
   async generateTweet(config: TweetGenerationConfig): Promise<Tweet> {
     try {
-      console.log('Generating tweet for roast:', config.roastText);
       
       // Create the main tweet content
       const tweetText = this.createTweetText(config);
@@ -50,7 +49,6 @@ export class TweetGenerationService {
         style: config.style
       };
       
-      console.log('Tweet generated successfully');
       return tweet;
       
     } catch (error) {

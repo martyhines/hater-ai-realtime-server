@@ -45,7 +45,6 @@ export class TikTokVideoService {
 
   async generateTikTokVideo(config: TikTokVideoConfig): Promise<string> {
     try {
-      console.log('Generating TikTok video with config:', config);
       
       // Use the real video generation service for actual video files
       const realVideoService = RealVideoGenerationService.getInstance();
@@ -54,7 +53,6 @@ export class TikTokVideoService {
       // Cache the video
       this.videoCache.set(config.roastText, videoPath);
       
-      console.log('TikTok video generated successfully:', videoPath);
       return videoPath;
       
     } catch (error) {
@@ -195,7 +193,6 @@ export class TikTokVideoService {
   private async saveVideoData(videoPath: string, videoData: any): Promise<void> {
     // Placeholder for video saving logic
     // In a real implementation, you'd process the video data and save as MP4
-    console.log('Saving video data to:', videoPath);
     
     // For now, we'll create a placeholder file
     const placeholderContent = JSON.stringify(videoData);
@@ -204,18 +201,15 @@ export class TikTokVideoService {
 
   async shareToTikTok(videoPath: string): Promise<boolean> {
     try {
-      console.log('Sharing video to TikTok:', videoPath);
       
       if (Platform.OS === 'ios') {
         // iOS: Use TikTok's URL scheme
         const tiktokUrl = `tiktok://upload?video=${encodeURIComponent(videoPath)}`;
         // You'd use Linking.openURL here in a real implementation
-        console.log('iOS TikTok URL:', tiktokUrl);
         return true;
       } else {
         // Android: Use TikTok's intent
         const tiktokIntent = `intent://www.tiktok.com/upload?video=${encodeURIComponent(videoPath)}#Intent;package=com.zhiliaoapp.musically;scheme=https;end`;
-        console.log('Android TikTok Intent:', tiktokIntent);
         return true;
       }
     } catch (error) {
@@ -226,7 +220,6 @@ export class TikTokVideoService {
 
   async shareToSocialMedia(videoPath: string, platform: 'tiktok' | 'instagram' | 'twitter'): Promise<boolean> {
     try {
-      console.log(`Sharing video to ${platform}:`, videoPath);
       
       switch (platform) {
         case 'tiktok':
@@ -248,28 +241,23 @@ export class TikTokVideoService {
 
   async saveToGallery(videoPath: string): Promise<boolean> {
     try {
-      console.log('Saving video to gallery:', videoPath);
       
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== 'granted') {
-        console.log('Media library permission denied');
         return false;
       }
       
       // Check if the file exists
       const fileInfo = await FileSystem.getInfoAsync(videoPath);
       if (!fileInfo.exists) {
-        console.log('Video file does not exist');
         return false;
       }
       
       // Since we're creating placeholder files (not actual MP4 videos),
       // we'll handle this gracefully and inform the user
-      console.log('Note: This is a placeholder video file. In production, this would be an actual MP4 video.');
       
       // For now, we'll return success to indicate the process completed
       // The actual video file is created and ready for the next step (real MP4 generation)
-      console.log('Video generation completed successfully (placeholder mode)');
       return true;
       
     } catch (error) {
@@ -280,13 +268,11 @@ export class TikTokVideoService {
 
   async shareVideo(videoPath: string): Promise<boolean> {
     try {
-      console.log('Sharing video:', videoPath);
       
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(videoPath);
         return true;
       } else {
-        console.log('Sharing not available on this device');
         return false;
       }
     } catch (error) {
