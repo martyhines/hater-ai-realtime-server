@@ -7,6 +7,7 @@ import {
   ScrollView,
   Switch,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +16,7 @@ import { RootStackParamList } from '../../App';
 import { UserSettings } from '../types';
 import { StorageService } from '../services/storageService';
 import { FEATURES } from '../config/features';
+import { PremiumService } from '../services/premiumService';
 
 type SettingsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Settings'>;
 
@@ -31,6 +33,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     allowCursing: false,
   });
   const [isAIEnabled, setIsAIEnabled] = useState(false);
+  const [unlockedFeatures, setUnlockedFeatures] = useState<string[]>([]);
+  const [isPremiumLoading, setIsPremiumLoading] = useState(false);
 
   const personalities = [
     {
@@ -133,12 +137,62 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const toggleCursing = async () => {
+    // Check if cursing feature is unlocked
+    if (!unlockedFeatures.includes('allow_cursing')) {
+      // Show premium purchase dialog
+      setIsPremiumLoading(true);
+      try {
+        const premiumService = PremiumService.getInstance();
+        const success = await premiumService.purchaseFeature('allow_cursing');
+        if (success) {
+          // Reload unlocked features
+          const features = await premiumService.getUnlockedFeatures();
+          setUnlockedFeatures(features);
+          
+          // Enable cursing in settings
+          const newSettings = { ...settings, allowCursing: true };
+          setSettings(newSettings);
+          const storage = StorageService.getInstance();
+          await storage.saveSettings(newSettings);
+        }
+      } catch (error) {
+        console.error('Error purchasing cursing feature:', error);
+      } finally {
+        setIsPremiumLoading(false);
+      }
+      return;
+    }
+
+    // If already unlocked, just toggle
     const newSettings = { ...settings, allowCursing: !settings.allowCursing };
     setSettings(newSettings);
     
     // Save to persistent storage
     const storage = StorageService.getInstance();
     await storage.saveSettings(newSettings);
+  };
+
+  const handlePremiumFeaturePress = async (featureId: string) => {
+    if (unlockedFeatures.includes(featureId)) {
+      // Feature already unlocked, show info
+      Alert.alert('Feature Unlocked', 'This premium feature is already unlocked!');
+      return;
+    }
+
+    setIsPremiumLoading(true);
+    try {
+      const premiumService = PremiumService.getInstance();
+      const success = await premiumService.purchaseFeature(featureId);
+      if (success) {
+        // Reload unlocked features
+        const features = await premiumService.getUnlockedFeatures();
+        setUnlockedFeatures(features);
+      }
+    } catch (error) {
+      console.error('Error purchasing premium feature:', error);
+    } finally {
+      setIsPremiumLoading(false);
+    }
   };
 
   // Load saved settings and check AI status on mount
@@ -185,7 +239,19 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           setIsAIEnabled(false);
         }
       };
+
+      const loadPremiumFeatures = async () => {
+        try {
+          const premiumService = PremiumService.getInstance();
+          const features = await premiumService.getUnlockedFeatures();
+          setUnlockedFeatures(features);
+        } catch (error) {
+          console.error('Error loading premium features:', error);
+        }
+      };
+
       checkAIStatus();
+      loadPremiumFeatures();
     });
 
     return unsubscribe;
@@ -303,18 +369,31 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.preferenceInfo}>
               <Ionicons name="warning" size={24} color="#fff" />
               <View style={styles.preferenceText}>
-                <Text style={styles.preferenceTitle}>Allow Cursing</Text>
+                <Text style={styles.preferenceTitle}>
+                  Allow Cursing
+                  {!unlockedFeatures.includes('allow_cursing') && (
+                    <Text style={styles.premiumBadge}> 🔥 PREMIUM</Text>
+                  )}
+                </Text>
                 <Text style={styles.preferenceDescription}>
-                  Let the AI use profanity in responses
+                  {unlockedFeatures.includes('allow_cursing') 
+                    ? 'Let the AI use profanity in responses'
+                    : 'Unlock profanity for maximum savagery ($2.99)'
+                  }
                 </Text>
               </View>
             </View>
-            <Switch
-              value={settings.allowCursing}
-              onValueChange={toggleCursing}
-              trackColor={{ false: '#444', true: '#FF6B6B' }}
-              thumbColor={settings.allowCursing ? '#fff' : '#ccc'}
-            />
+            {isPremiumLoading ? (
+              <ActivityIndicator size="small" color="#FF6B6B" />
+            ) : (
+              <Switch
+                value={settings.allowCursing}
+                onValueChange={toggleCursing}
+                trackColor={{ false: '#444', true: '#FF6B6B' }}
+                thumbColor={settings.allowCursing ? '#fff' : '#ccc'}
+                disabled={!unlockedFeatures.includes('allow_cursing')}
+              />
+            )}
           </View>
 
           <TouchableOpacity
@@ -348,6 +427,44 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             </View>
             <Ionicons name="chevron-forward" size={24} color="#ccc" />
           </TouchableOpacity>
+        </View>
+
+        {/* Premium Features Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🔥 Premium Features</Text>
+          <Text style={styles.sectionSubtitle}>Unlock the full potential of your AI enemy</Text>
+          
+          {PremiumService.getInstance().getPremiumFeatures().map((feature) => (
+            <TouchableOpacity
+              key={feature.id}
+              style={[
+                styles.premiumFeatureCard,
+                unlockedFeatures.includes(feature.id) && styles.unlockedFeatureCard
+              ]}
+              onPress={() => handlePremiumFeaturePress(feature.id)}
+            >
+              <View style={styles.premiumFeatureHeader}>
+                <Text style={styles.premiumFeatureEmoji}>{feature.icon}</Text>
+                <View style={styles.premiumFeatureInfo}>
+                  <Text style={styles.premiumFeatureName}>
+                    {feature.name}
+                    {unlockedFeatures.includes(feature.id) && (
+                      <Text style={styles.unlockedBadge}> ✓ UNLOCKED</Text>
+                    )}
+                  </Text>
+                  <Text style={styles.premiumFeatureDescription}>{feature.description}</Text>
+                </View>
+                <View style={styles.premiumFeaturePrice}>
+                  {unlockedFeatures.includes(feature.id) ? (
+                    <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                  ) : (
+                    <Text style={styles.priceText}>${feature.price}</Text>
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
 
           {/* Clear API Key Button */}
           {isAIEnabled && (
@@ -587,6 +704,57 @@ const styles = StyleSheet.create({
     color: '#FF6B6B',
     marginLeft: 8,
     fontWeight: '600',
+  },
+  premiumBadge: {
+    fontSize: 12,
+    color: '#FFD700',
+    fontWeight: 'bold',
+  },
+  premiumFeatureCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+  },
+  unlockedFeatureCard: {
+    borderColor: '#4CAF50',
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+  },
+  premiumFeatureHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  premiumFeatureEmoji: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  premiumFeatureInfo: {
+    flex: 1,
+  },
+  premiumFeatureName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  premiumFeatureDescription: {
+    fontSize: 14,
+    color: '#ccc',
+  },
+  premiumFeaturePrice: {
+    alignItems: 'center',
+  },
+  priceText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFD700',
+  },
+  unlockedBadge: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: 'bold',
   },
 });
 

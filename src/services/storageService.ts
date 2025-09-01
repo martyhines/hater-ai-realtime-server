@@ -453,4 +453,45 @@ export class StorageService {
       throw error;
     }
   }
+
+  // Premium Features (AsyncStorage - non-sensitive data)
+  async getUnlockedFeatures(): Promise<string[]> {
+    try {
+      const features = await AsyncStorage.getItem('unlocked_features');
+      return features ? JSON.parse(features) : [];
+    } catch (error) {
+      console.error('Error getting unlocked features:', error);
+      return [];
+    }
+  }
+
+  async setUnlockedFeatures(features: string[]): Promise<void> {
+    try {
+      await AsyncStorage.setItem('unlocked_features', JSON.stringify(features));
+      console.log('Unlocked features saved:', features);
+    } catch (error) {
+      console.error('Error saving unlocked features:', error);
+      throw error;
+    }
+  }
+
+  async getSubscriptionStatus(): Promise<any | null> {
+    try {
+      const status = await AsyncStorage.getItem('subscription_status');
+      return status ? JSON.parse(status) : null;
+    } catch (error) {
+      console.error('Error getting subscription status:', error);
+      return null;
+    }
+  }
+
+  async setSubscriptionStatus(status: any): Promise<void> {
+    try {
+      await AsyncStorage.setItem('subscription_status', JSON.stringify(status));
+      console.log('Subscription status saved:', status);
+    } catch (error) {
+      console.error('Error saving subscription status:', error);
+      throw error;
+    }
+  }
 } 
