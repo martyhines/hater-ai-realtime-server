@@ -433,8 +433,10 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   // Cleanup speech-to-text service on unmount
   useEffect(() => {
     return () => {
-      const speechToTextService = SpeechToTextService.getInstance();
-      speechToTextService.destroy();
+      if (FEATURES.ENABLE_REALTIME_VOICE) {
+        const speechToTextService = SpeechToTextService.getInstance();
+        speechToTextService.destroy();
+      }
     };
   }, []);
 
@@ -450,6 +452,11 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
 
   // Speech-to-text functions
   const startRecording = async () => {
+    if (!FEATURES.ENABLE_REALTIME_VOICE) {
+      console.log('Voice features disabled');
+      return;
+    }
+
     try {
       const speechToTextService = SpeechToTextService.getInstance();
       
@@ -479,6 +486,11 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const stopRecording = async () => {
+    if (!FEATURES.ENABLE_REALTIME_VOICE) {
+      console.log('Voice features disabled');
+      return;
+    }
+
     try {
       const speechToTextService = SpeechToTextService.getInstance();
       await speechToTextService.stopRecording();
@@ -877,20 +889,22 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
             {/* Voice Button */}
-            <TouchableOpacity
-              style={[styles.voiceButton, isRecording && styles.voiceButtonRecording]}
-              onPress={handleVoiceButtonPress}
-              disabled={isTyping}
-            >
-              <Ionicons
-                name={isRecording ? "stop" : "mic"}
-                size={20}
-                color={isRecording ? "#FF4444" : "#FFD93D"}
-              />
-            </TouchableOpacity>
+            {FEATURES.ENABLE_REALTIME_VOICE && (
+              <TouchableOpacity
+                style={[styles.voiceButton, isRecording && styles.voiceButtonRecording]}
+                onPress={handleVoiceButtonPress}
+                disabled={isTyping}
+              >
+                <Ionicons
+                  name={isRecording ? "stop" : "mic"}
+                  size={20}
+                  color={isRecording ? "#FF4444" : "#FFD93D"}
+                />
+              </TouchableOpacity>
+            )}
 
             {/* Transcription Display */}
-            {transcriptionText && (
+            {FEATURES.ENABLE_REALTIME_VOICE && transcriptionText && (
               <View style={styles.transcriptionContainer}>
                 <Text style={styles.transcriptionText}>{transcriptionText}</Text>
               </View>

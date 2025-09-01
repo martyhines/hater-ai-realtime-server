@@ -1,5 +1,6 @@
 import { Audio } from 'expo-av';
 import { Platform } from 'react-native';
+import { FEATURES } from '../config/features';
 
 export interface SpeechToTextSettings {
   language: string;
@@ -30,7 +31,12 @@ class SpeechToTextService {
   private isWebFallback: boolean = false;
 
   private constructor() {
-    this.initializeVoice();
+    // Only initialize voice if the feature is enabled
+    if (FEATURES.ENABLE_REALTIME_VOICE) {
+      this.initializeVoice();
+    } else {
+      console.log('Voice features disabled by feature flag');
+    }
   }
 
   public static getInstance(): SpeechToTextService {
@@ -42,11 +48,14 @@ class SpeechToTextService {
 
   private initializeVoice(): void {
     // Check if we're in Expo Go and need to use web fallback
+    // Check if we're in Expo Go or web - use web fallback
     if (Platform.OS === 'web' || this.isExpoGo()) {
+      console.log('Running in Expo Go or web, using web fallback for speech recognition');
       this.initializeWebSpeechRecognition();
       return;
     }
 
+    // Only try to load native module on supported builds
     try {
       // Lazy-load native module only on supported builds
       // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -57,8 +66,9 @@ class SpeechToTextService {
       this.voiceModule.onSpeechResults = this.onSpeechResults.bind(this);
       this.voiceModule.onSpeechError = this.onSpeechError.bind(this);
       this.voiceModule.onSpeechPartialResults = this.onSpeechPartialResults.bind(this);
+      console.log('Native voice module loaded successfully');
     } catch (error) {
-      console.log('Native voice module not available, using web fallback');
+      console.log('Native voice module not available, using web fallback:', error);
       this.initializeWebSpeechRecognition();
     }
   }
@@ -108,6 +118,12 @@ class SpeechToTextService {
     onError?: (error: string) => void
   ): Promise<boolean> {
     try {
+      // Check if voice features are enabled
+      if (!FEATURES.ENABLE_REALTIME_VOICE) {
+        onError?.('Voice features are disabled');
+        return false;
+      }
+
       if (this.isRecording) {
         return false;
       }
