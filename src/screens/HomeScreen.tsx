@@ -43,30 +43,42 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   // Check if AI is enabled on component mount and when screen focuses
   useEffect(() => {
-    const checkAIStatus = async () => {
-      try {
-        const storage = StorageService.getInstance();
-        
-        // Load current settings
-        const savedSettings = await Promise.race([
-          storage.getSettings(),
-          new Promise<any>((resolve) => setTimeout(() => resolve(null), 2000))
-        ]);
-        
-        if (savedSettings) {
-          setSettings(savedSettings);
-        }
-        
+      const checkAIStatus = async () => {
+    try {
+      const storage = StorageService.getInstance();
+      
+      // Load current settings
+      const savedSettings = await Promise.race([
+        storage.getSettings(),
+        new Promise<any>((resolve) => setTimeout(() => resolve(null), 2000))
+      ]);
+      
+      if (savedSettings) {
+        setSettings(savedSettings);
+      }
+      
+      // Check AI availability based on BYOK setting
+      let isAIAvailable = false;
+      
+      if (FEATURES.ENABLE_BYOK) {
+        // BYOK enabled - check for user API keys
         const hasApiKey = await Promise.race([
           storage.hasApiKey(),
-          new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000)) // 3 second timeout
+          new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000))
         ]);
-        setIsAIEnabled(hasApiKey);
-      } catch (error) {
-        console.error('Error checking AI status:', error);
-        setIsAIEnabled(false);
+        isAIAvailable = hasApiKey;
+      } else {
+        // BYOK disabled - server-powered AI should be available
+        isAIAvailable = true;
       }
-    };
+      
+      console.log('Home Screen - AI Available:', isAIAvailable, 'BYOK:', FEATURES.ENABLE_BYOK);
+      setIsAIEnabled(isAIAvailable);
+    } catch (error) {
+      console.error('Error checking AI status:', error);
+      setIsAIEnabled(false);
+    }
+  };
 
     checkAIStatus();
   }, []);
@@ -88,13 +100,23 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             setSettings(savedSettings);
           }
           
-          // Check API key status
-          const hasApiKey = await Promise.race([
-            storage.hasApiKey(),
-            new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000)) // 3 second timeout
-          ]);
-          console.log('Home Screen - Has API Key:', hasApiKey);
-          setIsAIEnabled(hasApiKey);
+          // Check AI availability based on BYOK setting
+          let isAIAvailable = false;
+          
+          if (FEATURES.ENABLE_BYOK) {
+            // BYOK enabled - check for user API keys
+            const hasApiKey = await Promise.race([
+              storage.hasApiKey(),
+              new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000))
+            ]);
+            isAIAvailable = hasApiKey;
+          } else {
+            // BYOK disabled - server-powered AI should be available
+            isAIAvailable = true;
+          }
+          
+          console.log('Home Screen Focus - AI Available:', isAIAvailable, 'BYOK:', FEATURES.ENABLE_BYOK);
+          setIsAIEnabled(isAIAvailable);
         } catch (error) {
           console.error('Error checking AI status on focus:', error);
           setIsAIEnabled(false);

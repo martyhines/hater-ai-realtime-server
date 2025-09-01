@@ -14,6 +14,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import { UserSettings } from '../types';
 import { StorageService } from '../services/storageService';
+import { FEATURES } from '../config/features';
 
 type SettingsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Settings'>;
 
@@ -162,9 +163,27 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       const checkAIStatus = async () => {
-        const storage = StorageService.getInstance();
-        const hasApiKey = await storage.hasApiKey();
-        setIsAIEnabled(hasApiKey);
+        try {
+          const storage = StorageService.getInstance();
+          
+          // Check AI availability based on BYOK setting
+          let isAIAvailable = false;
+          
+          if (FEATURES.ENABLE_BYOK) {
+            // BYOK enabled - check for user API keys
+            const hasApiKey = await storage.hasApiKey();
+            isAIAvailable = hasApiKey;
+          } else {
+            // BYOK disabled - server-powered AI should be available
+            isAIAvailable = true;
+          }
+          
+          console.log('Settings Screen - AI Available:', isAIAvailable, 'BYOK:', FEATURES.ENABLE_BYOK);
+          setIsAIEnabled(isAIAvailable);
+        } catch (error) {
+          console.error('Error checking AI status in settings:', error);
+          setIsAIEnabled(false);
+        }
       };
       checkAIStatus();
     });
