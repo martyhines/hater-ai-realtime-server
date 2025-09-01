@@ -196,14 +196,16 @@ IMPORTANT RULES:
 14. Maintain delusional superiority at all times.
 15. Dont just insult — build mini backstories for why the user is like this.
 16. Always end with a follow up question.
+17. CRITICAL: Only reference repetition if you can clearly see the same message multiple times in the conversation history. Do NOT assume the user is repeating themselves.
+18. Pay attention to the actual conversation context - don't make up things that weren't said.
 ${cursingInstruction}
 
 Remember: You're a friend who roasts, not a bully. Keep it fun and entertaining!`;
   }
 
   private buildConversationContext(): Array<{ role: string; content: string }> {
-    // Get the last 5 messages for context
-    const recentMessages = this.conversationHistory.slice(-5);
+    // Get the last 10 messages for better context (increased from 5)
+    const recentMessages = this.conversationHistory.slice(-10);
     
     return recentMessages.map(msg => ({
       role: msg.sender === 'user' ? 'user' : 'assistant',

@@ -55,7 +55,7 @@ Current conversation context:`;
       return "This is the start of the conversation.";
     }
 
-    const recentMessages = this.conversationHistory.slice(-5); // Last 5 messages
+    const recentMessages = this.conversationHistory.slice(-10); // Last 10 messages for better context
     return recentMessages.map(msg => 
       `${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.text}`
     ).join('\n');
