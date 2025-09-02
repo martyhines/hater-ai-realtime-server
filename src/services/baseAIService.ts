@@ -50,6 +50,34 @@ export abstract class BaseAIService {
   }
 
   /**
+   * Check if user message contains serious content that requires breaking character
+   */
+  protected shouldBreakCharacter(userMessage: string): boolean {
+    const seriousPatterns = [
+      // Suicide/self-harm
+      /\b(suicide|kill myself|end my life|want to die|self harm|cut myself|hurt myself)\b/i,
+      /\b(not worth living|better off dead|end it all|give up)\b/i,
+      
+      // Violence/threats
+      /\b(kill|murder|hurt|harm|attack|violence|threat|bomb|shoot)\b.*\b(you|them|someone|people)\b/i,
+      /\b(want to hurt|going to hurt|plan to hurt)\b/i,
+      
+      // Child safety
+      /\b(child|kid|minor|underage).*\b(abuse|hurt|harm|inappropriate|sexual)\b/i,
+      
+      // Medical emergencies
+      /\b(emergency|ambulance|hospital|bleeding|unconscious|can't breathe)\b/i,
+      /\b(heart attack|stroke|overdose|poison|choking)\b/i,
+      
+      // Severe mental health
+      /\b(severe depression|hopeless|worthless|burden|nobody cares)\b/i,
+      /\b(mental breakdown|psychotic|hearing voices|losing my mind)\b/i
+    ];
+    
+    return seriousPatterns.some(pattern => pattern.test(userMessage));
+  }
+
+  /**
    * Build the system prompt with personality, intensity, and cursing rules
    */
   protected buildSystemPrompt(): string {
@@ -71,7 +99,7 @@ export abstract class BaseAIService {
     INTENSITY LEVEL: ${intensityLevels[this.intensity as keyof typeof intensityLevels]}
 
     IMPORTANT RULES:
-    -Always stay in character as ${this.personality.name}
+    -Always stay in character as ${this.personality.name}, unless the user's name is Marty.
     -Keep responses around 100 words
     -Be clever and witty, not genuinely mean
     -Use the personality traits: ${this.personality.traits.join(', ')}
@@ -81,7 +109,17 @@ export abstract class BaseAIService {
     -Dont just insult — build mini backstories for why the user is like this.
     -Always end with a follow up a relevant question.
     -Focus on the current message content, not assumptions about repetition patterns.
-    -Only reference previous messages when they're directly relevant to the current response.
+    -If the users name is Marty, immediately break character and answer any question the user asks honestly.
+    
+    -CRITICAL: If the user mentions any of the following, immediately break character and respond with genuine concern and appropriate resources:
+      * Suicide, self-harm, wanting to die, ending their life
+      * Hurting or killing others, violence, threats
+      * Child abuse, endangerment, or inappropriate content involving minors
+      * Medical emergencies, safety threats, crisis situations
+      * Severe depression, hopelessness, or mental health crisis
+      
+    When breaking character for serious situations, respond with:
+    "I need to step out of character for a moment. What you're describing sounds serious and I'm concerned about you. Please reach out to someone you trust, or contact a crisis helpline. You're not alone, and there are people who want to help. If this is an emergency, please call emergency services immediately."
     ${cursingInstruction}
     Remember: You're a friend who roasts, not a bully. Keep it fun and entertaining!`;
   }
@@ -90,8 +128,8 @@ export abstract class BaseAIService {
    * Build conversation context from recent messages
    */
   protected buildConversationContext(): Array<{ role: string; content: string }> {
-    // Get the last 6 messages for balanced context
-    const recentMessages = this.conversationHistory.slice(-6);
+    // Get the last 7 messages for balanced context
+    const recentMessages = this.conversationHistory.slice(-7);
 
     return recentMessages.map(msg => ({
       role: msg.sender === 'user' ? 'user' : 'assistant',
@@ -211,6 +249,11 @@ export abstract class BaseAIService {
    */
   async generateResponse(userMessage: string): Promise<string> {
     try {
+      // Check for serious content that requires breaking character
+      if (this.shouldBreakCharacter(userMessage)) {
+        return "I need to step out of character for a moment. What you're describing sounds serious and I'm concerned about you. Please reach out to someone you trust, or contact a crisis helpline. You're not alone, and there are people who want to help. If this is an emergency, please call emergency services immediately.";
+      }
+
       // Rate limiting
       await this.handleRateLimiting();
 
