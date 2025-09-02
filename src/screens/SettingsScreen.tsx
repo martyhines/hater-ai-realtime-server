@@ -74,6 +74,13 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       description: 'Urban savvy with street wisdom and modern slang',
       traits: ['Streetwise', 'Confident', 'Urban'],
     },
+    {
+      id: 'newyorker',
+      name: 'The New Yorker',
+      emoji: '🗽',
+      description: 'Sophisticated Manhattanite with cultured wit and NYC attitude',
+      traits: ['Sophisticated', 'Cultured', 'Witty', 'Urbane'],
+    },
   ];
 
   const intensities = [
@@ -354,7 +361,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
           
-          <View style={styles.preferenceItem}>
+          {/* <View style={styles.preferenceItem}>
             <View style={styles.preferenceInfo}>
               <Ionicons name="notifications" size={24} color="#fff" />
               <View style={styles.preferenceText}>
@@ -370,7 +377,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
               trackColor={{ false: '#444', true: '#4CAF50' }}
               thumbColor={settings.enableNotifications ? '#fff' : '#ccc'}
             />
-          </View>
+          </View> */}
 
           <View style={styles.preferenceItem}>
             <View style={styles.preferenceInfo}>
