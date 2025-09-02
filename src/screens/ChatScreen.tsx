@@ -44,6 +44,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAIEnabled, setIsAIEnabled] = useState(false);
   const [activeProvider, setActiveProvider] = useState<'cohere' | 'huggingface' | 'openai' | 'gemini' | 'togetherai' | 'custom'>('openai');
+  // Model/provider details are no longer shown to users
   const [availableProviders, setAvailableProviders] = useState<{
     cohere: boolean;
     huggingface: boolean;
@@ -529,6 +530,8 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       
       const aiResponse = await aiService.generateResponse(userMessage.text);
       
+      // We no longer surface which backend provider handled the response
+      
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: aiResponse,
@@ -690,25 +693,8 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     );
   };
 
-  // Helper to get model/provider name
-  const getModelName = () => {
-    switch (activeProvider) {
-      case 'cohere':
-        return 'Cohere (command)';
-      case 'togetherai':
-        return 'Together AI (Mistral-7B)';
-      case 'gemini':
-        return 'Google Gemini (gemini-1.5-flash)';
-      case 'huggingface':
-        return 'Hugging Face (DialoGPT)';
-      case 'openai':
-        return 'OpenAI (gpt-3.5-turbo)';
-      case 'custom':
-        return 'Custom Model';
-      default:
-        return '';
-    }
-  };
+  // Helper to get model/provider name (hidden)
+  const getModelName = () => '';
 
   if (isLoading) {
     return (

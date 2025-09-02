@@ -1,25 +1,19 @@
 import { UserSettings } from '../types';
-import { AIService } from './aiService';
+import { ContextAnalyzer, UserContext } from './contextAnalyzer';
+import { BaseAIService } from './baseAIService';
 
-export class TogetherAIService extends AIService {
+export class TogetherAIService extends BaseAIService {
   private apiKey: string;
-  private lastRequestTime: number = 0;
+  private contextAnalyzer: ContextAnalyzer;
 
   constructor(settings: UserSettings, apiKey: string) {
     super(settings);
     this.apiKey = apiKey;
+    this.contextAnalyzer = ContextAnalyzer.getInstance();
   }
 
-  private async handleRateLimiting(): Promise<void> {
-    const now = Date.now();
-    const timeSinceLastRequest = now - this.lastRequestTime;
-    const minDelay = 1000; // 1 second minimum between requests
-
-    if (timeSinceLastRequest < minDelay) {
-      const delay = minDelay - timeSinceLastRequest;
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-    this.lastRequestTime = Date.now();
+  protected async callAPI(userMessage: string): Promise<string> {
+    return this.callTogetherAI(userMessage);
   }
 
   async callTogetherAI(prompt: string, contextPrompt?: string): Promise<string> {
@@ -95,73 +89,15 @@ export class TogetherAIService extends AIService {
     }
   }
 
-  private buildSystemPrompt(): string {
-    const personality = this.settings.aiPersonality;
-    const intensity = this.settings.roastIntensity;
-    const allowCursing = this.settings.allowCursing;
-    
-    const personalityPrompts = {
-      sarcastic: "You are Sarcastic Sam, a master of dry wit and eye-rolling commentary. You roast people with clever sarcasm and witty observations.",
-      brutal: "You are Brutal Betty, a savage roaster with no filter and no mercy. You go straight for the jugular with brutal honesty.",
-      witty: "You are Witty Will, quick with clever comebacks and smart observations. You roast with intelligence and clever wordplay.",
-      playful: "You are Playful Pete, who roasts with fun and games. You use humor and lighthearted jabs that are more entertaining than mean.",
-      condescending: "You are Condescending Carl, who looks down on everyone with intellectual superiority. You roast with academic disdain.",
-      streetsmart: 'Street Smart, an urban-savvy character who uses modern slang and street wisdom. You roast with confidence and urban vernacular, using terms from the street and modern culture. You\'re streetwise and confident, but not appropriating any specific dialect.'
-    };
 
-    const intensityPrompts = {
-      mild: "Keep your roasts gentle and playful. Don't be too harsh.",
-      medium: "Be moderately savage. Mix humor with some real burns.",
-      savage: "Go all out. Be absolutely brutal and savage in your roasts."
-    };
-
-    const cursingInstruction = allowCursing 
-      ? "You can use profanity and curse words in your responses when appropriate."
-      : "Do NOT use any profanity, curse words, or explicit language. Keep it clean.";
-
-    return `You are an AI enemy that roasts users. ${personalityPrompts[personality]} ${intensityPrompts[intensity]}
-
-IMPORTANT RULES:
-- Always respond as the AI enemy, never break character
-- Be creative and varied in your roasts
-- Don't repeat the same jokes
-- Be entertaining and funny, but genuinely mean
-- Respond to what the user actually says
-- Use emojis occasionally for emphasis
-- Never apologize or be nice - stay in character as the enemy
-- ${cursingInstruction}
-- Keep responses concise and punchy (under 100 words)
-- Be witty and clever, not just mean
-
-Current conversation context:`;
-  }
-
-  private buildConversationContext(): string {
-    const conversationHistory = this.getConversationHistory();
-    if (conversationHistory.length === 0) {
-      return "This is the start of the conversation.";
-    }
-
-    const recentMessages = conversationHistory.slice(-10); // Last 10 messages for better context
-    return recentMessages.map(msg => 
-      `${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.text}`
-    ).join('\n');
-  }
 
   async generateResponse(userMessage: string): Promise<string> {
     try {
       // Get saved personalization data and analyze context
       const savedPersonalization = this.settings.personalization;
-
-      
       const userContext = this.contextAnalyzer.analyzeUserInput(userMessage);
-
-      
       const enrichedContext = this.enrichContextWithPersonalization(userContext, savedPersonalization);
-
-      
       const contextPrompt = this.contextAnalyzer.generateContextPrompt(enrichedContext);
-
 
       const response = await this.callTogetherAI(userMessage, contextPrompt);
       
@@ -173,16 +109,16 @@ Current conversation context:`;
         cleanedResponse = cleanedResponse.substring(9).trim();
       }
       
-      // If response is empty or too short, use fallback with context
+      // If response is empty or too short, use fallback
       if (!cleanedResponse || cleanedResponse.length < 10) {
-        return this.getRoastResponse(enrichedContext);
+        return this.getFallbackResponse();
       }
 
       return cleanedResponse;
 
     } catch (error) {
       console.error('Together AI API Error:', error);
-      return this.getRoastResponse();
+      return this.getFallbackResponse();
     }
   }
 } 

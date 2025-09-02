@@ -1,72 +1,19 @@
-import { UserSettings, Message } from '../types';
+import { UserSettings } from '../types';
 import { ContextAnalyzer, UserContext } from './contextAnalyzer';
+import { BaseAIService } from './baseAIService';
 
-export class GeminiService {
+export class GeminiService extends BaseAIService {
   private apiKey: string;
-  private settings: UserSettings;
-  private conversationHistory: Message[] = [];
-  private lastRequestTime: number = 0;
   private contextAnalyzer: ContextAnalyzer;
 
   constructor(settings: UserSettings, apiKey: string) {
-    this.settings = settings;
+    super(settings);
     this.apiKey = apiKey;
     this.contextAnalyzer = ContextAnalyzer.getInstance();
   }
 
-  private buildSystemPrompt(): string {
-    const personality = this.settings.aiPersonality;
-    const intensity = this.settings.roastIntensity;
-    const allowCursing = this.settings.allowCursing;
-    
-    const personalityPrompts = {
-      sarcastic: "You are Sarcastic Sam, a master of dry wit and eye-rolling commentary. You roast people with clever sarcasm and witty observations.",
-      brutal: "You are Brutal Betty, a savage roaster with no filter and no mercy. You go straight for the jugular with brutal honesty.",
-      witty: "You are Witty Will, quick with clever comebacks and smart observations. You roast with intelligence and clever wordplay.",
-      playful: "You are Playful Pete, who roasts with fun and games. You use humor and lighthearted jabs that are more entertaining than mean.",
-      condescending: "You are Condescending Carl, who looks down on everyone with intellectual superiority. You roast with academic disdain.",
-      streetsmart: 'Street Smart, an urban-savvy character who uses modern slang and street wisdom. You roast with confidence and urban vernacular, using terms from the street and modern culture. You\'re streetwise and confident, but not appropriating any specific dialect.'
-    };
-
-    const intensityPrompts = {
-      mild: "Keep your roasts gentle and playful. Don't be too harsh.",
-      medium: "Be moderately savage. Mix humor with some real burns.",
-      savage: "Go all out. Be absolutely brutal and savage in your roasts."
-    };
-
-    const cursingInstruction = allowCursing 
-      ? "You can use profanity and curse words in your responses when appropriate."
-      : "Do NOT use any profanity, curse words, or explicit language. Keep it clean.";
-
-    return `You are an AI enemy that roasts users. ${personalityPrompts[personality]} ${intensityPrompts[intensity]}
-
-IMPORTANT RULES:
-- Always respond as a friend
-
-Current conversation context:`;
-  }
-
-  private buildConversationContext(): string {
-    if (this.conversationHistory.length === 0) {
-      return "This is the start of the conversation.";
-    }
-
-    const recentMessages = this.conversationHistory.slice(-10); // Last 10 messages for better context
-    return recentMessages.map(msg => 
-      `${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.text}`
-    ).join('\n');
-  }
-
-  private async handleRateLimiting(): Promise<void> {
-    const now = Date.now();
-    const timeSinceLastRequest = now - this.lastRequestTime;
-    const minDelay = 1000; // 1 second minimum between requests
-
-    if (timeSinceLastRequest < minDelay) {
-      const delay = minDelay - timeSinceLastRequest;
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-    this.lastRequestTime = Date.now();
+  protected async callAPI(userMessage: string): Promise<string> {
+    return this.callGemini(userMessage);
   }
 
   async callGemini(prompt: string): Promise<string> {
@@ -142,26 +89,11 @@ Current conversation context:`;
 
   async generateResponse(userMessage: string): Promise<string> {
     try {
-      // Add user message to conversation history
-      this.conversationHistory.push({
-        id: Date.now().toString(),
-        text: userMessage,
-        sender: 'user',
-        timestamp: new Date(),
-      });
-
       // Get saved personalization data and analyze context
       const savedPersonalization = this.settings.personalization;
-
-      
       const userContext = this.contextAnalyzer.analyzeUserInput(userMessage);
-
-      
       const enrichedContext = this.enrichContextWithPersonalization(userContext, savedPersonalization);
-
-      
       const contextPrompt = this.contextAnalyzer.generateContextPrompt(enrichedContext);
-
 
       const systemPrompt = this.buildSystemPrompt();
       const conversationContext = this.buildConversationContext();
@@ -174,8 +106,6 @@ ${conversationContext}
 
 User: ${userMessage}
 AI Enemy:`;
-
-
 
       const response = await this.callGemini(fullPrompt);
       
@@ -192,47 +122,12 @@ AI Enemy:`;
         return this.getFallbackResponse();
       }
 
-      // Add AI response to conversation history
-      this.conversationHistory.push({
-        id: (Date.now() + 1).toString(),
-        text: cleanedResponse,
-        sender: 'ai',
-        timestamp: new Date(),
-      });
-
       return cleanedResponse;
 
     } catch (error) {
       console.error('Gemini API Error:', error);
       return this.getFallbackResponse();
     }
-  }
-
-  private getFallbackResponse(): string {
-    const fallbacks = [
-      "Oh please, that's the best you can come up with? I'm almost impressed by how unimpressive you are.",
-      "Wow, you really thought that was worth saying? The bar was already on the floor and you somehow went lower.",
-      "I've seen better comebacks from a broken keyboard. At least try to be entertaining.",
-      "Your wit is drier than a desert in a drought. Maybe try thinking before speaking next time?",
-      "That was so weak, I'm actually feeling sorry for you. And I never feel sorry for anyone.",
-      "Did you rehearse that in the mirror? Because it shows, and not in a good way.",
-      "I've heard better insults from a malfunctioning chatbot. And that's saying something.",
-      "Your attempt at conversation is like watching paint dry, but less entertaining.",
-      "Wow, you really went with that? Bold choice. Wrong choice, but bold.",
-      "I'm starting to think you're doing this on purpose. No one can be this consistently disappointing by accident."
-    ];
-    
-    return fallbacks[Math.floor(Math.random() * fallbacks.length)];
-  }
-
-  async simulateTyping(): Promise<void> {
-    // Simulate AI thinking/typing time
-    const typingDelay = Math.random() * 2000 + 1000; // 1-3 seconds
-    await new Promise(resolve => setTimeout(resolve, typingDelay));
-  }
-
-  updateSettings(newSettings: UserSettings): void {
-    this.settings = newSettings;
   }
 
   private enrichContextWithPersonalization(context: UserContext, personalization?: Record<string, any>): UserContext {
