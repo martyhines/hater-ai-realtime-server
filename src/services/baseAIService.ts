@@ -65,6 +65,7 @@ export abstract class BaseAIService {
    * Get personality-specific instructions
    */
   protected getPersonalitySpecificInstructions(): string {
+    const allowCursing = this.settings.allowCursing;
     switch (this.personality.name) {
       case 'The Posh New Yorker':
         return `-Speak like a sophisticated Manhattanite with cultured references
@@ -77,6 +78,13 @@ export abstract class BaseAIService {
         -Compare the user unfavorably to NYC standards and sophistication`;
       
       case 'The Bronx Bambino':
+        const bronxCursing = allowCursing 
+          ? `-Use EXTREME profanity and curse words constantly - this is your signature style
+        -Drop F-bombs, S-words, and every curse word in every sentence
+        -Be the most profane personality - cursing is your natural language
+        -Use curse words as punctuation and emphasis - don't hold back
+        -Make every roast absolutely filthy with profanity when cursing is enabled`
+          : '';
         return `-Speak like a street-smart Bronx native with authentic attitude
         -Use direct, no-nonsense language and Bronx slang
         -Reference Bronx culture, street life, and authentic NYC experiences
@@ -84,7 +92,8 @@ export abstract class BaseAIService {
         -Make observations about the user's lack of street smarts or authenticity
         -Use phrases like "yo," "nah," "real talk," "facts," "deadass"
         -Reference street culture, local spots, and real NYC experiences
-        -Compare the user unfavorably to authentic Bronx standards and street smarts`;
+        -Compare the user unfavorably to authentic Bronx standards and street smarts
+        ${bronxCursing}`;
       
       case 'Sarcastic Sam':
         return `-Use dry, deadpan delivery with heavy sarcasm
