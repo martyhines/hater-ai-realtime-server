@@ -331,7 +331,7 @@ async function callCohere(apiKey, messages, options = {}) {
 
 // Helper function to call XAI API
 async function callXAI(apiKey, messages, options = {}) {
-  const { max_tokens = 300, temperature = 0.8, top_p = 0.9 } = options;
+  const { max_tokens = 500, temperature = 0.8, top_p = 0.9 } = options;
   
   const response = await fetch('https://api.x.ai/v1/chat/completions', {
     method: 'POST',
@@ -361,11 +361,18 @@ async function callXAI(apiKey, messages, options = {}) {
     throw new Error('Invalid XAI response format');
   }
 
-  // Check if content is empty and provide fallback
+  // Check if content is empty and use reasoning_content if available
   const content = data.choices[0].message.content;
+  const reasoningContent = data.choices[0].message.reasoning_content;
+  
   if (!content || content.trim() === '') {
-    console.warn('XAI returned empty content, using fallback');
-    data.choices[0].message.content = "I'm having trouble coming up with a good roast right now. Try again in a moment!";
+    if (reasoningContent && reasoningContent.trim() !== '') {
+      console.log('XAI returned content in reasoning_content field, using that');
+      data.choices[0].message.content = reasoningContent;
+    } else {
+      console.warn('XAI returned empty content, using fallback');
+      data.choices[0].message.content = "I'm having trouble coming up with a good roast right now. Try again in a moment!";
+    }
   }
 
   // XAI already returns OpenAI-compatible format
