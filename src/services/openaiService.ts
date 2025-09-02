@@ -107,6 +107,13 @@ export class OpenAIService {
     const systemPrompt = this.buildSystemPrompt();
     const conversationContext = this.buildConversationContext();
 
+    console.log('=== SYSTEM PROMPT ===');
+    console.log(systemPrompt);
+    console.log('=== CONVERSATION CONTEXT ===');
+    console.log(conversationContext);
+    console.log('=== USER MESSAGE ===');
+    console.log(userMessage);
+    console.log('===================');
     
 
     try {
@@ -199,14 +206,15 @@ IMPORTANT RULES:
 17. Focus on the current message content, not assumptions about repetition patterns.
 18. Only reference previous messages when they're directly relevant to the current response.
 19. Do NOT make jokes about the user repeating themselves unless you can see identical messages in the conversation history.
+20. Never mention the user repeating themselves, unless you can see identical messages in the conversation history.
 ${cursingInstruction}
 
 Remember: You're a friend who roasts, not a bully. Keep it fun and entertaining!`;
   }
 
   private buildConversationContext(): Array<{ role: string; content: string }> {
-    // Get the last 10 messages for better context (increased from 5)
-    const recentMessages = this.conversationHistory.slice(-10);
+    // Get the last 6 messages for balanced context
+    const recentMessages = this.conversationHistory.slice(-6);
     
     return recentMessages.map(msg => ({
       role: msg.sender === 'user' ? 'user' : 'assistant',
