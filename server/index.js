@@ -192,7 +192,7 @@ app.post('/v1/chat', async (req, res) => {
       }
     }
 
-    // Fallback to OpenAI
+    // Final fallback to OpenAI
     if (openaiApiKey) {
       const resp = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
