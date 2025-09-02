@@ -204,9 +204,19 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         setSettings(prev => ({ ...prev, ...savedSettings }));
       }
       
-      // Check AI status
-      const hasApiKey = await storage.hasApiKey();
-      setIsAIEnabled(hasApiKey);
+      // Check AI status based on BYOK setting
+      let isAIAvailable = false;
+      
+      if (FEATURES.ENABLE_BYOK) {
+        // BYOK enabled - check for user API keys
+        const hasApiKey = await storage.hasApiKey();
+        isAIAvailable = hasApiKey;
+      } else {
+        // BYOK disabled - server-powered AI is always available
+        isAIAvailable = true;
+      }
+      
+      setIsAIEnabled(isAIAvailable);
     };
 
     loadSettingsAndCheckAI();
@@ -226,7 +236,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             const hasApiKey = await storage.hasApiKey();
             isAIAvailable = hasApiKey;
           } else {
-            // BYOK disabled - server-powered AI should be available
+            // BYOK disabled - server-powered AI is always available
             isAIAvailable = true;
           }
           
