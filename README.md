@@ -63,5 +63,5 @@ npx expo start
 - Initial release
 - 4 AI personalities
 - Template mode
-- Real AI integration
+- AI Enabled integration
 - Dark theme UI 

@@ -729,7 +729,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
               color={isAIEnabled ? "#FFD700" : "#ccc"}
             />
             <Text style={[styles.aiStatusText, { color: isAIEnabled ? "#FFD700" : "#ccc" }]}>
-              {isAIEnabled ? `Real AI${getModelName() ? ` (${getModelName()})` : ''}` : "AI Service Unavailable"}
+              {isAIEnabled ? `AI Enabled${getModelName() ? ` (${getModelName()})` : ''}` : "AI Service Unavailable"}
             </Text>
           </View>
           

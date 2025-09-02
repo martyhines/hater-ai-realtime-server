@@ -13,6 +13,7 @@ export class GeminiService extends BaseAIService {
   }
 
   protected async callAPI(userMessage: string): Promise<string> {
+    console.log('GeminiService COOKING');
     return this.callGemini(userMessage);
   }
 

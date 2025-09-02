@@ -503,7 +503,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                 color={isAIEnabled ? "#FFD700" : "#ccc"} 
               />
               <Text style={[styles.summaryValue, { color: isAIEnabled ? "#FFD700" : "#ccc" }]}>
-                {isAIEnabled ? "Real AI" : "AI Service Unavailable"}
+                {isAIEnabled ? "AI Enabled" : "AI Service Unavailable"}
               </Text>
             </View>
           </View>

@@ -99,7 +99,7 @@ Features:
 • 4 AI Personalities
 • 3 Roast Intensity Levels
 • Works Offline (Template Mode)
-• Real AI Integration (Optional)
+• AI Enabled Integration (Optional)
 • Beautiful Dark UI
 
 Perfect for entertainment and humor! All responses are AI-generated and meant for fun.

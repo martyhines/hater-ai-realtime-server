@@ -179,7 +179,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>AI Mode</Text>
                 <Text style={[styles.settingValue, { color: isAIEnabled ? "#FFD700" : "#ccc" }]}>
-                  {isAIEnabled ? "Real AI Enabled" : "AI Service Unavailable"}
+                  {isAIEnabled ? "AI Enabled Enabled" : "AI Service Unavailable"}
                 </Text>
               </View>
             </View>
@@ -257,7 +257,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               color={isAIEnabled ? "#4CAF50" : "#FFD700"} 
             />
             <Text style={[styles.enableAiButtonText, isAIEnabled && styles.enableAiButtonTextActive]}>
-              {isAIEnabled ? "AI Settings" : "Enable Real AI"}
+              {isAIEnabled ? "AI Settings" : "Enable AI Enabled"}
             </Text>
           </TouchableOpacity>
           ) : null}

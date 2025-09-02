@@ -350,7 +350,7 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <Ionicons name="key" size={48} color="#FF6B6B" />
-          <Text style={styles.title}>Enable Real AI</Text>
+          <Text style={styles.title}>Enable AI Enabled</Text>
           <Text style={styles.subtitle}>
             Choose your AI provider and connect your API key
           </Text>
