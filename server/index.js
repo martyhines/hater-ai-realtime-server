@@ -355,8 +355,17 @@ async function callXAI(apiKey, messages, options = {}) {
 
   const data = await response.json();
   
+  console.log('XAI raw response:', JSON.stringify(data, null, 2));
+  
   if (!data.choices || !data.choices[0] || !data.choices[0].message) {
     throw new Error('Invalid XAI response format');
+  }
+
+  // Check if content is empty and provide fallback
+  const content = data.choices[0].message.content;
+  if (!content || content.trim() === '') {
+    console.warn('XAI returned empty content, using fallback');
+    data.choices[0].message.content = "I'm having trouble coming up with a good roast right now. Try again in a moment!";
   }
 
   // XAI already returns OpenAI-compatible format
