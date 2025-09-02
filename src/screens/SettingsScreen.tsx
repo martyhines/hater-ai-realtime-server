@@ -76,10 +76,17 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     },
     {
       id: 'newyorker',
-      name: 'The New Yorker',
+      name: 'The Posh New Yorker',
       emoji: '🗽',
       description: 'Sophisticated Manhattanite with cultured wit and NYC attitude',
       traits: ['Sophisticated', 'Cultured', 'Witty', 'Urbane'],
+    },
+    {
+      id: 'bronxbambino',
+      name: 'The Bronx Bambino',
+      emoji: '🏙️',
+      description: 'Street-smart Bronx native with direct attitude and no-nonsense roasts',
+      traits: ['Direct', 'Streetwise', 'Authentic', 'Unfiltered'],
     },
   ];
 
