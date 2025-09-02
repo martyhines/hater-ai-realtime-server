@@ -149,7 +149,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           const features = await premiumService.getUnlockedFeatures();
           setUnlockedFeatures(features);
           
-          // Enable cursing in settings
+          // Enable cursing in settings (default to ON when unlocked)
           const newSettings = { ...settings, allowCursing: true };
           setSettings(newSettings);
           const storage = StorageService.getInstance();
