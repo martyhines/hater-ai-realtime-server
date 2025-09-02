@@ -108,10 +108,11 @@ app.post('/v1/chat', async (req, res) => {
 
     const geminiApiKey = process.env.GEMINI_API_KEY;
     const cohereApiKey = process.env.COHERE_API_KEY;
+    const xaiApiKey = process.env.XAI_API_KEY;
     const openaiApiKey = process.env.OPENAI_API_KEY;
     
-    if (!geminiApiKey && !cohereApiKey && !openaiApiKey) {
-      return res.status(500).json({ error: 'No AI API keys configured (GEMINI_API_KEY, COHERE_API_KEY, or OPENAI_API_KEY)' });
+    if (!geminiApiKey && !cohereApiKey && !xaiApiKey && !openaiApiKey) {
+      return res.status(500).json({ error: 'No AI API keys configured (GEMINI_API_KEY, COHERE_API_KEY, XAI_API_KEY, or OPENAI_API_KEY)' });
     }
 
     // Basic payload validation/sanitization
@@ -170,6 +171,24 @@ app.post('/v1/chat', async (req, res) => {
         }
       } catch (cohereError) {
         console.warn('Cohere API failed, falling back to OpenAI:', cohereError.message);
+      }
+    }
+
+    // Fallback to XAI
+    if (xaiApiKey) {
+      try {
+        const xaiResponse = await callXAI(xaiApiKey, safeMessages, {
+          max_tokens,
+          temperature,
+          top_p,
+        });
+        
+        // Add AI service info to XAI response
+        xaiResponse.ai_service = 'xai';
+        console.log('[chat] provider=xai ok ip=%s messages=%d', ip, safeMessages.length);
+        return res.json(xaiResponse);
+      } catch (error) {
+        console.warn('[chat] provider=xai failed ip=%s error=%s', ip, error.message);
       }
     }
 
@@ -307,6 +326,44 @@ async function callCohere(apiKey, messages, options = {}) {
     }],
     usage: data.meta || {},
     ai_service: 'cohere'
+  };
+}
+
+// Helper function to call XAI API
+async function callXAI(apiKey, messages, options = {}) {
+  const { max_tokens = 300, temperature = 0.8, top_p = 0.9 } = options;
+  
+  const response = await fetch('https://api.x.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'grok-3-mini',
+      messages: messages,
+      max_tokens: max_tokens,
+      temperature: temperature,
+      top_p: top_p,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`XAI API error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  
+  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    throw new Error('Invalid XAI response format');
+  }
+
+  // XAI already returns OpenAI-compatible format
+  return {
+    choices: data.choices,
+    usage: data.usage || {},
+    ai_service: 'xai'
   };
 }
 
