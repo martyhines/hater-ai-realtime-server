@@ -35,6 +35,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   });
   const [isAIEnabled, setIsAIEnabled] = useState(false);
   const [unlockedFeatures, setUnlockedFeatures] = useState<string[]>([]);
+  const [unlockedPersonalities, setUnlockedPersonalities] = useState<string[]>([]);
   const [isPremiumLoading, setIsPremiumLoading] = useState(false);
   const [streak, setStreak] = useState(0);
 
@@ -237,6 +238,40 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
+  const handlePersonalityPackPurchase = async (packId: string) => {
+    setIsPremiumLoading(true);
+    try {
+      const premiumService = PremiumService.getInstance();
+      const success = await premiumService.purchasePersonalityPack(packId);
+      if (success) {
+        // Reload unlocked personalities
+        const personalities = await premiumService.getUnlockedPersonalities();
+        setUnlockedPersonalities(personalities);
+      }
+    } catch (error) {
+      console.error('Error purchasing personality pack:', error);
+    } finally {
+      setIsPremiumLoading(false);
+    }
+  };
+
+  const handleIndividualPersonalityPurchase = async (personalityId: string) => {
+    setIsPremiumLoading(true);
+    try {
+      const premiumService = PremiumService.getInstance();
+      const success = await premiumService.purchaseIndividualPersonality(personalityId);
+      if (success) {
+        // Reload unlocked personalities
+        const personalities = await premiumService.getUnlockedPersonalities();
+        setUnlockedPersonalities(personalities);
+      }
+    } catch (error) {
+      console.error('Error purchasing individual personality:', error);
+    } finally {
+      setIsPremiumLoading(false);
+    }
+  };
+
   // Load saved settings and check AI status on mount
   useEffect(() => {
     const loadSettingsAndCheckAI = async () => {
@@ -301,6 +336,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           const premiumService = PremiumService.getInstance();
           const features = await premiumService.getUnlockedFeatures();
           setUnlockedFeatures(features);
+          
+          // Load unlocked personalities
+          const personalities = await premiumService.getUnlockedPersonalities();
+          setUnlockedPersonalities(personalities);
         } catch (error) {
           console.error('Error loading premium features:', error);
         }
@@ -332,34 +371,62 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Choose Your AI Enemy</Text>
           <Text style={styles.sectionSubtitle}>Pick the personality that will roast you</Text>
           
-          {personalities.map((personality) => (
-            <TouchableOpacity
-              key={personality.id}
-              style={[
-                styles.personalityCard,
-                settings.aiPersonality === personality.id && styles.selectedCard
-              ]}
-              onPress={() => updatePersonality(personality.id)}
-            >
-              <View style={styles.personalityHeader}>
-                <Text style={styles.personalityEmoji}>{personality.emoji}</Text>
-                <View style={styles.personalityInfo}>
-                  <Text style={styles.personalityName}>{personality.name}</Text>
-                  <Text style={styles.personalityDescription}>{personality.description}</Text>
-                </View>
-                {settings.aiPersonality === personality.id && (
-                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-                )}
-              </View>
-              <View style={styles.traitsContainer}>
-                {personality.traits.map((trait, index) => (
-                  <View key={index} style={styles.traitTag}>
-                    <Text style={styles.traitText}>{trait}</Text>
+          {personalities.map((personality) => {
+            const isUnlocked = unlockedPersonalities.includes(personality.id) || 
+                              ['sarcastic', 'brutal', 'witty', 'condescending', 'streetsmart', 'newyorker'].includes(personality.id);
+            const isLocked = !isUnlocked;
+            
+            return (
+              <TouchableOpacity
+                key={personality.id}
+                style={[
+                  styles.personalityCard,
+                  settings.aiPersonality === personality.id && styles.selectedCard,
+                  isLocked && styles.lockedCard
+                ]}
+                onPress={() => {
+                  if (isLocked) {
+                    // Show purchase options for locked personality
+                    Alert.alert(
+                      'Premium Personality',
+                      `"${personality.name}" is a premium personality.\n\nBuy individually for $1.99 or get the full Cultural/Regional pack for $7.99!`,
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Buy Individual ($1.99)', onPress: () => handleIndividualPersonalityPurchase(personality.id) },
+                        { text: 'Buy Pack ($7.99)', onPress: () => handlePersonalityPackPurchase('cultural_regional') }
+                      ]
+                    );
+                  } else {
+                    updatePersonality(personality.id);
+                  }
+                }}
+              >
+                <View style={styles.personalityHeader}>
+                  <Text style={styles.personalityEmoji}>{personality.emoji}</Text>
+                  <View style={styles.personalityInfo}>
+                    <Text style={styles.personalityName}>
+                      {personality.name}
+                      {isLocked && <Text style={styles.premiumBadge}> 🔒 PREMIUM</Text>}
+                    </Text>
+                    <Text style={styles.personalityDescription}>{personality.description}</Text>
                   </View>
-                ))}
-              </View>
-            </TouchableOpacity>
-          ))}
+                  {settings.aiPersonality === personality.id && (
+                    <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                  )}
+                  {isLocked && (
+                    <Ionicons name="lock-closed" size={20} color="#FF6B6B" />
+                  )}
+                </View>
+                <View style={styles.traitsContainer}>
+                  {personality.traits.map((trait, index) => (
+                    <View key={index} style={styles.traitTag}>
+                      <Text style={styles.traitText}>{trait}</Text>
+                    </View>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Roast Intensity Section */}
@@ -628,6 +695,11 @@ const styles = StyleSheet.create({
   selectedCard: {
     borderColor: '#4CAF50',
     backgroundColor: 'rgba(76, 175, 80, 0.1)',
+  },
+  lockedCard: {
+    borderColor: '#FF6B6B',
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    opacity: 0.7,
   },
   personalityHeader: {
     flexDirection: 'row',
