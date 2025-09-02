@@ -1,5 +1,6 @@
 import { Alert } from 'react-native';
 import { StorageService } from './storageService';
+import { IAPService } from './iapService';
 
 export interface PremiumFeature {
   id: string;
@@ -149,23 +150,25 @@ export class PremiumService {
         return false;
       }
 
-      // Simulate payment processing
-      const paymentSuccess = await this.processPayment(feature.price);
-      if (!paymentSuccess) {
-        Alert.alert('Payment Failed', 'Unable to process payment. Please try again.');
+      // Use real IAP for payment
+      const iapService = IAPService.getInstance();
+      
+      // Check if IAP is available
+      if (!iapService.isAvailable()) {
+        Alert.alert('Not Available', 'In-app purchases are not available on this device.');
         return false;
       }
 
-      // Unlock the feature
-      await this.unlockFeature(featureId);
-      
-      Alert.alert(
-        'Purchase Successful!',
-        `${feature.name} has been unlocked!`,
-        [{ text: 'OK' }]
-      );
+      // Initialize IAP if needed
+      const initialized = await iapService.initialize();
+      if (!initialized) {
+        Alert.alert('Initialization Failed', 'Unable to initialize payment system. Please try again.');
+        return false;
+      }
 
-      return true;
+      // Purchase the feature
+      const success = await iapService.purchaseProduct(featureId);
+      return success;
     } catch (error) {
       console.error('Error purchasing feature:', error);
       Alert.alert('Purchase Failed', 'An error occurred during purchase.');
@@ -255,19 +258,7 @@ export class PremiumService {
     });
   }
 
-  /**
-   * Simulate payment processing
-   */
-  private async processPayment(amount: number): Promise<boolean> {
-    // In a real app, this would integrate with Apple Pay, Google Pay, or Stripe
-    // For now, we'll simulate a successful payment
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Simulate 95% success rate
-        resolve(Math.random() > 0.05);
-      }, 1000);
-    });
-  }
+
 
   /**
    * Unlock a feature
@@ -398,25 +389,26 @@ export class PremiumService {
         return false;
       }
 
-      // Simulate payment processing
-      const paymentSuccess = await this.processPayment(pack.price);
-      if (!paymentSuccess) {
-        Alert.alert('Payment Failed', 'Unable to process payment. Please try again.');
+      // Use real IAP for payment
+      const iapService = IAPService.getInstance();
+      
+      // Check if IAP is available
+      if (!iapService.isAvailable()) {
+        Alert.alert('Not Available', 'In-app purchases are not available on this device.');
         return false;
       }
 
-      // Unlock all personalities in the pack
-      for (const personalityId of pack.personalities) {
-        await this.unlockPersonality(personalityId);
+      // Initialize IAP if needed
+      const initialized = await iapService.initialize();
+      if (!initialized) {
+        Alert.alert('Initialization Failed', 'Unable to initialize payment system. Please try again.');
+        return false;
       }
 
-      Alert.alert(
-        'Pack Unlocked!',
-        `${pack.name} has been unlocked! You now have access to all ${pack.personalities.length} personalities.`,
-        [{ text: 'OK' }]
-      );
-
-      return true;
+      // Purchase the pack
+      const productId = `pack_${packId}`;
+      const success = await iapService.purchaseProduct(productId);
+      return success;
     } catch (error) {
       console.error('Error purchasing personality pack:', error);
       Alert.alert('Purchase Failed', 'An error occurred during purchase.');
@@ -437,23 +429,26 @@ export class PremiumService {
         return false;
       }
 
-      // Simulate payment processing
-      const paymentSuccess = await this.processPayment(price);
-      if (!paymentSuccess) {
-        Alert.alert('Payment Failed', 'Unable to process payment. Please try again.');
+      // Use real IAP for payment
+      const iapService = IAPService.getInstance();
+      
+      // Check if IAP is available
+      if (!iapService.isAvailable()) {
+        Alert.alert('Not Available', 'In-app purchases are not available on this device.');
         return false;
       }
 
-      // Unlock the personality
-      await this.unlockPersonality(personalityId);
+      // Initialize IAP if needed
+      const initialized = await iapService.initialize();
+      if (!initialized) {
+        Alert.alert('Initialization Failed', 'Unable to initialize payment system. Please try again.');
+        return false;
+      }
 
-      Alert.alert(
-        'Personality Unlocked!',
-        'Your new personality has been unlocked and is ready to use!',
-        [{ text: 'OK' }]
-      );
-
-      return true;
+      // Purchase the personality
+      const productId = `personality_${personalityId}`;
+      const success = await iapService.purchaseProduct(productId);
+      return success;
     } catch (error) {
       console.error('Error purchasing individual personality:', error);
       Alert.alert('Purchase Failed', 'An error occurred during purchase.');

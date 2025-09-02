@@ -45,46 +45,46 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   // Check if AI is enabled on component mount and when screen focuses
   useEffect(() => {
-      const checkAIStatus = async () => {
-    try {
-      const storage = StorageService.getInstance();
-      
-      // Update streak when user opens the app
-      const streakService = StreakService.getInstance();
-      const currentStreak = await streakService.updateStreak();
-      setStreak(currentStreak);
-      
-      // Load current settings
-      const savedSettings = await Promise.race([
-        storage.getSettings(),
-        new Promise<any>((resolve) => setTimeout(() => resolve(null), 2000))
-      ]);
-      
-      if (savedSettings) {
-        setSettings(savedSettings);
-      }
-      
-      // Check AI availability based on BYOK setting
-      let isAIAvailable = false;
-      
-      if (FEATURES.ENABLE_BYOK) {
-        // BYOK enabled - check for user API keys
-        const hasApiKey = await Promise.race([
-          storage.hasApiKey(),
-          new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000))
+    const checkAIStatus = async () => {
+      try {
+        const storage = StorageService.getInstance();
+
+        // Update streak when user opens the app
+        const streakService = StreakService.getInstance();
+        const currentStreak = await streakService.updateStreak();
+        setStreak(currentStreak);
+
+        // Load current settings
+        const savedSettings = await Promise.race([
+          storage.getSettings(),
+          new Promise<any>((resolve) => setTimeout(() => resolve(null), 2000))
         ]);
-        isAIAvailable = hasApiKey;
-      } else {
-        // BYOK disabled - server-powered AI should be available
-        isAIAvailable = true;
+
+        if (savedSettings) {
+          setSettings(savedSettings);
+        }
+
+        // Check AI availability based on BYOK setting
+        let isAIAvailable = false;
+
+        if (FEATURES.ENABLE_BYOK) {
+          // BYOK enabled - check for user API keys
+          const hasApiKey = await Promise.race([
+            storage.hasApiKey(),
+            new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000))
+          ]);
+          isAIAvailable = hasApiKey;
+        } else {
+          // BYOK disabled - server-powered AI should be available
+          isAIAvailable = true;
+        }
+
+        setIsAIEnabled(isAIAvailable);
+      } catch (error) {
+        console.error('Error checking AI status:', error);
+        setIsAIEnabled(false);
       }
-      
-      setIsAIEnabled(isAIAvailable);
-    } catch (error) {
-      console.error('Error checking AI status:', error);
-      setIsAIEnabled(false);
-    }
-  };
+    };
 
     checkAIStatus();
   }, []);
@@ -95,20 +95,20 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       const checkAIStatus = async () => {
         try {
           const storage = StorageService.getInstance();
-          
+
           // Load current settings
           const savedSettings = await Promise.race([
             storage.getSettings(),
             new Promise<any>((resolve) => setTimeout(() => resolve(null), 2000))
           ]);
-          
+
           if (savedSettings) {
             setSettings(savedSettings);
           }
-          
+
           // Check AI availability based on BYOK setting
           let isAIAvailable = false;
-          
+
           if (FEATURES.ENABLE_BYOK) {
             // BYOK enabled - check for user API keys
             const hasApiKey = await Promise.race([
@@ -120,7 +120,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             // BYOK disabled - server-powered AI should be available
             isAIAvailable = true;
           }
-          
+
           setIsAIEnabled(isAIAvailable);
         } catch (error) {
           console.error('Error checking AI status on focus:', error);
@@ -171,17 +171,50 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.title}>Hater AI</Text>
             <Text style={styles.subtitle}>Shade Throwing At Its Finest</Text>
           </View>
+          {/* Main Action Button */}
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={handleStartChat}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={['#FF6B6B', '#FF8E53']}
+              style={styles.buttonGradient}
+            >
+              <Ionicons name="chatbubbles" size={32} color="#fff" />
+              <Text style={styles.startButtonText}>Start Chatting</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          {/* Settings Button */}
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={handleSettings}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="settings-outline" size={24} color="#fff" />
+            <Text style={styles.settingsButtonText}>Settings</Text>
+          </TouchableOpacity>
+
+          {/* Voice Settings Button */}
+          <TouchableOpacity
+            style={styles.voiceSettingsButton}
+            onPress={() => navigation.navigate('VoiceSettings')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="mic" size={24} color="#FFD93D" />
+            <Text style={styles.voiceSettingsButtonText}>Voice Settings</Text>
+          </TouchableOpacity>
 
           {/* Current Settings Card */}
           <View style={styles.settingsCard}>
             <Text style={styles.cardTitle}>Current Setup</Text>
-            
+
             {/* AI Status Indicator */}
             <View style={styles.settingRow}>
-              <Ionicons 
-                name={isAIEnabled ? "sparkles" : "code-slash"} 
-                size={24} 
-                color={isAIEnabled ? "#FFD700" : "#ccc"} 
+              <Ionicons
+                name={isAIEnabled ? "sparkles" : "code-slash"}
+                size={24}
+                color={isAIEnabled ? "#FFD700" : "#ccc"}
               />
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>AI Mode</Text>
@@ -203,7 +236,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 </View>
               </View>
             )}
-            
+
             <View style={styles.settingRow}>
               <Ionicons name="person" size={24} color="#fff" />
               <View style={styles.settingInfo}>
@@ -241,18 +274,18 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                   {settings.voiceSettings?.autoPlay ? 'Auto Play' : 'Tap Mic In Chat To Play'}
                 </Text>
               </View>
-          </View>
+            </View>
           </View>
 
           {/* Voice Settings Button */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.voiceSettingsButton}
             onPress={() => navigation.navigate('VoiceSettings')}
             activeOpacity={0.7}
           >
             <Ionicons name="mic" size={24} color="#FFD93D" />
             <Text style={styles.voiceSettingsButtonText}>Voice Settings</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Speech-to-Text Settings Button */}
           {/* <TouchableOpacity
@@ -266,64 +299,51 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
           {/* Enable AI Button */}
           {FEATURES.ENABLE_BYOK ? (
-          <TouchableOpacity
-            style={[styles.enableAiButton, isAIEnabled && styles.enableAiButtonActive]}
-            onPress={() => navigation.navigate('ApiKey')}
-            activeOpacity={0.7}
-          >
-            <Ionicons 
-              name={isAIEnabled ? "checkmark-circle" : "sparkles"} 
-              size={24} 
-              color={isAIEnabled ? "#4CAF50" : "#FFD700"} 
-            />
-            <Text style={[styles.enableAiButtonText, isAIEnabled && styles.enableAiButtonTextActive]}>
-              {isAIEnabled ? "AI Settings" : "Enable AI Enabled"}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.enableAiButton, isAIEnabled && styles.enableAiButtonActive]}
+              onPress={() => navigation.navigate('ApiKey')}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={isAIEnabled ? "checkmark-circle" : "sparkles"}
+                size={24}
+                color={isAIEnabled ? "#4CAF50" : "#FFD700"}
+              />
+              <Text style={[styles.enableAiButtonText, isAIEnabled && styles.enableAiButtonTextActive]}>
+                {isAIEnabled ? "AI Settings" : "Enable AI Enabled"}
+              </Text>
+            </TouchableOpacity>
           ) : null}
 
-          {/* Main Action Button */}
-          <TouchableOpacity
-            style={styles.startButton}
-            onPress={handleStartChat}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={['#FF6B6B', '#FF8E53']}
-              style={styles.buttonGradient}
-            >
-              <Ionicons name="chatbubbles" size={32} color="#fff" />
-              <Text style={styles.startButtonText}>Start Getting Roasted</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+
 
           {/* Features */}
-          <View style={styles.featuresContainer}>
+          {/* <View style={styles.featuresContainer}>
             <Text style={styles.featuresTitle}>What to Expect</Text>
-            
+
             <View style={styles.featureItem}>
               <Ionicons name="sparkles" size={20} color="#FFD700" />
               <Text style={styles.featureText}>4 Unique AI Personalities</Text>
             </View>
-            
+
             <View style={styles.featureItem}>
               <Ionicons name="flame" size={20} color="#FF6B6B" />
               <Text style={styles.featureText}>3 Roast Intensity Levels</Text>
             </View>
-            
+
             <View style={styles.featureItem}>
               <Ionicons name="chatbubble" size={20} color="#4ECDC4" />
               <Text style={styles.featureText}>Contextual Responses</Text>
             </View>
-            
+
             <View style={styles.featureItem}>
               <Ionicons name="settings" size={20} color="#A8E6CF" />
               <Text style={styles.featureText}>Customizable Experience</Text>
             </View>
-          </View>
+          </View> */}
 
-          {/* Clear API Key Button (when AI is enabled) */}
-          {isAIEnabled && (
+          {/* Clear API Key Button (only when using BYOK) */}
+          {FEATURES.ENABLE_BYOK && isAIEnabled && (
             <TouchableOpacity
               style={styles.clearApiButton}
               onPress={async () => {
@@ -340,34 +360,16 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           )}
 
           {/* Personalization Button */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.personalizationButton}
             onPress={() => navigation.navigate('PersonalizationQuiz')}
             activeOpacity={0.7}
           >
             <Ionicons name="person-circle" size={24} color="#4ECDC4" />
             <Text style={styles.personalizationButtonText}>Make It Personal</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
-          {/* Voice Settings Button */}
-          <TouchableOpacity
-            style={styles.voiceSettingsButton}
-            onPress={() => navigation.navigate('VoiceSettings')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="mic" size={24} color="#FFD93D" />
-            <Text style={styles.voiceSettingsButtonText}>Voice Settings</Text>
-          </TouchableOpacity>
 
-          {/* Settings Button */}
-          <TouchableOpacity
-            style={styles.settingsButton}
-            onPress={handleSettings}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="settings-outline" size={24} color="#fff" />
-            <Text style={styles.settingsButtonText}>Settings</Text>
-          </TouchableOpacity>
 
 
         </ScrollView>
