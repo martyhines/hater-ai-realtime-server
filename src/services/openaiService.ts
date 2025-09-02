@@ -59,12 +59,16 @@ export class OpenAIService {
       const response = await this.callOpenAI(userMessage);
       
       // Add both user message and AI response to history after successful response
-      this.conversationHistory.push({
-        id: Date.now().toString(),
-        text: userMessage,
-        sender: 'user',
-        timestamp: new Date()
-      });
+      // Check if the last message is not the same user message to prevent duplicates
+      const lastMessage = this.conversationHistory[this.conversationHistory.length - 1];
+      if (!lastMessage || lastMessage.text !== userMessage || lastMessage.sender !== 'user') {
+        this.conversationHistory.push({
+          id: Date.now().toString(),
+          text: userMessage,
+          sender: 'user',
+          timestamp: new Date()
+        });
+      }
       
       this.conversationHistory.push({
         id: (Date.now() + 1).toString(),
@@ -111,6 +115,12 @@ export class OpenAIService {
       role: 'user',
       content: userMessage
     });
+
+    // Debug: Log the conversation context to see if there are duplicates
+    console.log('=== CONVERSATION CONTEXT DEBUG ===');
+    console.log('Context length:', conversationContext.length);
+    console.log('Context:', JSON.stringify(conversationContext, null, 2));
+    console.log('===================================');
 
     try {
       const backendUrl = `${API_CONFIG.BACKEND?.BASE_URL || ''}/v1/chat`;
@@ -212,6 +222,11 @@ Remember: You're a friend who roasts, not a bully. Keep it fun and entertaining!
       role: msg.sender === 'user' ? 'user' : 'assistant',
       content: msg.text
     }));
+  }
+
+  // Method to clear conversation history (useful for debugging)
+  clearConversationHistory(): void {
+    this.conversationHistory = [];
   }
 
   private getFallbackResponse(userMessage: string): string {
