@@ -107,10 +107,11 @@ app.post('/v1/chat', async (req, res) => {
     }
 
     const geminiApiKey = process.env.GEMINI_API_KEY;
+    const cohereApiKey = process.env.COHERE_API_KEY;
     const openaiApiKey = process.env.OPENAI_API_KEY;
     
-    if (!geminiApiKey && !openaiApiKey) {
-      return res.status(500).json({ error: 'No AI API keys configured (GEMINI_API_KEY or OPENAI_API_KEY)' });
+    if (!geminiApiKey && !cohereApiKey && !openaiApiKey) {
+      return res.status(500).json({ error: 'No AI API keys configured (GEMINI_API_KEY, COHERE_API_KEY, or OPENAI_API_KEY)' });
     }
 
     // Basic payload validation/sanitization
@@ -149,7 +150,24 @@ app.post('/v1/chat', async (req, res) => {
           return res.json(geminiResponse);
         }
       } catch (geminiError) {
-        console.warn('Gemini API failed, falling back to OpenAI:', geminiError.message);
+        console.warn('Gemini API failed, falling back to Cohere:', geminiError.message);
+      }
+    }
+
+    // Try Cohere second if available
+    if (cohereApiKey) {
+      try {
+        const cohereResponse = await callCohere(cohereApiKey, safeMessages, {
+          max_tokens,
+          temperature,
+          top_p,
+        });
+        
+        if (cohereResponse) {
+          return res.json(cohereResponse);
+        }
+      } catch (cohereError) {
+        console.warn('Cohere API failed, falling back to OpenAI:', cohereError.message);
       }
     }
 
@@ -234,6 +252,54 @@ async function callGemini(apiKey, messages, options = {}) {
       }
     }],
     usage: data.usageMetadata || {}
+  };
+}
+
+// Helper function to call Cohere API
+async function callCohere(apiKey, messages, options = {}) {
+  const { max_tokens = 300, temperature = 0.8, top_p = 0.9 } = options;
+  
+  // Convert OpenAI format to Cohere format
+  const cohereMessages = messages.map(msg => ({
+    role: msg.role === 'assistant' ? 'CHATBOT' : 'USER',
+    message: msg.content
+  }));
+
+  const response = await fetch('https://api.cohere.ai/v1/chat', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message: messages[messages.length - 1].content, // Cohere uses the last message
+      chat_history: cohereMessages.slice(0, -1), // All messages except the last one
+      max_tokens: max_tokens,
+      temperature: temperature,
+      p: top_p,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Cohere API error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  
+  if (!data.text) {
+    throw new Error('Invalid Cohere response format');
+  }
+
+  // Convert Cohere format back to OpenAI format
+  return {
+    choices: [{
+      message: {
+        role: 'assistant',
+        content: data.text
+      }
+    }],
+    usage: data.meta || {}
   };
 }
 
