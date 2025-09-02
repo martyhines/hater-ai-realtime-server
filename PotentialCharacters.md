@@ -34,4 +34,3 @@ Niche Characters:
 * Minimalist - "You don't need all that" with Marie Kondo energy
 * Cryptocurrency Bro - "To the moon!" with financial advice
 * Plant Parent - "My plants have better vibes than you"
-Each could have their own unique vocabulary, catchphrases, and roasting style while maintaining the fun, entertaining tone of your app!

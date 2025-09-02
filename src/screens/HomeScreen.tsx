@@ -138,9 +138,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       sarcastic: { name: 'Sarcastic Sam', emoji: '😏' },
       brutal: { name: 'Brutal Betty', emoji: '💀' },
       witty: { name: 'Witty Will', emoji: '🧠' },
-      playful: { name: 'Playful Pete', emoji: '🎮' },
-      condescending: { name: 'Condescending Carl', emoji: '🤓' },
+      condescending: { name: 'Condescending Bobert', emoji: '🤓' },
       streetsmart: { name: 'Street Smart', emoji: '🔥' },
+      newyorker: { name: 'The Posh New Yorker', emoji: '🗽' },
+      bronxbambino: { name: 'The Bronx Bambino', emoji: '🏙️' },
+      britishgentleman: { name: 'British Gentleman', emoji: '🇬🇧' },
+      southernbelle: { name: 'Southern Belle', emoji: '🌹' },
+      valleygirl: { name: 'Valley Girl', emoji: '💅' },
+      surferdude: { name: 'Surfer Dude', emoji: '🏄‍♂️' },
     };
     const key = (settings.aiPersonality as keyof typeof personalities) || 'sarcastic';
     return personalities[key] || personalities.sarcastic;
@@ -178,7 +183,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={['#FF6B6B', '#FF8E53']}
+              colors={['#DD8E53', '#FF8E53']}
               style={styles.buttonGradient}
             >
               <Ionicons name="chatbubbles" size={32} color="#fff" />

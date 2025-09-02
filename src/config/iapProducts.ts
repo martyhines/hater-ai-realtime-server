@@ -88,3 +88,4 @@ export const getProductPrice = (productId: string): number => {
     return PRODUCT_PRICING.FEATURE_PRICES[productId as keyof typeof PRODUCT_PRICING.FEATURE_PRICES] || 0;
   }
 };
+
