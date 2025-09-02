@@ -52,21 +52,20 @@ export class OpenAIService {
   }
 
   async generateResponse(userMessage: string): Promise<string> {
-    // Add user message to history
-    this.conversationHistory.push({
-      id: Date.now().toString(),
-      text: userMessage,
-      sender: 'user',
-      timestamp: new Date()
-    });
-
     try {
       // Rate limiting: wait if we've made too many requests
       await this.handleRateLimiting();
       
       const response = await this.callOpenAI(userMessage);
       
-      // Add AI response to history
+      // Add both user message and AI response to history after successful response
+      this.conversationHistory.push({
+        id: Date.now().toString(),
+        text: userMessage,
+        sender: 'user',
+        timestamp: new Date()
+      });
+      
       this.conversationHistory.push({
         id: (Date.now() + 1).toString(),
         text: response,
@@ -106,6 +105,12 @@ export class OpenAIService {
   private async callOpenAI(userMessage: string): Promise<string> {
     const systemPrompt = this.buildSystemPrompt();
     const conversationContext = this.buildConversationContext();
+    
+    // Add the current user message to the context
+    conversationContext.push({
+      role: 'user',
+      content: userMessage
+    });
 
     try {
       const backendUrl = `${API_CONFIG.BACKEND?.BASE_URL || ''}/v1/chat`;
