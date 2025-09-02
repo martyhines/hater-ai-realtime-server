@@ -331,7 +331,7 @@ async function callCohere(apiKey, messages, options = {}) {
 
 // Helper function to call XAI API
 async function callXAI(apiKey, messages, options = {}) {
-  const { max_tokens = 500, temperature = 0.8, top_p = 0.9 } = options;
+  const { max_tokens = 800, temperature = 0.8, top_p = 0.9 } = options;
   
   const response = await fetch('https://api.x.ai/v1/chat/completions', {
     method: 'POST',
@@ -367,8 +367,26 @@ async function callXAI(apiKey, messages, options = {}) {
   
   if (!content || content.trim() === '') {
     if (reasoningContent && reasoningContent.trim() !== '') {
-      console.log('XAI returned content in reasoning_content field, using that');
-      data.choices[0].message.content = reasoningContent;
+      console.log('XAI returned content in reasoning_content field, extracting response');
+      
+      // Try to extract the actual response from the reasoning content
+      // Look for patterns like "Example response:" or "Roast:" or similar
+      let extractedResponse = reasoningContent;
+      
+      // If it contains reasoning markers, try to extract the actual response
+      if (reasoningContent.includes('Example response:') || reasoningContent.includes('Roast:')) {
+        const parts = reasoningContent.split(/Example response:|Roast:/);
+        if (parts.length > 1) {
+          extractedResponse = parts[parts.length - 1].trim();
+        }
+      }
+      
+      // If the response is still too long or incomplete, use a fallback
+      if (extractedResponse.length > 500 || extractedResponse.endsWith('...') || extractedResponse.endsWith('-')) {
+        extractedResponse = "Oh please, that's the best you can come up with? I'm almost impressed by how unimpressive you are. Try saying something actually worth roasting next time!";
+      }
+      
+      data.choices[0].message.content = extractedResponse;
     } else {
       console.warn('XAI returned empty content, using fallback');
       data.choices[0].message.content = "I'm having trouble coming up with a good roast right now. Try again in a moment!";
