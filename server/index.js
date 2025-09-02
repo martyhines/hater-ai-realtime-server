@@ -85,7 +85,7 @@ app.post('/realtime-token', async (req, res) => {
   }
 });
 
-// POST /v1/chat → proxies Chat Completions to OpenAI with app-level auth
+// POST /v1/chat → tries Gemini first, falls back to OpenAI
 app.post('/v1/chat', async (req, res) => {
   try {
     // Optional app-level auth
@@ -106,9 +106,11 @@ app.post('/v1/chat', async (req, res) => {
       return res.status(429).json({ error: 'Rate limit exceeded. Please slow down.' });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: 'OPENAI_API_KEY not configured' });
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    const openaiApiKey = process.env.OPENAI_API_KEY;
+    
+    if (!geminiApiKey && !openaiApiKey) {
+      return res.status(500).json({ error: 'No AI API keys configured (GEMINI_API_KEY or OPENAI_API_KEY)' });
     }
 
     // Basic payload validation/sanitization
@@ -134,36 +136,106 @@ app.post('/v1/chat', async (req, res) => {
         content: typeof m.content === 'string' ? m.content.slice(0, 4000) : '',
       }));
 
-    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages: safeMessages,
-        max_tokens,
-        temperature,
-        top_p,
-        frequency_penalty,
-        presence_penalty,
-      }),
-    });
-
-    if (!resp.ok) {
-      const text = await resp.text();
-      return res.status(resp.status).json({ error: 'OpenAI error', status: resp.status, details: text });
+    // Try Gemini first if available
+    if (geminiApiKey) {
+      try {
+        const geminiResponse = await callGemini(geminiApiKey, safeMessages, {
+          max_tokens,
+          temperature,
+          top_p,
+        });
+        
+        if (geminiResponse) {
+          return res.json(geminiResponse);
+        }
+      } catch (geminiError) {
+        console.warn('Gemini API failed, falling back to OpenAI:', geminiError.message);
+      }
     }
 
-    const data = await resp.json();
-    // Return the OpenAI-shaped response so clients can parse as usual
-    return res.json(data);
+    // Fallback to OpenAI
+    if (openaiApiKey) {
+      const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages: safeMessages,
+          max_tokens,
+          temperature,
+          top_p,
+          frequency_penalty,
+          presence_penalty,
+        }),
+      });
+
+      if (!resp.ok) {
+        const text = await resp.text();
+        return res.status(resp.status).json({ error: 'OpenAI error', status: resp.status, details: text });
+      }
+
+      const data = await resp.json();
+      return res.json(data);
+    }
+
+    return res.status(500).json({ error: 'All AI services unavailable' });
   } catch (err) {
     console.error('Chat endpoint error:', err);
     return res.status(500).json({ error: 'Server error' });
   }
 });
+
+// Helper function to call Gemini API
+async function callGemini(apiKey, messages, options = {}) {
+  const { max_tokens = 300, temperature = 0.8, top_p = 0.9 } = options;
+  
+  // Convert OpenAI format to Gemini format
+  const geminiMessages = messages.map(msg => ({
+    role: msg.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: msg.content }]
+  }));
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: geminiMessages,
+      generationConfig: {
+        maxOutputTokens: max_tokens,
+        temperature: temperature,
+        topP: top_p,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  
+  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+    throw new Error('Invalid Gemini response format');
+  }
+
+  // Convert Gemini format back to OpenAI format
+  const content = data.candidates[0].content.parts[0].text;
+  return {
+    choices: [{
+      message: {
+        role: 'assistant',
+        content: content
+      }
+    }],
+    usage: data.usageMetadata || {}
+  };
+}
 
 const port = process.env.PORT || 8787;
 app.listen(port, () => {
