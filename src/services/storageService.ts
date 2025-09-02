@@ -475,6 +475,25 @@ export class StorageService {
     }
   }
 
+  async getUnlockedPersonalities(): Promise<string[]> {
+    try {
+      const personalities = await AsyncStorage.getItem('unlocked_personalities');
+      return personalities ? JSON.parse(personalities) : [];
+    } catch (error) {
+      console.error('Error getting unlocked personalities:', error);
+      return [];
+    }
+  }
+
+  async setUnlockedPersonalities(personalities: string[]): Promise<void> {
+    try {
+      await AsyncStorage.setItem('unlocked_personalities', JSON.stringify(personalities));
+    } catch (error) {
+      console.error('Error saving unlocked personalities:', error);
+      throw error;
+    }
+  }
+
   async getSubscriptionStatus(): Promise<any | null> {
     try {
       const status = await AsyncStorage.getItem('subscription_status');

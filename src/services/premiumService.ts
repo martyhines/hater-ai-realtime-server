@@ -18,6 +18,24 @@ export interface PremiumSubscription {
   features: string[];
 }
 
+export interface PersonalityPack {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  personalities: string[];
+  icon: string;
+  isUnlocked: boolean;
+}
+
+export interface IndividualPersonality {
+  id: string;
+  name: string;
+  packId: string;
+  price: number;
+  isUnlocked: boolean;
+}
+
 export class PremiumService {
   private static instance: PremiumService;
   private storage: StorageService;
@@ -318,6 +336,200 @@ export class PremiumService {
       return await this.storage.getUnlockedFeatures();
     } catch (error) {
       console.error('Error getting unlocked features:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get available personality packs
+   */
+  getPersonalityPacks(): PersonalityPack[] {
+    return [
+      {
+        id: 'cultural_regional',
+        name: 'Cultural/Regional Characters',
+        description: 'Experience roasts from around the world with authentic regional personalities',
+        price: 7.99,
+        personalities: ['britishgentleman', 'southernbelle', 'valleygirl', 'surferdude', 'bronxbambino'],
+        icon: '🌍',
+        isUnlocked: false,
+      },
+      {
+        id: 'professional_expert',
+        name: 'Professional/Expert Characters',
+        description: 'Get roasted by experts in their fields with professional-grade insults',
+        price: 7.99,
+        personalities: ['grammarnazi', 'fitnesscoach', 'chefgordon', 'detective', 'therapist'],
+        icon: '💼',
+        isUnlocked: false,
+      },
+      {
+        id: 'pop_culture',
+        name: 'Pop Culture Characters',
+        description: 'Roasts from your favorite pop culture personalities and trends',
+        price: 7.99,
+        personalities: ['meangirl', 'tiktokinfluencer', 'boomer', 'hipster', 'karen'],
+        icon: '📱',
+        isUnlocked: false,
+      },
+    ];
+  }
+
+  /**
+   * Get individual personality pricing
+   */
+  getIndividualPersonalityPrice(): number {
+    return 1.99;
+  }
+
+  /**
+   * Purchase a personality pack
+   */
+  async purchasePersonalityPack(packId: string): Promise<boolean> {
+    try {
+      const pack = this.getPersonalityPacks().find(p => p.id === packId);
+      if (!pack) {
+        throw new Error('Personality pack not found');
+      }
+
+      // Show purchase confirmation
+      const confirmed = await this.showPackPurchaseConfirmation(pack);
+      if (!confirmed) {
+        return false;
+      }
+
+      // Simulate payment processing
+      const paymentSuccess = await this.processPayment(pack.price);
+      if (!paymentSuccess) {
+        Alert.alert('Payment Failed', 'Unable to process payment. Please try again.');
+        return false;
+      }
+
+      // Unlock all personalities in the pack
+      for (const personalityId of pack.personalities) {
+        await this.unlockPersonality(personalityId);
+      }
+
+      Alert.alert(
+        'Pack Unlocked!',
+        `${pack.name} has been unlocked! You now have access to all ${pack.personalities.length} personalities.`,
+        [{ text: 'OK' }]
+      );
+
+      return true;
+    } catch (error) {
+      console.error('Error purchasing personality pack:', error);
+      Alert.alert('Purchase Failed', 'An error occurred during purchase.');
+      return false;
+    }
+  }
+
+  /**
+   * Purchase an individual personality
+   */
+  async purchaseIndividualPersonality(personalityId: string): Promise<boolean> {
+    try {
+      const price = this.getIndividualPersonalityPrice();
+      
+      // Show purchase confirmation
+      const confirmed = await this.showIndividualPurchaseConfirmation(personalityId, price);
+      if (!confirmed) {
+        return false;
+      }
+
+      // Simulate payment processing
+      const paymentSuccess = await this.processPayment(price);
+      if (!paymentSuccess) {
+        Alert.alert('Payment Failed', 'Unable to process payment. Please try again.');
+        return false;
+      }
+
+      // Unlock the personality
+      await this.unlockPersonality(personalityId);
+
+      Alert.alert(
+        'Personality Unlocked!',
+        'Your new personality has been unlocked and is ready to use!',
+        [{ text: 'OK' }]
+      );
+
+      return true;
+    } catch (error) {
+      console.error('Error purchasing individual personality:', error);
+      Alert.alert('Purchase Failed', 'An error occurred during purchase.');
+      return false;
+    }
+  }
+
+  /**
+   * Show pack purchase confirmation dialog
+   */
+  private showPackPurchaseConfirmation(pack: PersonalityPack): Promise<boolean> {
+    return new Promise((resolve) => {
+      Alert.alert(
+        'Purchase Personality Pack',
+        `Would you like to purchase "${pack.name}" for $${pack.price}?\n\n${pack.description}\n\nIncludes ${pack.personalities.length} personalities!`,
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Purchase', onPress: () => resolve(true) },
+        ]
+      );
+    });
+  }
+
+  /**
+   * Show individual personality purchase confirmation dialog
+   */
+  private showIndividualPurchaseConfirmation(personalityId: string, price: number): Promise<boolean> {
+    return new Promise((resolve) => {
+      Alert.alert(
+        'Purchase Individual Personality',
+        `Would you like to purchase this personality for $${price}?\n\nOr save money by buying the full pack for $7.99!`,
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Purchase', onPress: () => resolve(true) },
+        ]
+      );
+    });
+  }
+
+  /**
+   * Unlock a personality
+   */
+  private async unlockPersonality(personalityId: string): Promise<void> {
+    try {
+      const unlockedPersonalities = await this.storage.getUnlockedPersonalities();
+      if (!unlockedPersonalities.includes(personalityId)) {
+        unlockedPersonalities.push(personalityId);
+        await this.storage.setUnlockedPersonalities(unlockedPersonalities);
+      }
+    } catch (error) {
+      console.error('Error unlocking personality:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if a personality is unlocked
+   */
+  async isPersonalityUnlocked(personalityId: string): Promise<boolean> {
+    try {
+      const unlockedPersonalities = await this.storage.getUnlockedPersonalities();
+      return unlockedPersonalities.includes(personalityId);
+    } catch (error) {
+      console.error('Error checking personality unlock status:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get user's unlocked personalities
+   */
+  async getUnlockedPersonalities(): Promise<string[]> {
+    try {
+      return await this.storage.getUnlockedPersonalities();
+    } catch (error) {
+      console.error('Error getting unlocked personalities:', error);
       return [];
     }
   }

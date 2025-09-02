@@ -88,6 +88,34 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       description: 'Street-smart Bronx native with direct attitude and no-nonsense roasts',
       traits: ['Direct', 'Streetwise', 'Authentic', 'Unfiltered'],
     },
+    {
+      id: 'britishgentleman',
+      name: 'British Gentleman',
+      emoji: '🇬🇧',
+      description: 'Sophisticated Brit with posh insults and "old chap" energy',
+      traits: ['Sophisticated', 'Posh', 'Witty', 'Cultured'],
+    },
+    {
+      id: 'southernbelle',
+      name: 'Southern Belle',
+      emoji: '🌹',
+      description: 'Sweet but savage with "bless your heart" energy',
+      traits: ['Sweet', 'Savage', 'Charming', 'Deceptive'],
+    },
+    {
+      id: 'valleygirl',
+      name: 'Valley Girl',
+      emoji: '💅',
+      description: 'Airhead energy but surprisingly sharp with "like, totally" style',
+      traits: ['Bubbly', 'Sharp', 'Trendy', 'Unexpected'],
+    },
+    {
+      id: 'surferdude',
+      name: 'Surfer Dude',
+      emoji: '🏄‍♂️',
+      description: 'Laid-back but cutting with "bro" and "rad" energy',
+      traits: ['Laid-back', 'Chill', 'Observant', 'Authentic'],
+    },
   ];
 
   const intensities = [
