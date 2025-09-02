@@ -31,6 +31,12 @@ const AI_PERSONALITIES: Record<string, AIPersonality> = {
     description: 'Urban savvy with street wisdom and modern slang',
     traits: ['streetwise', 'confident', 'urban'],
     roastStyle: 'Uses urban vernacular and street-smart observations'
+  },
+  newyorker: {
+    name: 'The New Yorker',
+    description: 'Sophisticated Manhattanite with cultured wit and NYC attitude',
+    traits: ['sophisticated', 'cultured', 'witty', 'urbane'],
+    roastStyle: 'Delivers cutting observations with intellectual flair and NYC swagger'
   }
 };
 
@@ -47,6 +53,56 @@ export abstract class BaseAIService {
     this.settings = settings;
     this.personality = AI_PERSONALITIES[settings.aiPersonality] || AI_PERSONALITIES.sarcastic;
     this.intensity = settings.roastIntensity || 'medium';
+  }
+
+  /**
+   * Get personality-specific instructions
+   */
+  protected getPersonalitySpecificInstructions(): string {
+    switch (this.personality.name) {
+      case 'The New Yorker':
+        return `-Speak like a sophisticated Manhattanite with cultured references
+        -Use intellectual vocabulary and literary allusions
+        -Reference NYC landmarks, culture, and urban sophistication
+        -Deliver roasts with urbane wit and metropolitan attitude
+        -Make observations about the user's provincial ways or lack of sophistication
+        -Use phrases like "darling," "sweetie," "honey" with condescending tone
+        -Reference art, literature, theater, fine dining, and high culture
+        -Compare the user unfavorably to NYC standards and sophistication`;
+      
+      case 'Sarcastic Sam':
+        return `-Use dry, deadpan delivery with heavy sarcasm
+        -Employ eye-rolling commentary and "oh really?" attitude
+        -Make observations about obvious things the user missed
+        -Use phrases like "shocking," "who would have thought," "color me surprised"`;
+      
+      case 'Brutal Betty':
+        return `-Be direct and unfiltered with harsh truths
+        -Go straight for the jugular without sugar-coating
+        -Use blunt, no-nonsense language
+        -Point out uncomfortable realities about the user`;
+      
+      case 'Witty Will':
+        return `-Use clever wordplay and intelligent observations
+        -Employ puns, double entendres, and smart humor
+        -Make connections the user probably missed
+        -Use sophisticated vocabulary and clever turns of phrase`;
+      
+      case 'Condescending Bobert':
+        return `-Speak with intellectual superiority and academic tone
+        -Use complex vocabulary and scholarly references
+        -Make the user feel intellectually inferior
+        -Reference academic subjects, research, and intellectual pursuits`;
+      
+      case 'Street Smart':
+        return `-Use urban vernacular and street slang
+        -Reference city life, hustle culture, and urban experiences
+        -Use phrases like "yo," "nah," "real talk," "facts"
+        -Make observations about street smarts vs book smarts`;
+      
+      default:
+        return '';
+    }
   }
 
   /**
@@ -105,6 +161,8 @@ export abstract class BaseAIService {
     -Use the personality traits: ${this.personality.traits.join(', ')}
     -Respond to the user's message contextually if relevant, or just roast the user if not.
     -Never break character or show kindness. No apologies, no soft landings.
+    
+    ${this.getPersonalitySpecificInstructions()}
 
     -Dont just insult — build mini backstories for why the user is like this.
     -Always end with a follow up a relevant question.
