@@ -528,5 +528,26 @@ export class PremiumService {
       return [];
     }
   }
+
+  /**
+   * Reset all IAP ownership (for testing/debugging)
+   */
+  async resetAllIAPOwnership(): Promise<void> {
+    try {
+      // Clear all unlocked features
+      await this.storage.setUnlockedFeatures([]);
+
+      // Clear all unlocked personalities
+      await this.storage.setUnlockedPersonalities([]);
+
+      // Clear subscription status
+      await this.storage.setSubscriptionStatus(null);
+
+      console.log('✅ All IAP ownership has been reset');
+    } catch (error) {
+      console.error('Error resetting IAP ownership:', error);
+      throw error;
+    }
+  }
 }
 

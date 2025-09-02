@@ -15,6 +15,7 @@ import { RootStackParamList } from '../../App';
 import { UserSettings } from '../types';
 import { StorageService } from '../services/storageService';
 import { StreakService } from '../services/streakService';
+import { PremiumService } from '../services/premiumService';
 import { FEATURES } from '../config/features';
 
 
@@ -364,6 +365,37 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             </TouchableOpacity>
           )}
 
+          {/* Debug: Reset IAP Ownership */}
+          <TouchableOpacity
+            style={styles.debugButton}
+            onPress={async () => {
+              Alert.alert(
+                'Reset IAP Ownership',
+                'This will remove all purchased features and personalities for testing purposes. Continue?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Reset',
+                    style: 'destructive',
+                    onPress: async () => {
+                      try {
+                        const premiumService = PremiumService.getInstance();
+                        await premiumService.resetAllIAPOwnership();
+                        Alert.alert('Success', 'All IAP ownership has been reset!');
+                      } catch (error) {
+                        Alert.alert('Error', 'Failed to reset IAP ownership');
+                      }
+                    }
+                  }
+                ]
+              );
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="bug" size={16} color="#666" />
+            <Text style={styles.debugButtonText}>Reset IAPs (Debug)</Text>
+          </TouchableOpacity>
+
           {/* Personalization Button */}
           {/* <TouchableOpacity
             style={styles.personalizationButton}
@@ -600,6 +632,24 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginLeft: 8,
     fontWeight: '600',
+  },
+  debugButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(102, 102, 102, 0.1)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(102, 102, 102, 0.3)',
+  },
+  debugButtonText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 6,
+    fontWeight: '500',
   },
 
 });
