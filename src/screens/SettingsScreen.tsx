@@ -15,6 +15,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import { UserSettings } from '../types';
 import { StorageService } from '../services/storageService';
+import { StreakService } from '../services/streakService';
 import { FEATURES } from '../config/features';
 import { PremiumService } from '../services/premiumService';
 
@@ -35,6 +36,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const [isAIEnabled, setIsAIEnabled] = useState(false);
   const [unlockedFeatures, setUnlockedFeatures] = useState<string[]>([]);
   const [isPremiumLoading, setIsPremiumLoading] = useState(false);
+  const [streak, setStreak] = useState(0);
 
   const personalities = [
     {
@@ -203,6 +205,11 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       if (savedSettings) {
         setSettings(prev => ({ ...prev, ...savedSettings }));
       }
+
+      // Load streak
+      const streakService = StreakService.getInstance();
+      const currentStreak = await streakService.getStreak();
+      setStreak(currentStreak);
       
       // Check AI status based on BYOK setting
       let isAIAvailable = false;
@@ -257,8 +264,19 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         }
       };
 
+      const loadStreak = async () => {
+        try {
+          const streakService = StreakService.getInstance();
+          const currentStreak = await streakService.getStreak();
+          setStreak(currentStreak);
+        } catch (error) {
+          console.error('Error loading streak:', error);
+        }
+      };
+
       checkAIStatus();
       loadPremiumFeatures();
+      loadStreak();
     });
 
     return unsubscribe;
@@ -356,24 +374,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
           <View style={styles.preferenceItem}>
             <View style={styles.preferenceInfo}>
-              <Ionicons name="volume-high" size={24} color="#fff" />
-              <View style={styles.preferenceText}>
-                <Text style={styles.preferenceTitle}>Sound Effects</Text>
-                <Text style={styles.preferenceDescription}>
-                  Play sounds for messages and interactions
-                </Text>
-              </View>
-            </View>
-            <Switch
-              value={settings.enableSound}
-              onValueChange={toggleSound}
-              trackColor={{ false: '#444', true: '#4CAF50' }}
-              thumbColor={settings.enableSound ? '#fff' : '#ccc'}
-            />
-          </View>
-
-          <View style={styles.preferenceItem}>
-            <View style={styles.preferenceInfo}>
               <Ionicons name="warning" size={24} color="#fff" />
               <View style={styles.preferenceText}>
                 <Text style={styles.preferenceTitle}>
@@ -419,7 +419,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             <Ionicons name="chevron-forward" size={24} color="#ccc" />
           </TouchableOpacity>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.preferenceItem}
             onPress={() => navigation.navigate('SpeechToTextSettings')}
           >
@@ -433,7 +433,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
               </View>
             </View>
             <Ionicons name="chevron-forward" size={24} color="#ccc" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Premium Features Section */}
@@ -507,6 +507,16 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
               </Text>
             </View>
           </View>
+
+          {/* Streak Counter */}
+          {streak > 0 && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Daily Streak:</Text>
+              <Text style={[styles.summaryValue, { color: '#FF6B6B' }]}>
+                🔥 {streak} {streak === 1 ? 'day' : 'days'}
+              </Text>
+            </View>
+          )}
           
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>AI Personality:</Text>

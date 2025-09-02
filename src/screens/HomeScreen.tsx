@@ -14,6 +14,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import { UserSettings } from '../types';
 import { StorageService } from '../services/storageService';
+import { StreakService } from '../services/streakService';
 import { FEATURES } from '../config/features';
 
 
@@ -32,6 +33,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     allowCursing: false,
   });
   const [isAIEnabled, setIsAIEnabled] = useState(false);
+  const [streak, setStreak] = useState(0);
 
   const handleStartChat = () => {
     navigation.navigate('Chat');
@@ -46,6 +48,11 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       const checkAIStatus = async () => {
     try {
       const storage = StorageService.getInstance();
+      
+      // Update streak when user opens the app
+      const streakService = StreakService.getInstance();
+      const currentStreak = await streakService.updateStreak();
+      setStreak(currentStreak);
       
       // Load current settings
       const savedSettings = await Promise.race([
@@ -179,10 +186,23 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>AI Mode</Text>
                 <Text style={[styles.settingValue, { color: isAIEnabled ? "#FFD700" : "#ccc" }]}>
-                  {isAIEnabled ? "AI Enabled Enabled" : "AI Service Unavailable"}
+                  {isAIEnabled ? "AI Enabled" : "AI Service Unavailable"}
                 </Text>
               </View>
             </View>
+
+            {/* Streak Counter */}
+            {streak > 0 && (
+              <View style={styles.settingRow}>
+                <Ionicons name="flame" size={24} color="#FF6B6B" />
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingLabel}>Daily Streak</Text>
+                  <Text style={[styles.settingValue, { color: '#FF6B6B' }]}>
+                    🔥 {streak} {streak === 1 ? 'day' : 'days'}
+                  </Text>
+                </View>
+              </View>
+            )}
             
             <View style={styles.settingRow}>
               <Ionicons name="person" size={24} color="#fff" />
@@ -235,14 +255,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </TouchableOpacity>
 
           {/* Speech-to-Text Settings Button */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.speechToTextSettingsButton}
             onPress={() => navigation.navigate('SpeechToTextSettings')}
             activeOpacity={0.7}
           >
             <Ionicons name="mic-outline" size={24} color="#4ECDC4" />
             <Text style={styles.speechToTextSettingsButtonText}>Speech-to-Text Settings</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Enable AI Button */}
           {FEATURES.ENABLE_BYOK ? (
