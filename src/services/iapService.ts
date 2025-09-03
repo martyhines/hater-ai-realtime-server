@@ -278,7 +278,38 @@ export class IAPService {
    * Check if IAP is available on this device
    */
   isAvailable(): boolean {
-    return Platform.OS === 'ios' || Platform.OS === 'android';
+    // Basic platform check
+    if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
+      return false;
+    }
+
+    // iOS Simulator doesn't support IAPs
+    if (Platform.OS === 'ios' && __DEV__) {
+      // In development, we can try to detect if we're in simulator
+      // This is a simple heuristic - in production this would be more robust
+      return false; // Assume simulator for now
+    }
+
+    return true;
+  }
+
+  /**
+   * Get detailed IAP availability status
+   */
+  getAvailabilityStatus(): { available: boolean; reason?: string } {
+    if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
+      return { available: false, reason: 'IAPs are only available on iOS and Android devices' };
+    }
+
+    if (Platform.OS === 'ios' && __DEV__) {
+      return { available: false, reason: 'IAPs are not available in iOS Simulator. Test on physical device or use TestFlight.' };
+    }
+
+    if (Platform.OS === 'android' && __DEV__) {
+      return { available: false, reason: 'IAPs may not work properly in development mode. Consider using internal testing.' };
+    }
+
+    return { available: true };
   }
 
   /**

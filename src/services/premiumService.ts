@@ -152,10 +152,25 @@ export class PremiumService {
 
       // Use real IAP for payment
       const iapService = IAPService.getInstance();
-      
+
       // Check if IAP is available
       if (!iapService.isAvailable()) {
-        Alert.alert('Not Available', 'In-app purchases are not available on this device.');
+        const status = iapService.getAvailabilityStatus();
+
+        // Offer to simulate the purchase for testing
+        Alert.alert(
+          'IAP Not Available',
+          `${status.reason}\n\nWould you like to simulate this purchase for testing purposes?`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Simulate',
+              onPress: async () => {
+                await this.simulatePurchase('feature', featureId);
+              }
+            }
+          ]
+        );
         return false;
       }
 
@@ -391,10 +406,25 @@ export class PremiumService {
 
       // Use real IAP for payment
       const iapService = IAPService.getInstance();
-      
+
       // Check if IAP is available
       if (!iapService.isAvailable()) {
-        Alert.alert('Not Available', 'In-app purchases are not available on this device.');
+        const status = iapService.getAvailabilityStatus();
+
+        // Offer to simulate the purchase for testing
+        Alert.alert(
+          'IAP Not Available',
+          `${status.reason}\n\nWould you like to simulate this purchase for testing purposes?`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Simulate',
+              onPress: async () => {
+                await this.simulatePurchase('pack', packId);
+              }
+            }
+          ]
+        );
         return false;
       }
 
@@ -431,10 +461,25 @@ export class PremiumService {
 
       // Use real IAP for payment
       const iapService = IAPService.getInstance();
-      
+
       // Check if IAP is available
       if (!iapService.isAvailable()) {
-        Alert.alert('Not Available', 'In-app purchases are not available on this device.');
+        const status = iapService.getAvailabilityStatus();
+
+        // Offer to simulate the purchase for testing
+        Alert.alert(
+          'IAP Not Available',
+          `${status.reason}\n\nWould you like to simulate this purchase for testing purposes?`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Simulate',
+              onPress: async () => {
+                await this.simulatePurchase('personality', personalityId);
+              }
+            }
+          ]
+        );
         return false;
       }
 
@@ -547,6 +592,58 @@ export class PremiumService {
     } catch (error) {
       console.error('Error resetting IAP ownership:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Simulate IAP purchase for testing (when IAPs are not available)
+   */
+  async simulatePurchase(itemType: 'feature' | 'pack' | 'personality', itemId: string): Promise<boolean> {
+    try {
+      const iapService = IAPService.getInstance();
+
+      // If IAPs are available, use real purchase
+      if (iapService.isAvailable()) {
+        console.log('IAPs are available, using real purchase');
+        return false; // Don't simulate if real IAPs work
+      }
+
+      console.log(`🔧 Simulating purchase of ${itemType}: ${itemId}`);
+
+      if (itemType === 'feature') {
+        // Unlock the feature
+        const unlockedFeatures = await this.getUnlockedFeatures();
+        if (!unlockedFeatures.includes(itemId)) {
+          unlockedFeatures.push(itemId);
+          await this.storage.setUnlockedFeatures(unlockedFeatures);
+        }
+      } else if (itemType === 'pack') {
+        // Unlock all personalities in the pack
+        const pack = this.getPersonalityPacks().find(p => p.id === itemId);
+        if (pack) {
+          const unlockedPersonalities = await this.getUnlockedPersonalities();
+          for (const personalityId of pack.personalities) {
+            if (!unlockedPersonalities.includes(personalityId)) {
+              unlockedPersonalities.push(personalityId);
+            }
+          }
+          await this.storage.setUnlockedPersonalities(unlockedPersonalities);
+        }
+      } else if (itemType === 'personality') {
+        // Unlock the personality
+        const unlockedPersonalities = await this.getUnlockedPersonalities();
+        if (!unlockedPersonalities.includes(itemId)) {
+          unlockedPersonalities.push(itemId);
+          await this.storage.setUnlockedPersonalities(unlockedPersonalities);
+        }
+      }
+
+      Alert.alert('Purchase Simulated', `Successfully simulated purchase of ${itemType}: ${itemId}`);
+      return true;
+    } catch (error) {
+      console.error('Error simulating purchase:', error);
+      Alert.alert('Simulation Failed', 'Failed to simulate purchase');
+      return false;
     }
   }
 }

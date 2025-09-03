@@ -184,7 +184,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={['#DD8E53', '#FF8E53']}
+              colors={['#FF0000', '#FF8E53']}
               style={styles.buttonGradient}
             >
               <Ionicons name="chatbubbles" size={32} color="#fff" />
