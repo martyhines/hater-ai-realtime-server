@@ -196,21 +196,21 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </TouchableOpacity>
 
           {/* Voice Settings Button */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.voiceSettingsButton}
             onPress={() => navigation.navigate('VoiceSettings')}
             activeOpacity={0.7}
           >
             <Ionicons name="mic" size={24} color="#FFD93D" />
             <Text style={styles.voiceSettingsButtonText}>Voice Settings</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Current Settings Card */}
           <View style={styles.settingsCard}>
             <Text style={styles.cardTitle}>Current Setup</Text>
 
             {/* AI Status Indicator */}
-            <View style={styles.settingRow}>
+            {/* <View style={styles.settingRow}>
               <Ionicons
                 name={isAIEnabled ? "sparkles" : "code-slash"}
                 size={24}
@@ -222,7 +222,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                   {isAIEnabled ? "AI Enabled" : "AI Service Unavailable"}
                 </Text>
               </View>
-            </View>
+            </View> */}
 
             {/* Streak Counter */}
             {streak > 0 && (
@@ -410,6 +410,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 30,
+    marginTop: 30,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
