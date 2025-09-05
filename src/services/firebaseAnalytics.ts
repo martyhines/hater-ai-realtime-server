@@ -11,10 +11,10 @@ class FirebaseAnalyticsService {
   private constructor() {}
 
   /**
-   * Check if analytics is available (only on web)
+   * Check if analytics is available
    */
   private isAnalyticsAvailable(): boolean {
-    return Platform.OS === 'web' && this.analytics !== null;
+    return this.analytics !== null;
   }
 
   static getInstance(): FirebaseAnalyticsService {
@@ -31,31 +31,35 @@ class FirebaseAnalyticsService {
     try {
       if (this.isInitialized) return;
 
-      // Check if we're in React Native (not web)
-      if (Platform.OS !== 'web') {
-        console.log('Firebase Analytics: Skipping initialization on React Native (DOM not available)');
-        this.isInitialized = true; // Mark as initialized to prevent retries
-        return;
-      }
-
       // Initialize Firebase app
       const app = initializeApp(firebaseConfig);
 
-      // Initialize Analytics (this will fail in RN due to DOM access)
-      this.analytics = getAnalytics(app);
+      // Try to initialize Analytics - will work on web, may have issues on RN
+      try {
+        this.analytics = getAnalytics(app);
+        console.log('Firebase Analytics initialized successfully');
+      } catch (analyticsError) {
+        console.warn('Firebase Analytics init failed:', analyticsError.message);
+        // Continue without analytics rather than failing completely
+        this.analytics = null;
+      }
 
-      // Set user properties for better segmentation
+      // Set user properties for better segmentation (if analytics is available)
       if (this.analytics) {
-        await setUserProperties(this.analytics, {
-          app_version: '1.0.0',
-          platform: 'web' // Changed from 'mobile' since this only works on web
-        });
+        try {
+          await setUserProperties(this.analytics, {
+            app_version: '1.0.0',
+            platform: Platform.OS
+          });
+        } catch (error) {
+          console.warn('Failed to set user properties:', error.message);
+        }
       }
 
       this.isInitialized = true;
-      console.log('Firebase Analytics initialized successfully');
+      console.log(`Firebase Analytics setup complete (Platform: ${Platform.OS})`);
     } catch (error) {
-      console.warn('Firebase Analytics initialization failed (expected in React Native):', error.message);
+      console.error('Firebase Analytics setup failed:', error);
       this.isInitialized = true; // Prevent retry attempts
     }
   }
