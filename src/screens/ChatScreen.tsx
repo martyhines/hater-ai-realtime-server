@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FEATURES } from '../config/features';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
-import { Message, UserSettings } from '../types';
+import { Message, UserSettings, AIProvider } from '../types';
 import { AIService } from '../services/aiService';
 import { OpenAIService } from '../services/openaiService';
 import { CohereService } from '../services/cohereService';
@@ -41,7 +41,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   const [aiService, setAiService] = useState<AIService | OpenAIService | CohereService | GeminiService | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAIEnabled, setIsAIEnabled] = useState(false);
-  const [activeProvider, setActiveProvider] = useState<'cohere' | 'openai' | 'gemini'>('openai');
+  const [activeProvider, setActiveProvider] = useState<AIProvider>('cohere');
   // Model/provider details are no longer shown to users
   const [availableProviders, setAvailableProviders] = useState<{
     cohere: boolean;
@@ -61,7 +61,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   const [speechToTextSettings, setSpeechToTextSettings] = useState<any>(null);
 
   // Function to switch between available providers
-  const switchProvider = async (provider: 'cohere' | 'openai' | 'gemini') => {
+  const switchProvider = async (provider: AIProvider) => {
     try {
       const storage = StorageService.getInstance();
       const savedSettings = await storage.getSettings();
@@ -107,17 +107,29 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       try {
         const storage = StorageService.getInstance();
         
-        // Add timeout to prevent hanging
-        const hasApiKey = await Promise.race([
-          storage.hasApiKey(),
-          new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000))
-        ]);
+        // Check for API key with timeout to prevent hanging
+        let hasApiKey = false;
+        try {
+          hasApiKey = await Promise.race([
+            storage.hasApiKey(),
+            new Promise<boolean>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+          ]);
+        } catch (error) {
+          // Timeout or other error - assume no key available
+          hasApiKey = false;
+        }
         
         // Load saved settings or use defaults
-        const savedSettings = await Promise.race([
-          storage.getSettings(),
-          new Promise<any>((resolve) => setTimeout(() => resolve(null), 2000))
-        ]);
+        let savedSettings = null;
+        try {
+          savedSettings = await Promise.race([
+            storage.getSettings(),
+            new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
+          ]);
+        } catch (error) {
+          // Timeout or other error - use defaults
+          savedSettings = null;
+        }
         
         const settings: UserSettings = {
           roastIntensity: 'medium',
@@ -128,11 +140,11 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         };
 
 
-        // If BYOK is disabled, default to backend-powered OpenAI service
+        // If BYOK is disabled, default to backend-powered service (server chooses best available)
         if (!FEATURES.ENABLE_BYOK) {
           setAiService(new OpenAIService(settings, ''));
           setIsAIEnabled(true);
-          setActiveProvider('openai');
+          setActiveProvider('cohere'); // Default to preferred provider
           const welcomeMessage: Message = {
             id: 'welcome',
             text: "Oh great, another human who thinks they're worth talking to. What do you want?",

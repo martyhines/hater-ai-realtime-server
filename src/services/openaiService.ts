@@ -58,15 +58,29 @@ export class OpenAIService extends BaseAIService {
 
 
       if (!response.ok) {
-        const errorText = await response.text();
+        let errorText = 'Unknown error';
+        try {
+          errorText = await response.text();
+        } catch (parseError) {
+          // If we can't parse the error response, use status text
+          errorText = response.statusText || `HTTP ${response.status}`;
+        }
         throw new Error(`Backend AI error: ${response.status} - ${errorText}`);
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        throw new Error('Failed to parse AI response as JSON');
+      }
 
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response format from AI service');
+      }
 
-      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        throw new Error('Invalid response format from OpenAI');
+      if (!data.choices || !Array.isArray(data.choices) || !data.choices[0] || !data.choices[0].message) {
+        throw new Error('Invalid response structure from AI service');
       }
 
       // Store the AI service info for the UI
@@ -76,6 +90,8 @@ export class OpenAIService extends BaseAIService {
 
       return data.choices[0].message.content.trim();
     } catch (error) {
+      // Log error for debugging but don't expose sensitive details
+      console.error('OpenAI service error:', error instanceof Error ? error.message : 'Unknown error');
       throw error;
     }
   }

@@ -23,8 +23,8 @@ export interface SpeechToTextSettings {
 }
 
 export interface UserSettings {
-  roastIntensity: 'mild' | 'medium' | 'savage';
-  aiPersonality: 'sarcastic' | 'witty' | 'brutal' | 'playful' | 'streetsmart';
+  roastIntensity: RoastIntensity;
+  aiPersonality: AIPersonalityType;
   enableNotifications: boolean;
   enableSound: boolean;
   allowCursing: boolean;
@@ -47,4 +47,10 @@ export interface ConversationStats {
   roastCount: number;
   userResponses: number;
   averageResponseTime: number;
-} 
+}
+
+export type AIProvider = 'cohere' | 'openai' | 'gemini';
+
+export type RoastIntensity = 'mild' | 'medium' | 'savage';
+
+export type AIPersonalityType = 'sarcastic' | 'witty' | 'brutal' | 'playful' | 'streetsmart'; 
