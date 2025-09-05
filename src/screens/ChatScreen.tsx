@@ -17,7 +17,7 @@ import { FEATURES } from '../config/features';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
 import { Message, UserSettings, AIProvider } from '../types';
-import { AIService } from '../services/aiService';
+import { AIService, AI_PERSONALITIES } from '../services/aiService';
 import { OpenAIService } from '../services/openaiService';
 import { CohereService } from '../services/cohereService';
 import { GeminiService } from '../services/geminiService';
@@ -610,8 +610,16 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     );
   };
 
-  // Helper to get model/provider name (hidden)
-  const getModelName = () => '';
+  // Helper to get current personality name
+  const getModelName = () => {
+    // Get current personality from AI service settings
+    if (aiService && 'settings' in aiService) {
+      const personalityKey = (aiService as any).settings?.aiPersonality || 'sarcastic';
+      const personality = AI_PERSONALITIES[personalityKey];
+      return personality ? personality.name : 'AI Assistant';
+    }
+    return 'AI Assistant';
+  };
 
   if (isLoading) {
     return (
@@ -646,7 +654,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
               color={isAIEnabled ? "#FFD700" : "#ccc"}
             />
             <Text style={[styles.aiStatusText, { color: isAIEnabled ? "#FFD700" : "#ccc" }]}>
-              {isAIEnabled ? `AI Enabled${getModelName() ? ` (${getModelName()})` : ''}` : "AI Service Unavailable"}
+              {isAIEnabled ? `${getModelName()}` : "AI Service Unavailable"}
             </Text>
           </View>
           

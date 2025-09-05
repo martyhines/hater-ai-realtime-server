@@ -472,3 +472,5 @@ export class AIService {
   }
 }
 
+export { AI_PERSONALITIES };
+
