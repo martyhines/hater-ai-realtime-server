@@ -67,19 +67,27 @@ app.post('/api/analytics', async (req, res) => {
 
       // Initialize Firebase Admin if not already done
       if (!admin.apps.length) {
-        // You can initialize with service account key or default credentials
-        // For now, we'll use environment variables or default credentials
-        if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-          const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-          admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-            projectId: 'hater-ai'
-          });
-        } else {
-          // Use default credentials (works in GCP environments)
-          admin.initializeApp({
-            projectId: 'hater-ai'
-          });
+        try {
+          // Try to read service account key from file
+          const fs = require('fs');
+          const path = require('path');
+
+          const serviceAccountPath = path.join(__dirname, '..', 'hater-ai-firebase-adminsdk-fbsvc-5b6b81e575.json');
+
+          if (fs.existsSync(serviceAccountPath)) {
+            const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+            admin.initializeApp({
+              credential: admin.credential.cert(serviceAccount),
+              projectId: 'hater-ai'
+            });
+            console.log('✅ Firebase Admin initialized with service account key');
+          } else {
+            throw new Error('Service account key file not found');
+          }
+        } catch (initError) {
+          console.error('Failed to initialize Firebase Admin:', initError.message);
+          // Continue without Firebase - events will still be logged to console
+          return;
         }
       }
 
