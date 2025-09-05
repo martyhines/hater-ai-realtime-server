@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { UserSettings } from './src/types/index';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import FirebaseAnalyticsService from './src/services/firebaseAnalytics';
 
 import HomeScreen from './src/screens/HomeScreen';
 import ChatScreen from './src/screens/ChatScreen';
@@ -43,6 +44,21 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
+  // Initialize Firebase Analytics on app start
+  useEffect(() => {
+    const initializeAnalytics = async () => {
+      try {
+        const analyticsService = FirebaseAnalyticsService.getInstance();
+        await analyticsService.initialize();
+        await analyticsService.logAppOpen();
+      } catch (error) {
+        console.error('Failed to initialize Firebase Analytics:', error);
+      }
+    };
+
+    initializeAnalytics();
+  }, []);
+
   return (
     <SafeAreaProvider>
       <NavigationContainer>

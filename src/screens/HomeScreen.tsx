@@ -53,7 +53,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleNavigateToCursingSettings = () => {
-    navigation.navigate('Settings', { initialTab: 'preferences' });
+    navigation.navigate('Settings', { initialTab: 'premium' });
   };
 
   const handleNavigateToVoiceSettings = () => {

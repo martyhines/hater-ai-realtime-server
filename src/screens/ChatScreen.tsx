@@ -26,6 +26,7 @@ import { TikTokVideoService } from '../services/tikTokVideoService';
 import TextToSpeechService from '../services/textToSpeechService';
 import SpeechToTextService from '../services/speechToTextService';
 import { TwitterShareService } from '../services/twitterShareService';
+import FirebaseAnalyticsService from '../services/firebaseAnalytics';
 
 
 type ChatScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
@@ -440,6 +441,23 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
 
     // Hide keyboard after sending message
     Keyboard.dismiss();
+
+    // Track chat message analytics
+    try {
+      const analytics = FirebaseAnalyticsService.getInstance();
+      const personality = (aiService as any).settings?.aiPersonality || 'sarcastic';
+      const hasEmoji = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(userMessage.text);
+
+      await analytics.logChatMessage({
+        personality,
+        messageLength: userMessage.text.length,
+        hasEmoji,
+        isVoiceMessage: false
+      });
+    } catch (analyticsError) {
+      // Don't let analytics errors break the chat
+      console.error('Analytics error:', analyticsError);
+    }
 
     try {
       // Simulate typing delay

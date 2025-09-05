@@ -20,6 +20,7 @@ import { StorageService } from '../services/storageService';
 import { StreakService } from '../services/streakService';
 import { FEATURES } from '../config/features';
 import { PremiumService } from '../services/premiumService';
+import FirebaseAnalyticsService from '../services/firebaseAnalytics';
 
 type SettingsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Settings'>;
 type SettingsScreenRouteProp = RouteProp<RootStackParamList, 'Settings'>;
@@ -152,19 +153,36 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
   const updatePersonality = async (personality: string) => {
     const newSettings = { ...settings, aiPersonality: personality as any };
     setSettings(newSettings);
-    
+
     // Save to persistent storage
     const storage = StorageService.getInstance();
     await storage.saveSettings(newSettings);
+
+    // Track analytics
+    try {
+      const analytics = FirebaseAnalyticsService.getInstance();
+      const isPremium = !['sarcastic', 'brutal', 'witty', 'condescending', 'streetsmart', 'newyorker'].includes(personality);
+      await analytics.logPersonalitySelected(personality, isPremium);
+    } catch (error) {
+      console.error('Analytics error:', error);
+    }
   };
 
   const updateIntensity = async (intensity: string) => {
     const newSettings = { ...settings, roastIntensity: intensity as any };
     setSettings(newSettings);
-    
+
     // Save to persistent storage
     const storage = StorageService.getInstance();
     await storage.saveSettings(newSettings);
+
+    // Track analytics
+    try {
+      const analytics = FirebaseAnalyticsService.getInstance();
+      await analytics.logIntensityChanged(intensity);
+    } catch (error) {
+      console.error('Analytics error:', error);
+    }
   };
 
   const toggleNotifications = async () => {
