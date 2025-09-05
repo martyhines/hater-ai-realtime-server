@@ -91,17 +91,25 @@ app.post('/api/analytics', async (req, res) => {
         }
       }
 
-      // Log event to Firebase Analytics
-      await admin.analytics().logEvent({
-        name: event,
-        params: {
+      // Store analytics data in Firestore for later processing
+      const db = admin.firestore();
+      const analyticsCollection = db.collection('analytics_events');
+
+      const analyticsData = {
+        event_name: event,
+        event_params: {
           ...params,
           user_ip: req.ip,
           user_agent: req.get('user-agent'),
-          platform: 'web', // Since this is coming from server
+          platform: 'web',
           source: 'hater_ai_server'
-        }
-      });
+        },
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        created_at: new Date().toISOString()
+      };
+
+      // Store in Firestore
+      await analyticsCollection.add(analyticsData);
 
       console.log(`✅ Firebase Analytics: Event '${event}' logged successfully`);
 
