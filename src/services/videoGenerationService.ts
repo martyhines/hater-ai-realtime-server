@@ -46,7 +46,6 @@ export class VideoGenerationService {
       return videoPath;
       
     } catch (error) {
-      console.error('Error generating real video:', error);
       throw new Error('Failed to generate video');
     }
   }
@@ -195,7 +194,6 @@ export class VideoGenerationService {
       
       
     } catch (error) {
-      console.error('Error rendering video frames:', error);
       throw error;
     }
   }
@@ -229,7 +227,6 @@ This is a placeholder file. Replace with actual video processing.
       await FileSystem.writeAsStringAsync(outputPath, videoContent);
       
     } catch (error) {
-      console.error('Error creating placeholder video:', error);
       throw error;
     }
   }
@@ -251,7 +248,6 @@ This is a placeholder file. Replace with actual video processing.
       
       return videoPath;
     } catch (error) {
-      console.error('Error adding background music:', error);
       return videoPath;
     }
   }
@@ -264,7 +260,6 @@ This is a placeholder file. Replace with actual video processing.
       
       return videoPath;
     } catch (error) {
-      console.error('Error compressing video:', error);
       return videoPath;
     }
   }
@@ -277,7 +272,6 @@ This is a placeholder file. Replace with actual video processing.
       
       return videoPath;
     } catch (error) {
-      console.error('Error adding watermark:', error);
       return videoPath;
     }
   }
@@ -300,7 +294,6 @@ This is a placeholder file. Replace with actual video processing.
         path: videoPath
       };
     } catch (error) {
-      console.error('Error getting video info:', error);
       return null;
     }
   }

@@ -145,6 +145,7 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
         "Listen up! I'm your AI enemy and I'm here to roast you with this voice. How does it sound?",
         'brutal'
       );
+
     } catch (error) {
       Alert.alert('Error', 'Failed to test voice settings');
     } finally {

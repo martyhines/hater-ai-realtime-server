@@ -57,15 +57,12 @@ export class IAPService {
 
       // Initialize connection
       const result = await initConnection();
-      console.log('IAP connection initialized:', result);
-
       // Set up purchase listeners
       this.setupPurchaseListeners();
 
       this.isInitialized = true;
       return true;
     } catch (error) {
-      console.error('Failed to initialize IAP:', error);
       return false;
     }
   }
@@ -77,8 +74,6 @@ export class IAPService {
     // Listen for successful purchases
     this.purchaseUpdateSubscription = purchaseUpdatedListener(
       async (purchase: Purchase) => {
-        console.log('Purchase successful:', purchase);
-        
         try {
           // Finish the transaction
           await finishTransaction({ purchase, isConsumable: false });
@@ -86,15 +81,12 @@ export class IAPService {
           // Handle the successful purchase
           await this.handleSuccessfulPurchase(purchase);
         } catch (error) {
-          console.error('Error finishing transaction:', error);
-        }
+          }
       }
     );
-
     // Listen for purchase errors
     this.purchaseErrorSubscription = purchaseErrorListener(
       (error: PurchaseError) => {
-        console.error('Purchase error:', error);
         this.handlePurchaseError(error);
       }
     );
@@ -121,7 +113,6 @@ export class IAPService {
         type: getProductType(product.productId),
       }));
     } catch (error) {
-      console.error('Error getting products:', error);
       return [];
     }
   }
@@ -135,15 +126,10 @@ export class IAPService {
         await this.initialize();
       }
 
-      console.log('Attempting to purchase:', productId);
-      
       // Request the purchase
       const purchase = await requestPurchase({ sku: productId });
-      console.log('Purchase requested:', purchase);
-
       return true;
     } catch (error) {
-      console.error('Error purchasing product:', error);
       this.handlePurchaseError(error as PurchaseError);
       return false;
     }
@@ -155,8 +141,6 @@ export class IAPService {
   private async handleSuccessfulPurchase(purchase: Purchase): Promise<void> {
     try {
       const productId = purchase.productId;
-      console.log('Handling successful purchase for:', productId);
-
       // Determine what was purchased and unlock the appropriate content
       if (productId.startsWith('pack_')) {
         await this.unlockPersonalityPack(productId);
@@ -171,18 +155,15 @@ export class IAPService {
         'Purchase Successful!',
         'Your purchase has been completed successfully.',
         [{ text: 'OK' }]
-      );
+        );
     } catch (error) {
-      console.error('Error handling successful purchase:', error);
-    }
+      }
   }
 
   /**
    * Handle purchase errors
    */
   private handlePurchaseError(error: PurchaseError): void {
-    console.error('Purchase error:', error);
-    
     let errorMessage = 'Purchase failed. Please try again.';
     
     if (error.code === 'E_USER_CANCELLED') {
@@ -250,8 +231,7 @@ export class IAPService {
         await storage.setUnlockedPersonalities(unlockedPersonalities);
       }
     } catch (error) {
-      console.error('Error unlocking personality:', error);
-    }
+      }
   }
 
   /**
@@ -268,8 +248,7 @@ export class IAPService {
         await storage.setUnlockedFeatures(unlockedFeatures);
       }
     } catch (error) {
-      console.error('Error unlocking feature:', error);
-    }
+      }
   }
 
 
@@ -330,7 +309,6 @@ export class IAPService {
       await endConnection();
       this.isInitialized = false;
     } catch (error) {
-      console.error('Error cleaning up IAP:', error);
-    }
+      }
   }
 }

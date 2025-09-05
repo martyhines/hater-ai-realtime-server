@@ -25,11 +25,6 @@ export class OpenAIService extends BaseAIService {
     });
 
     // Debug: Log the conversation context to see if there are duplicates
-    console.log('=== CONVERSATION CONTEXT DEBUG ===');
-    console.log('Context length:', conversationContext.length);
-    console.log('Context:', JSON.stringify(conversationContext, null, 2));
-    console.log('aslkfdlaksfajdkshflkahjsfdlka');
-
     try {
       const backendUrl = `${API_CONFIG.BACKEND?.BASE_URL || ''}/v1/chat`;
       const response = await fetch(backendUrl, {
@@ -64,7 +59,6 @@ export class OpenAIService extends BaseAIService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Backend AI error response:', errorText);
         throw new Error(`Backend AI error: ${response.status} - ${errorText}`);
       }
 
@@ -72,7 +66,6 @@ export class OpenAIService extends BaseAIService {
 
 
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        console.error('Unexpected backend response format:', data);
         throw new Error('Invalid response format from OpenAI');
       }
 
@@ -83,7 +76,6 @@ export class OpenAIService extends BaseAIService {
 
       return data.choices[0].message.content.trim();
     } catch (error) {
-      console.error('Backend AI call failed:', error);
       throw error;
     }
   }

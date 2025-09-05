@@ -21,7 +21,6 @@ export class StreakService {
       const streak = await AsyncStorage.getItem(STREAK_KEY);
       return streak ? parseInt(streak, 10) : 0;
     } catch (error) {
-      console.error('Error getting streak:', error);
       return 0;
     }
   }
@@ -64,7 +63,6 @@ export class StreakService {
 
       return newStreak;
     } catch (error) {
-      console.error('Error updating streak:', error);
       return 0;
     }
   }
@@ -94,7 +92,6 @@ export class StreakService {
       await AsyncStorage.removeItem(STREAK_KEY);
       await AsyncStorage.removeItem(LAST_ACTIVITY_KEY);
     } catch (error) {
-      console.error('Error resetting streak:', error);
-    }
+      }
   }
 }

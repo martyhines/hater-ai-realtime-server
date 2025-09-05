@@ -23,33 +23,24 @@ interface Props {
 }
 
 const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
-  const [selectedProvider, setSelectedProvider] = useState<'openai' | 'huggingface' | 'cohere' | 'gemini' | 'togetherai' | 'custom'>('cohere');
+  const [selectedProvider, setSelectedProvider] = useState<'openai' | 'cohere' | 'gemini'>('cohere');
   const [apiKey, setApiKey] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [existingKeys, setExistingKeys] = useState<{
     openai: boolean;
-    huggingface: boolean;
     cohere: boolean;
     gemini: boolean;
-    togetherai: boolean;
-    custom: boolean;
   }>({
     openai: false,
-    huggingface: false,
     cohere: false,
     gemini: false,
-    togetherai: false,
-    custom: false,
   });
   const [isLoading, setIsLoading] = useState(true);
 
   const providerNames = {
     openai: 'OpenAI',
-    huggingface: 'Hugging Face',
     cohere: 'Cohere',
-    gemini: 'Google Gemini',
-    togetherai: 'Together AI',
-    custom: 'Custom Model'
+    gemini: 'Google Gemini'
   };
 
   // Check for existing API keys on component mount and when screen focuses

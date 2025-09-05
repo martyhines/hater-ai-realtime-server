@@ -34,7 +34,6 @@ export class TwitterShareService {
       
       return success;
     } catch (error) {
-      console.error('Error sharing to Twitter:', error);
       return false;
     }
   }
@@ -91,7 +90,6 @@ export class TwitterShareService {
         return false;
       }
     } catch (error) {
-      console.error('Error opening Twitter app:', error);
       return false;
     }
   }
@@ -105,7 +103,6 @@ export class TwitterShareService {
     try {
       await Clipboard.setStringAsync(text);
     } catch (error) {
-      console.error('Error copying to clipboard:', error);
       throw error;
     }
   }
@@ -121,7 +118,6 @@ export class TwitterShareService {
       
       return await this.openTwitterApp(shareText);
     } catch (error) {
-      console.error('Error sharing roast to Twitter:', error);
       return false;
     }
   }

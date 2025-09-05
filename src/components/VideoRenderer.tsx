@@ -76,8 +76,7 @@ export default function VideoRenderer({ frames, onFrameRendered, onComplete }: V
       
       return frameData;
     } catch (error) {
-      console.error('Error rendering frame:', error);
-    }
+      }
   };
 
   const getTextPosition = (position: 'top' | 'center' | 'bottom') => {

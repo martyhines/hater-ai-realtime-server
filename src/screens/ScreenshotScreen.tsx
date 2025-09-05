@@ -85,12 +85,11 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
       setScreenshotPath(path);
       
       Alert.alert(
-        'Success!', 
+        'Success!',
         'Screenshot captured successfully! You can now save it to your gallery or share it.'
       );
-      
+
     } catch (error) {
-      console.error('Error capturing screenshot:', error);
       Alert.alert('Error', 'Failed to capture screenshot. Please try again.');
     } finally {
       setIsCapturing(false);
@@ -106,14 +105,13 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
         Alert.alert('Saved!', 'Screenshot saved to your gallery!');
       } else {
         Alert.alert(
-          'Error', 
+          'Error',
           'Failed to save to gallery. Please check that you have granted photo library permissions.'
         );
       }
     } catch (error) {
-      console.error('Error saving to gallery:', error);
       Alert.alert(
-        'Error', 
+        'Error',
         'Failed to save to gallery. Please try again or check your permissions.'
       );
     }
@@ -129,19 +127,18 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
       const success = await screenshotService.shareScreenshot(screenshotPath, caption);
       if (success) {
         Alert.alert(
-          'Shared!', 
+          'Shared!',
           'Screenshot ready for sharing! In a full implementation, this would open your device\'s share sheet.'
         );
       } else {
         Alert.alert(
-          'Error', 
+          'Error',
           'Failed to prepare screenshot for sharing. Please try again.'
         );
       }
     } catch (error) {
-      console.error('Error sharing screenshot:', error);
       Alert.alert(
-        'Error', 
+        'Error',
         'Failed to share screenshot. Please try again.'
       );
     }
@@ -256,6 +253,7 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
       </View>
     </ScrollView>
   );
+
 }
 
 const styles = StyleSheet.create({

@@ -35,7 +35,6 @@ export class VideoCompressionService {
       return outputPath;
       
     } catch (error) {
-      console.error('Error compressing video:', error);
       throw new Error('Failed to compress video');
     }
   }
@@ -79,7 +78,6 @@ export class VideoCompressionService {
       await FileSystem.writeAsStringAsync(outputPath, JSON.stringify(compressionData, null, 2));
       
     } catch (error) {
-      console.error('Error creating compressed video:', error);
       throw error;
     }
   }
@@ -89,7 +87,6 @@ export class VideoCompressionService {
       const fileInfo = await FileSystem.getInfoAsync(filePath);
       return fileInfo.size || 0;
     } catch (error) {
-      console.error('Error getting file size:', error);
       return 0;
     }
   }
@@ -164,7 +161,6 @@ export class VideoCompressionService {
       return optimizedPath;
       
     } catch (error) {
-      console.error('Error optimizing for social media:', error);
       throw error;
     }
   }
@@ -212,8 +208,7 @@ export class VideoCompressionService {
       await FileSystem.writeAsStringAsync(optimizationPath, JSON.stringify(optimizationData, null, 2));
       
     } catch (error) {
-      console.error('Error adding platform optimizations:', error);
-    }
+      }
   }
 
   private getPlatformOptimizations(platform: string): string[] {
@@ -268,7 +263,6 @@ export class VideoCompressionService {
       return watermarkedPath;
       
     } catch (error) {
-      console.error('Error adding watermark:', error);
       return videoPath;
     }
   }
@@ -287,7 +281,6 @@ export class VideoCompressionService {
         }
       };
     } catch (error) {
-      console.error('Error getting video info:', error);
       return null;
     }
   }

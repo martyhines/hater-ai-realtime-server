@@ -192,15 +192,10 @@ export class AIService {
       timestamp: new Date()
     });
 
-    // Get saved personalization data
-    const savedPersonalization = this.settings.personalization;
-    
-    // Analyze context from user message and saved personalization
+    // Analyze context from user message
     const userContext = this.contextAnalyzer.analyzeUserInput(userMessage);
-    
-    const enrichedContext = this.enrichContextWithPersonalization(userContext, savedPersonalization);
-    
-    const contextPrompt = this.contextAnalyzer.generateContextPrompt(enrichedContext);
+
+    const contextPrompt = this.contextAnalyzer.generateContextPrompt(userContext);
 
     // Analyze message type for contextual response
     const messageType = this.analyzeMessageType(userMessage);
@@ -475,106 +470,5 @@ export class AIService {
 
     return interestRoasts[interest] || [];
   }
+}
 
-  protected enrichContextWithPersonalization(context: UserContext, personalization?: Record<string, any>): UserContext {
-    if (!personalization) {
-      return context;
-    }
-
-    const enrichedContext = { ...context };
-
-    // Map quiz answers to context fields
-    if (personalization.profession && !enrichedContext.profession) {
-      enrichedContext.profession = this.mapProfessionToContext(personalization.profession);
-    }
-
-    if (personalization.personality && !enrichedContext.personality?.length) {
-      enrichedContext.personality = this.mapPersonalityToContext(personalization.personality);
-    }
-
-    if (personalization.location && !enrichedContext.location) {
-      enrichedContext.location = this.mapLocationToContext(personalization.location);
-    }
-
-    if (personalization.interests && !enrichedContext.interests?.length) {
-      enrichedContext.interests = this.mapInterestsToContext(personalization.interests);
-    }
-
-    if (personalization.characteristics && !enrichedContext.characteristics?.length) {
-      enrichedContext.characteristics = this.mapCharacteristicsToContext(personalization.characteristics);
-    }
-
-    if (personalization.circumstances && !enrichedContext.circumstances?.length) {
-      enrichedContext.circumstances = this.mapCircumstancesToContext(personalization.circumstances);
-    }
-
-    return enrichedContext;
-  }
-
-  private mapProfessionToContext(profession: string): string {
-    const professionMap: Record<string, string> = {
-      'Software Engineer': 'engineer',
-      'Marketing': 'marketing',
-      'Sales': 'sales',
-      'Healthcare': 'doctor',
-      'Education': 'teacher',
-      'Finance': 'finance',
-      'Creative/Arts': 'artist',
-      'Service Industry': 'service',
-      'Student': 'student',
-    };
-    return professionMap[profession] || profession.toLowerCase();
-  }
-
-  private mapPersonalityToContext(personality: string[]): string[] {
-    const personalityMap: Record<string, string> = {
-      'Shy/Introverted': 'shy',
-      'Outgoing/Extroverted': 'outgoing',
-      'Anxious/Worrier': 'anxious',
-      'Confident/Bold': 'confident',
-      'Lazy/Procrastinator': 'lazy',
-      'Perfectionist': 'perfectionist',
-      'Chaotic/Spontaneous': 'chaotic',
-      'Organized/Planner': 'organized',
-      'Sensitive/Emotional': 'sensitive',
-      'Sarcastic/Witty': 'sarcastic',
-    };
-    return personality.map(p => personalityMap[p] || p.toLowerCase());
-  }
-
-  private mapLocationToContext(location: string): string {
-    const locationMap: Record<string, string> = {
-      'Los Angeles': 'LA',
-      'New York City': 'NYC',
-      'Las Vegas': 'Vegas',
-    };
-    return locationMap[location] || location;
-  }
-
-  private mapInterestsToContext(interests: string[]): string[] {
-    const interestMap: Record<string, string> = {
-      'Fitness/Working Out': 'fitness',
-      'Social Media': 'social media',
-      'Art/Creative': 'art',
-      'Wine/Alcohol': 'wine',
-    };
-    return interests.map(i => interestMap[i] || i.toLowerCase());
-  }
-
-  private mapCharacteristicsToContext(characteristics: string[]): string[] {
-    const characteristicMap: Record<string, string> = {
-      'Beard/Facial Hair': 'beard',
-    };
-    return characteristics.map(c => characteristicMap[c] || c.toLowerCase());
-  }
-
-  private mapCircumstancesToContext(circumstances: string[]): string[] {
-    const circumstanceMap: Record<string, string> = {
-      'Rich/Wealthy': 'rich',
-      'Poor/Broke': 'poor',
-      'Living with Parents': 'living with parents',
-      'Have Roommates': 'roommate',
-    };
-    return circumstances.map(c => circumstanceMap[c] || c.toLowerCase());
-  }
-} 

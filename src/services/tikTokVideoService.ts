@@ -56,7 +56,6 @@ export class TikTokVideoService {
       return videoPath;
       
     } catch (error) {
-      console.error('Error generating TikTok video:', error);
       throw new Error('Failed to generate TikTok video');
     }
   }
@@ -213,7 +212,6 @@ export class TikTokVideoService {
         return true;
       }
     } catch (error) {
-      console.error('Error sharing to TikTok:', error);
       return false;
     }
   }
@@ -234,7 +232,6 @@ export class TikTokVideoService {
           return false;
       }
     } catch (error) {
-      console.error(`Error sharing to ${platform}:`, error);
       return false;
     }
   }
@@ -261,7 +258,6 @@ export class TikTokVideoService {
       return true;
       
     } catch (error) {
-      console.error('Error saving to gallery:', error);
       return false;
     }
   }
@@ -276,7 +272,6 @@ export class TikTokVideoService {
         return false;
       }
     } catch (error) {
-      console.error('Error sharing video:', error);
       return false;
     }
   }

@@ -89,7 +89,6 @@ class SpeechToTextService {
       this.webSpeechRecognition.onresult = this.onWebSpeechResult.bind(this);
       this.webSpeechRecognition.onerror = this.onWebSpeechError.bind(this);
     } else {
-      console.warn('Web Speech API not available, using mock implementation');
       this.webSpeechRecognition = null;
     }
   }
@@ -104,7 +103,6 @@ class SpeechToTextService {
       const { status } = await requestRecordingPermissionsAsync();
       return status === 'granted';
     } catch (error) {
-      console.error('Error requesting audio permissions:', error);
       return false;
     }
   }
@@ -154,7 +152,6 @@ class SpeechToTextService {
 
       return true;
     } catch (error) {
-      console.error('Error starting speech recognition:', error);
       this.isRecording = false;
       onError?.(error instanceof Error ? error.message : 'Failed to start recording');
       return false;
@@ -186,7 +183,6 @@ class SpeechToTextService {
       
       return null; // Results will come through onSpeechResults
     } catch (error) {
-      console.error('Error stopping speech recognition:', error);
       this.isRecording = false;
       return null;
     }
@@ -250,7 +246,6 @@ class SpeechToTextService {
   }
 
   private onSpeechError(event: any): void {
-    console.error('🎤 Speech recognition error:', event.error);
     this.isRecording = false;
   }
 
@@ -284,7 +279,6 @@ class SpeechToTextService {
   }
 
   private onWebSpeechError(event: any): void {
-    console.error('🎤 Web speech recognition error:', event.error);
     this.isRecording = false;
   }
 

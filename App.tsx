@@ -9,22 +9,19 @@ import HomeScreen from './src/screens/HomeScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import ApiKeyScreen from './src/screens/ApiKeyScreen';
-import CustomModelScreen from './src/screens/CustomModelScreen';
 import HowToCustomModelScreen from './src/screens/HowToCustomModelScreen';
 import TikTokVideoScreen from './src/screens/TikTokVideoScreen';
 import { FEATURES } from './src/config/features';
 import TweetGeneratorScreen from './src/screens/TweetGeneratorScreen';
 import ScreenshotScreen from './src/screens/ScreenshotScreen';
-import PersonalizationQuizScreen from './src/screens/PersonalizationQuizScreen';
 import VoiceSettingsScreen from './src/screens/VoiceSettingsScreen';
 import SpeechToTextSettingsScreen from './src/screens/SpeechToTextSettingsScreen';
 
 export type RootStackParamList = {
   Home: undefined;
   Chat: undefined;
-  Settings: undefined;
+  Settings: { scrollTo?: string } | undefined;
   ApiKey: undefined;
-  CustomModel: undefined;
   HowToCustomModel: undefined;
   TikTokVideo: {
     roastText: string;
@@ -39,7 +36,6 @@ export type RootStackParamList = {
     userName?: string;
     messages?: any[];
   };
-  PersonalizationQuiz: undefined;
   VoiceSettings: undefined;
   SpeechToTextSettings: undefined;
 };
@@ -83,11 +79,6 @@ export default function App() {
             options={{ title: 'Enable AI' }}
           />
           <Stack.Screen 
-            name="CustomModel" 
-            component={CustomModelScreen} 
-            options={{ title: 'Custom Models' }}
-          />
-          <Stack.Screen 
             name="HowToCustomModel" 
             component={HowToCustomModelScreen} 
             options={{ title: 'How to Add Custom Models' }}
@@ -108,11 +99,6 @@ export default function App() {
             name="Screenshot" 
             component={ScreenshotScreen} 
             options={{ title: 'Screenshot Tweet' }}
-          />
-          <Stack.Screen 
-            name="PersonalizationQuiz" 
-            component={PersonalizationQuizScreen} 
-            options={{ title: 'Make It Personal' }}
           />
           <Stack.Screen 
             name="VoiceSettings" 

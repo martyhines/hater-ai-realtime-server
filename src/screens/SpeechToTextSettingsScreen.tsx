@@ -55,8 +55,7 @@ const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation 
         setSettings(savedSettings);
       }
     } catch (error) {
-      console.error('Error loading speech-to-text settings:', error);
-    } finally {
+      } finally {
       setLoading(false);
     }
   };
@@ -67,7 +66,6 @@ const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation 
       await storage.saveSpeechToTextSettings(newSettings);
       setSettings(newSettings);
     } catch (error) {
-      console.error('Error saving speech-to-text settings:', error);
       Alert.alert('Error', 'Failed to save settings');
     }
   };
@@ -77,7 +75,6 @@ const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation 
       const token = await requestRealtimeToken();
       Alert.alert('Realtime Token', 'Token request succeeded. Check console logs.');
     } catch (e: any) {
-      console.error('Realtime token error:', e);
       Alert.alert('Error', e?.message ?? 'Token request failed');
     }
   };
@@ -89,7 +86,6 @@ const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation 
       }
       await audio.play();
     } catch (e: any) {
-      console.error('Audio play error:', e);
       Alert.alert('Audio Error', e?.message ?? 'Failed to play');
     }
   };
@@ -168,7 +164,6 @@ const SpeechToTextSettingsScreen: React.FC<{ navigation: any }> = ({ navigation 
                       await RealtimeVoiceService.startSession();
                       Alert.alert('Realtime', 'Voice session started');
                     } catch (e: any) {
-                      console.error('Start realtime error:', e);
                       Alert.alert('Error', e?.message ?? 'Failed to start');
                     }
                   }}

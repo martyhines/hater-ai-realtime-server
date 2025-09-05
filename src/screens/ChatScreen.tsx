@@ -19,16 +19,14 @@ import { RootStackParamList } from '../../App';
 import { Message, UserSettings } from '../types';
 import { AIService } from '../services/aiService';
 import { OpenAIService } from '../services/openaiService';
-import { HuggingFaceService } from '../services/huggingFaceService';
 import { CohereService } from '../services/cohereService';
 import { GeminiService } from '../services/geminiService';
-import { CustomModelService } from '../services/customModelService';
-import { TogetherAIService } from '../services/togetherAIService';
 import { StorageService } from '../services/storageService';
 import { TikTokVideoService } from '../services/tikTokVideoService';
 import TextToSpeechService from '../services/textToSpeechService';
 import SpeechToTextService from '../services/speechToTextService';
 import { TwitterShareService } from '../services/twitterShareService';
+
 
 type ChatScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
 
@@ -40,25 +38,19 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [aiService, setAiService] = useState<AIService | OpenAIService | HuggingFaceService | CohereService | GeminiService | CustomModelService | null>(null);
+  const [aiService, setAiService] = useState<AIService | OpenAIService | CohereService | GeminiService | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAIEnabled, setIsAIEnabled] = useState(false);
-  const [activeProvider, setActiveProvider] = useState<'cohere' | 'huggingface' | 'openai' | 'gemini' | 'togetherai' | 'custom'>('openai');
+  const [activeProvider, setActiveProvider] = useState<'cohere' | 'openai' | 'gemini'>('openai');
   // Model/provider details are no longer shown to users
   const [availableProviders, setAvailableProviders] = useState<{
     cohere: boolean;
-    huggingface: boolean;
     openai: boolean;
     gemini: boolean;
-    togetherai: boolean;
-    custom: boolean;
   }>({
     cohere: false,
-    huggingface: false,
     openai: false,
     gemini: false,
-    togetherai: false,
-    custom: false,
   });
   
   const flatListRef = useRef<FlatList>(null);
@@ -69,7 +61,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   const [speechToTextSettings, setSpeechToTextSettings] = useState<any>(null);
 
   // Function to switch between available providers
-  const switchProvider = async (provider: 'cohere' | 'huggingface' | 'openai' | 'gemini' | 'togetherai' | 'custom') => {
+  const switchProvider = async (provider: 'cohere' | 'openai' | 'gemini') => {
     try {
       const storage = StorageService.getInstance();
       const savedSettings = await storage.getSettings();
@@ -89,24 +81,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           setIsAIEnabled(true);
           setActiveProvider('cohere');
         }
-      } else if (provider === 'huggingface' && availableProviders.huggingface) {
-        const huggingfaceKey = await storage.getHuggingFaceKey();
-        if (huggingfaceKey) {
-          try {
-            setAiService(new HuggingFaceService(settings, huggingfaceKey));
-            setIsAIEnabled(true);
-            setActiveProvider('huggingface');
-          } catch (error) {
-            setIsAIEnabled(false);
-            const errorMessage: Message = {
-              id: 'hf-error-switch',
-              text: "Hugging Face service unavailable. Please try a different AI provider.",
-              sender: 'ai',
-              timestamp: new Date(),
-            };
-            setMessages(prev => [...prev, errorMessage]);
-          }
-        }
       } else if (provider === 'openai' && availableProviders.openai) {
         const openaiKey = await storage.getOpenAIKey();
         if (openaiKey) {
@@ -121,25 +95,9 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           setIsAIEnabled(true);
           setActiveProvider('gemini');
         }
-      } else if (provider === 'togetherai' && availableProviders.togetherai) {
-        const togetherAIKey = await storage.getTogetherAIKey();
-        if (togetherAIKey) {
-          setAiService(new TogetherAIService(settings, togetherAIKey));
-          setIsAIEnabled(true);
-          setActiveProvider('togetherai');
-        }
-      } else if (provider === 'custom' && availableProviders.custom) {
-        const customModels = await storage.getCustomModels();
-        if (customModels.length > 0) {
-          // Use the first custom model for now (could be enhanced to let user choose)
-          const customModel = customModels[0];
-          setAiService(new CustomModelService(settings, customModel));
-          setIsAIEnabled(true);
-          setActiveProvider('custom');
-        }
       }
     } catch (error) {
-      console.error('Error switching provider:', error);
+      // Error switching provider
     }
   };
 
@@ -190,58 +148,31 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         setIsAIEnabled(false);
 
         // Check for all available providers
-        const [cohereKey, huggingfaceKey, openaiKey, geminiKey, togetherAIKey] = FEATURES.ENABLE_BYOK
+        const [cohereKey, openaiKey, geminiKey] = FEATURES.ENABLE_BYOK
           ? await Promise.all([
               storage.getCohereKey(),
-              storage.getHuggingFaceKey(),
               storage.getOpenAIKey(),
               storage.getGeminiKey(),
-              storage.getTogetherAIKey(),
             ])
-          : [null, null, null, null, null];
+          : [null, null, null];
 
-        // Check for custom models
-        const customModels = await storage.getCustomModels();
         
         // Update available providers state
         setAvailableProviders({
           cohere: !!cohereKey,
-          huggingface: !!huggingfaceKey,
           openai: !!openaiKey,
           gemini: !!geminiKey,
-          togetherai: !!togetherAIKey,
-          custom: customModels.length > 0,
         });
 
-        // Set the best available provider as default (Cohere > Together AI > Gemini > Hugging Face > OpenAI > Template)
+        // Set the best available provider as default (Cohere > Gemini > OpenAI)
         if (cohereKey) {
           setAiService(new CohereService(settings, cohereKey));
           setIsAIEnabled(true);
           setActiveProvider('cohere');
-        } else if (togetherAIKey) {
-          setAiService(new TogetherAIService(settings, togetherAIKey));
-          setIsAIEnabled(true);
-          setActiveProvider('togetherai');
         } else if (geminiKey) {
           setAiService(new GeminiService(settings, geminiKey));
           setIsAIEnabled(true);
           setActiveProvider('gemini');
-        } else if (huggingfaceKey) {
-          try {
-            setAiService(new HuggingFaceService(settings, huggingfaceKey));
-            setIsAIEnabled(true);
-            setActiveProvider('huggingface');
-                      } catch (error) {
-              setAiService(null);
-              setIsAIEnabled(false);
-              const errorMessage: Message = {
-                id: 'hf-error-focus',
-                text: "Hugging Face service unavailable. Please try a different AI provider.",
-                sender: 'ai',
-                timestamp: new Date(),
-              };
-              setMessages(prev => [...prev, errorMessage]);
-            }
         } else if (openaiKey) {
           setAiService(new OpenAIService(settings, openaiKey));
           setIsAIEnabled(true);
@@ -268,7 +199,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         };
         setMessages([welcomeMessage]);
       } catch (error) {
-        console.error('Error initializing AI:', error);
+        // Error initializing AI
         // Show error to user instead of falling back to template
         setIsAIEnabled(false);
         const errorMessage: Message = {
@@ -299,7 +230,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           timeout: 5000,
         });
       } catch (error) {
-        console.error('Error loading speech-to-text settings:', error);
+        // Error logged
       }
     };
     loadSpeechToTextSettings();
@@ -331,55 +262,29 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           }
 
           // Check for all available providers
-          const [cohereKey, huggingfaceKey, openaiKey, geminiKey, togetherAIKey] = await Promise.all([
+          const [cohereKey, openaiKey, geminiKey] = await Promise.all([
             storage.getCohereKey(),
-            storage.getHuggingFaceKey(),
             storage.getOpenAIKey(),
             storage.getGeminiKey(),
-            storage.getTogetherAIKey(),
           ]);
 
-          // Check for custom models
-          const customModels = await storage.getCustomModels();
           
           // Update available providers state
           setAvailableProviders({
             cohere: !!cohereKey,
-            huggingface: !!huggingfaceKey,
             openai: !!openaiKey,
             gemini: !!geminiKey,
-            togetherai: !!togetherAIKey,
-            custom: customModels.length > 0,
           });
 
-          // Set the best available provider as default (Cohere > Together AI > Gemini > Hugging Face > OpenAI > Template)
+          // Set the best available provider as default (Cohere > Gemini > OpenAI)
           if (cohereKey) {
             setAiService(new CohereService(settings, cohereKey));
             setIsAIEnabled(true);
             setActiveProvider('cohere');
-          } else if (togetherAIKey) {
-            setAiService(new TogetherAIService(settings, togetherAIKey));
-            setIsAIEnabled(true);
-            setActiveProvider('togetherai');
           } else if (geminiKey) {
             setAiService(new GeminiService(settings, geminiKey));
             setIsAIEnabled(true);
             setActiveProvider('gemini');
-          } else if (huggingfaceKey) {
-            try {
-              setAiService(new HuggingFaceService(settings, huggingfaceKey));
-              setIsAIEnabled(true);
-              setActiveProvider('huggingface');
-            } catch (error) {
-              setIsAIEnabled(false);
-              const errorMessage: Message = {
-                id: 'hf-error',
-                text: "Hugging Face service unavailable. Please try a different AI provider.",
-                sender: 'ai',
-                timestamp: new Date(),
-              };
-              setMessages(prev => [...prev, errorMessage]);
-            }
           } else if (openaiKey) {
             setAiService(new OpenAIService(settings, openaiKey));
             setIsAIEnabled(true);
@@ -395,7 +300,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
             setMessages(prev => [...prev, errorMessage]);
           }
         } catch (error) {
-          console.error('Error reloading settings:', error);
+          // Error logged
           // Keep existing AI service but show error state
           setIsAIEnabled(false);
           const errorMessage: Message = {
@@ -453,7 +358,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           setTranscriptionText(result.text);
         },
         (error) => {
-          console.error('Speech recognition error:', error);
+          // Error logged
           setIsRecording(false);
         }
       );
@@ -463,7 +368,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         setTranscriptionText('');
       }
     } catch (error) {
-      console.error('Error starting speech recognition:', error);
+      // Error logged
     }
   };
 
@@ -494,7 +399,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       
       setTranscriptionText('');
     } catch (error) {
-      console.error('Error stopping speech recognition:', error);
+      // Error logged
       setIsRecording(false);
     }
   };
@@ -520,18 +425,18 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     setMessages(prev => [...prev, userMessage]);
     setInputText('');
     setIsTyping(true);
-    
+
     // Hide keyboard after sending message
     Keyboard.dismiss();
 
     try {
       // Simulate typing delay
       await aiService.simulateTyping();
-      
+
       const aiResponse = await aiService.generateResponse(userMessage.text);
-      
+
       // We no longer surface which backend provider handled the response
-      
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: aiResponse,
@@ -551,7 +456,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       } catch (error) {
       }
     } catch (error) {
-      console.error('Error generating AI response:', error);
+      // Error logged
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: "Ugh, even my responses are broken because of you. Try again.",
@@ -599,7 +504,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         });
       }
     } catch (error) {
-      console.error('Error sharing roast to Twitter:', error);
+      // Error logged
       // Fall back to tweet generator
       navigation.navigate('TweetGenerator', {
         roastText: item.text,
@@ -626,7 +531,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     try {
       await TextToSpeechService.speakRoast(item.text);
     } catch (error) {
-      console.error('Error speaking roast:', error);
+      // Error logged
     }
   };
     
@@ -734,7 +639,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           </View>
           
           {/* Provider Switcher - Only show if BYOK enabled and multiple providers are available */}
-          {FEATURES.ENABLE_BYOK && (availableProviders.cohere || availableProviders.togetherai || availableProviders.gemini || availableProviders.huggingface || availableProviders.openai || availableProviders.custom) && (
+          {FEATURES.ENABLE_BYOK && (availableProviders.cohere || availableProviders.gemini || availableProviders.openai) && (
             <View style={styles.providerSwitcher}>
               {availableProviders.cohere && (
                 <TouchableOpacity
@@ -749,22 +654,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
                     activeProvider === 'cohere' && styles.activeProviderButtonText
                   ]}>
                     Cohere
-                  </Text>
-                </TouchableOpacity>
-              )}
-              {availableProviders.togetherai && (
-                <TouchableOpacity
-                  style={[
-                    styles.providerButton,
-                    activeProvider === 'togetherai' && styles.activeProviderButton
-                  ]}
-                  onPress={() => switchProvider('togetherai')}
-                >
-                  <Text style={[
-                    styles.providerButtonText,
-                    activeProvider === 'togetherai' && styles.activeProviderButtonText
-                  ]}>
-                    Together
                   </Text>
                 </TouchableOpacity>
               )}
@@ -784,22 +673,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
                   </Text>
                 </TouchableOpacity>
               )}
-              {availableProviders.huggingface && (
-                <TouchableOpacity
-                  style={[
-                    styles.providerButton,
-                    activeProvider === 'huggingface' && styles.activeProviderButton
-                  ]}
-                  onPress={() => switchProvider('huggingface')}
-                >
-                  <Text style={[
-                    styles.providerButtonText,
-                    activeProvider === 'huggingface' && styles.activeProviderButtonText
-                  ]}>
-                    HF
-                  </Text>
-                </TouchableOpacity>
-              )}
               {availableProviders.openai && (
                 <TouchableOpacity
                   style={[
@@ -813,22 +686,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
                     activeProvider === 'openai' && styles.activeProviderButtonText
                   ]}>
                     OpenAI
-                  </Text>
-                </TouchableOpacity>
-              )}
-              {availableProviders.custom && (
-                <TouchableOpacity
-                  style={[
-                    styles.providerButton,
-                    activeProvider === 'custom' && styles.activeProviderButton
-                  ]}
-                  onPress={() => switchProvider('custom')}
-                >
-                  <Text style={[
-                    styles.providerButtonText,
-                    activeProvider === 'custom' && styles.activeProviderButtonText
-                  ]}>
-                    Custom
                   </Text>
                 </TouchableOpacity>
               )}

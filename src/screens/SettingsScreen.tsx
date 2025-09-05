@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
 import { UserSettings } from '../types';
 import { StorageService } from '../services/storageService';
@@ -20,12 +21,15 @@ import { FEATURES } from '../config/features';
 import { PremiumService } from '../services/premiumService';
 
 type SettingsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Settings'>;
+type SettingsScreenRouteProp = RouteProp<RootStackParamList, 'Settings'>;
 
 interface Props {
   navigation: SettingsScreenNavigationProp;
+  route: SettingsScreenRouteProp;
 }
 
-const SettingsScreen: React.FC<Props> = ({ navigation }) => {
+const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
+  const scrollViewRef = useRef<ScrollView>(null);
   const [settings, setSettings] = useState<UserSettings>({
     roastIntensity: 'medium',
     aiPersonality: 'sarcastic',
@@ -199,8 +203,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           await storage.saveSettings(newSettings);
         }
       } catch (error) {
-        console.error('Error purchasing cursing feature:', error);
-      } finally {
+        } finally {
         setIsPremiumLoading(false);
       }
       return;
@@ -232,8 +235,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         setUnlockedFeatures(features);
       }
     } catch (error) {
-      console.error('Error purchasing premium feature:', error);
-    } finally {
+      } finally {
       setIsPremiumLoading(false);
     }
   };
@@ -249,8 +251,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         setUnlockedPersonalities(personalities);
       }
     } catch (error) {
-      console.error('Error purchasing personality pack:', error);
-    } finally {
+      } finally {
       setIsPremiumLoading(false);
     }
   };
@@ -266,8 +267,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         setUnlockedPersonalities(personalities);
       }
     } catch (error) {
-      console.error('Error purchasing individual personality:', error);
-    } finally {
+      } finally {
       setIsPremiumLoading(false);
     }
   };
@@ -326,7 +326,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           
           setIsAIEnabled(isAIAvailable);
         } catch (error) {
-          console.error('Error checking AI status in settings:', error);
           setIsAIEnabled(false);
         }
       };
@@ -341,8 +340,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           const personalities = await premiumService.getUnlockedPersonalities();
           setUnlockedPersonalities(personalities);
         } catch (error) {
-          console.error('Error loading premium features:', error);
-        }
+          }
       };
 
       const loadStreak = async () => {
@@ -351,8 +349,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           const currentStreak = await streakService.getStreak();
           setStreak(currentStreak);
         } catch (error) {
-          console.error('Error loading streak:', error);
-        }
+          }
       };
 
       checkAIStatus();
@@ -363,9 +360,40 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     return unsubscribe;
   }, [navigation]);
 
+  // Handle scrolling to specific sections from HomeScreen
+  useEffect(() => {
+    const scrollTo = route.params?.scrollTo;
+    if (scrollTo && scrollViewRef.current) {
+      // Small delay to ensure the component has rendered
+      setTimeout(() => {
+        let yOffset = 0;
+
+        switch (scrollTo) {
+          case 'personality':
+            yOffset = 0; // Top of screen
+            break;
+          case 'intensity':
+            yOffset = 400; // Around the Roast Intensity section
+            break;
+          case 'cursing':
+            yOffset = 600; // Around the Cursing section
+            break;
+          default:
+            yOffset = 0;
+        }
+
+        scrollViewRef.current?.scrollTo({ y: yOffset, animated: true });
+      }, 500);
+    }
+  }, [route.params?.scrollTo]);
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+      >
         {/* AI Personality Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Choose Your AI Enemy</Text>
@@ -396,6 +424,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                         { text: 'Buy Pack ($7.99)', onPress: () => handlePersonalityPackPurchase('cultural_regional') }
                       ]
                     );
+
                   } else {
                     updatePersonality(personality.id);
                   }
@@ -649,6 +678,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       </ScrollView>
     </SafeAreaView>
   );
+
 };
 
 const styles = StyleSheet.create({

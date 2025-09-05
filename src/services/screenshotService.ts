@@ -51,7 +51,6 @@ export class ScreenshotService {
       
       return screenshotPath;
     } catch (error) {
-      console.error('Error capturing screenshot:', error);
       throw new Error('Failed to capture screenshot');
     }
   }
@@ -76,7 +75,6 @@ export class ScreenshotService {
       
       return true;
     } catch (error) {
-      console.error('Error saving to gallery:', error);
       return false;
     }
   }
@@ -100,7 +98,6 @@ export class ScreenshotService {
 
       return true;
     } catch (error) {
-      console.error('Error sharing screenshot:', error);
       return false;
     }
   }

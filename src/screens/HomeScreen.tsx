@@ -44,6 +44,22 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     navigation.navigate('Settings');
   };
 
+  const handleNavigateToPersonalitySettings = () => {
+    navigation.navigate('Settings', { scrollTo: 'personality' });
+  };
+
+  const handleNavigateToIntensitySettings = () => {
+    navigation.navigate('Settings', { scrollTo: 'intensity' });
+  };
+
+  const handleNavigateToCursingSettings = () => {
+    navigation.navigate('Settings', { scrollTo: 'cursing' });
+  };
+
+  const handleNavigateToVoiceSettings = () => {
+    navigation.navigate('VoiceSettings');
+  };
+
   // Check if AI is enabled on component mount and when screen focuses
   useEffect(() => {
     const checkAIStatus = async () => {
@@ -82,7 +98,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
         setIsAIEnabled(isAIAvailable);
       } catch (error) {
-        console.error('Error checking AI status:', error);
         setIsAIEnabled(false);
       }
     };
@@ -124,7 +139,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
           setIsAIEnabled(isAIAvailable);
         } catch (error) {
-          console.error('Error checking AI status on focus:', error);
           setIsAIEnabled(false);
         }
       };
@@ -214,22 +228,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           {/* Current Settings Card */}
           <View style={styles.settingsCard}>
             <Text style={styles.cardTitle}>Current Setup</Text>
-
-            {/* AI Status Indicator */}
-            <View style={styles.settingRow}>
-              <Ionicons
-                name={isAIEnabled ? "sparkles" : "code-slash"}
-                size={24}
-                color={isAIEnabled ? "#FFD700" : "#ccc"}
-              />
-              <View style={styles.settingInfo}>
-                <Text style={styles.settingLabel}>AI Mode</Text>
-                <Text style={[styles.settingValue, { color: isAIEnabled ? "#FFD700" : "#ccc" }]}>
-                  {isAIEnabled ? "AI Enabled" : "AI Service Unavailable"}
-                </Text>
-              </View>
-            </View>
-
+            
             {/* Streak Counter */}
             {streak > 0 && (
               <View style={styles.settingRow}>
@@ -243,7 +242,11 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               </View>
             )}
 
-            <View style={styles.settingRow}>
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={handleNavigateToPersonalitySettings}
+              activeOpacity={0.7}
+            >
               <Ionicons name="person" size={24} color="#fff" />
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>AI Personality</Text>
@@ -251,9 +254,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                   {personality.emoji} {personality.name}
                 </Text>
               </View>
-            </View>
+              <Ionicons name="chevron-forward" size={20} color="#666" />
+            </TouchableOpacity>
 
-            <View style={styles.settingRow}>
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={handleNavigateToIntensitySettings}
+              activeOpacity={0.7}
+            >
               <Ionicons name="flame" size={24} color="#fff" />
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>Roast Intensity</Text>
@@ -261,9 +269,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                   {intensity.name}
                 </Text>
               </View>
-            </View>
+              <Ionicons name="chevron-forward" size={20} color="#666" />
+            </TouchableOpacity>
 
-            <View style={styles.settingRow}>
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={handleNavigateToCursingSettings}
+              activeOpacity={0.7}
+            >
               <Ionicons name="warning" size={24} color="#fff" />
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>Cursing</Text>
@@ -271,8 +284,13 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                   {settings.allowCursing ? 'Allowed' : 'Disabled'}
                 </Text>
               </View>
-            </View>
-            <View style={styles.settingRow}>
+              <Ionicons name="chevron-forward" size={20} color="#666" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={handleNavigateToVoiceSettings}
+              activeOpacity={0.7}
+            >
               <Ionicons name="mic" size={24} color="#fff" />
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>Voice</Text>
@@ -280,7 +298,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                   {settings.voiceSettings?.autoPlay ? 'Auto Play' : 'Tap Mic In Chat To Play'}
                 </Text>
               </View>
-            </View>
+              <Ionicons name="chevron-forward" size={20} color="#666" />
+            </TouchableOpacity>
           </View>
 
           {/* Voice Settings Button */}
@@ -396,15 +415,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.debugButtonText}>Reset IAPs (Debug)</Text>
           </TouchableOpacity>
 
-          {/* Personalization Button */}
-          {/* <TouchableOpacity
-            style={styles.personalizationButton}
-            onPress={() => navigation.navigate('PersonalizationQuiz')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="person-circle" size={24} color="#4ECDC4" />
-            <Text style={styles.personalizationButtonText}>Make It Personal</Text>
-          </TouchableOpacity> */}
 
 
 
@@ -413,6 +423,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       </SafeAreaView>
     </LinearGradient>
   );
+
 };
 
 const styles = StyleSheet.create({
@@ -428,7 +439,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
     marginTop: 20,
   },
   title: {
@@ -461,6 +472,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 8,
   },
   settingInfo: {
     marginLeft: 12,
@@ -477,7 +491,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   startButton: {
-    marginBottom: 30,
+    marginBottom: 12,
     borderRadius: 16,
     overflow: 'hidden',
     elevation: 8,
@@ -565,23 +579,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: '600',
   },
-  personalizationButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(78, 205, 196, 0.1)',
-    borderWidth: 1,
-    borderColor: '#4ECDC4',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-  },
-  personalizationButtonText: {
-    color: '#4ECDC4',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
   voiceSettingsButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -592,6 +589,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    marginTop: 12,
   },
   voiceSettingsButtonText: {
     color: '#FFD93D',

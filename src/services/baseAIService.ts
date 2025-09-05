@@ -408,8 +408,6 @@ export abstract class BaseAIService {
 
       return response;
     } catch (error: any) {
-      console.error('AI API Error:', error);
-      
       // If it's a rate limit error, try again after a delay
       if (error.message && error.message.includes('429')) {
         await new Promise(resolve => setTimeout(resolve, 10000));
@@ -418,8 +416,7 @@ export abstract class BaseAIService {
           this.addAIResponse(retryResponse);
           return retryResponse;
         } catch (retryError) {
-          console.error('Retry also failed:', retryError);
-        }
+          }
       }
 
       // Fallback to a simple roast if API fails

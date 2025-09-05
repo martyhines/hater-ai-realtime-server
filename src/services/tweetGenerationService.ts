@@ -52,7 +52,6 @@ export class TweetGenerationService {
       return tweet;
       
     } catch (error) {
-      console.error('Error generating tweet:', error);
       throw new Error('Failed to generate tweet');
     }
   }

@@ -56,7 +56,6 @@ export default function TweetGeneratorScreen({ navigation, route }: TweetGenerat
       setCurrentTweet(tweet);
       
     } catch (error) {
-      console.error('Error generating tweet:', error);
       Alert.alert(
         'Generation Failed',
         'Failed to generate tweet. Please try again.',
@@ -99,7 +98,6 @@ export default function TweetGeneratorScreen({ navigation, route }: TweetGenerat
       await Clipboard.setString(tweetText);
       Alert.alert('Copied!', 'Tweet copied to clipboard!');
     } catch (error) {
-      console.error('Error copying to clipboard:', error);
       Alert.alert('Copy Failed', 'Failed to copy to clipboard.');
     }
   };
@@ -122,7 +120,6 @@ export default function TweetGeneratorScreen({ navigation, route }: TweetGenerat
         Alert.alert('Share Failed', 'Failed to share to Twitter. Please try again.');
       }
     } catch (error) {
-      console.error('Error sharing to Twitter:', error);
       Alert.alert('Share Failed', 'Failed to share to Twitter.');
     }
   };

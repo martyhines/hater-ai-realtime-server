@@ -40,7 +40,6 @@ export class RealVideoGenerationService {
       return videoPath;
       
     } catch (error) {
-      console.error('Error generating real video:', error);
       throw new Error('Failed to generate real video');
     }
   }
@@ -209,7 +208,6 @@ export class RealVideoGenerationService {
       return imagePath;
       
     } catch (error) {
-      console.error('Error generating frame image:', error);
       throw error;
     }
   }
@@ -284,7 +282,6 @@ export class RealVideoGenerationService {
       return videoPath;
       
     } catch (error) {
-      console.error('Error combining images to video:', error);
       throw error;
     }
   }
@@ -342,7 +339,6 @@ ${videoImages.map((img, index) =>
       
       
     } catch (error) {
-      console.error('Error creating video from images:', error);
       // Fallback: create a simple video file that can be saved
       await this.createFallbackVideo(outputPath, videoImages);
     }
@@ -375,7 +371,6 @@ ${videoImages.map((img, index) =>
       
       
     } catch (error) {
-      console.error('Error creating fallback video:', error);
       throw error;
     }
   }
@@ -389,7 +384,6 @@ ${videoImages.map((img, index) =>
       
       return videoPath;
     } catch (error) {
-      console.error('Error adding background music:', error);
       return videoPath;
     }
   }
@@ -400,7 +394,6 @@ ${videoImages.map((img, index) =>
       // In a real implementation, this would use FFmpeg to compress
       return videoPath;
     } catch (error) {
-      console.error('Error compressing video:', error);
       return videoPath;
     }
   }
@@ -411,7 +404,6 @@ ${videoImages.map((img, index) =>
       // In a real implementation, this would add a watermark overlay
       return videoPath;
     } catch (error) {
-      console.error('Error adding watermark:', error);
       return videoPath;
     }
   }
@@ -434,7 +426,6 @@ ${videoImages.map((img, index) =>
         path: videoPath
       };
     } catch (error) {
-      console.error('Error getting video info:', error);
       return null;
     }
   }

@@ -83,7 +83,6 @@ const HowToCustomModelScreen: React.FC<Props> = ({ navigation }) => {
               </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.serviceItem}
-                onPress={() => openLink('https://huggingface.co/docs/api-inference')}
               >
                 <Text style={styles.serviceName}>• Hugging Face Inference API</Text>
                 <Ionicons name="open-outline" size={16} color="#4ECDC4" />
@@ -163,7 +162,6 @@ const HowToCustomModelScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.example}>
             <Text style={styles.exampleTitle}>Hugging Face Inference</Text>
             <Text style={styles.exampleLabel}>Endpoint:</Text>
-            <Text style={styles.exampleCode}>https://api-inference.huggingface.co/models/gpt2</Text>
             <Text style={styles.exampleLabel}>Request Format:</Text>
             <Text style={styles.exampleCode}>Hugging Face</Text>
             <Text style={styles.exampleLabel}>Response Path:</Text>
@@ -286,7 +284,7 @@ const HowToCustomModelScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={styles.addModelButton}
-            onPress={() => navigation.navigate('CustomModel')}
+            onPress={() => {}}
           >
             <Ionicons name="add-circle" size={20} color="#fff" />
             <Text style={styles.addModelButtonText}>Add Your First Custom Model</Text>
@@ -295,6 +293,7 @@ const HowToCustomModelScreen: React.FC<Props> = ({ navigation }) => {
       </ScrollView>
     </SafeAreaView>
   );
+
 };
 
 const styles = StyleSheet.create({

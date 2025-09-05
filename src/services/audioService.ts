@@ -85,7 +85,6 @@ export class AudioService {
       return audioPath;
       
     } catch (error) {
-      console.error('Error generating audio track:', error);
       throw new Error('Failed to generate audio track');
     }
   }
@@ -116,7 +115,6 @@ export class AudioService {
       await FileSystem.writeAsStringAsync(audioPath, JSON.stringify(audioData, null, 2));
       
     } catch (error) {
-      console.error('Error creating placeholder audio:', error);
       throw error;
     }
   }
@@ -145,7 +143,6 @@ export class AudioService {
       return outputPath;
       
     } catch (error) {
-      console.error('Error adding audio to video:', error);
       throw error;
     }
   }
@@ -178,7 +175,6 @@ export class AudioService {
       return audioPath;
       
     } catch (error) {
-      console.error('Error creating custom audio:', error);
       throw error;
     }
   }

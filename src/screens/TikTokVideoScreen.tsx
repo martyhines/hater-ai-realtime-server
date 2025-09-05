@@ -78,7 +78,6 @@ export default function TikTokVideoScreen({ navigation, route }: TikTokVideoScre
         [{ text: 'OK' }]
       );
     } catch (error) {
-      console.error('Error generating video:', error);
       Alert.alert(
         'Generation Failed',
         'Failed to generate video. Please try again.',
@@ -106,7 +105,6 @@ export default function TikTokVideoScreen({ navigation, route }: TikTokVideoScre
         Alert.alert('Sharing Failed', 'Failed to share to TikTok. Please try again.');
       }
     } catch (error) {
-      console.error('Error sharing to TikTok:', error);
       Alert.alert('Sharing Error', 'An error occurred while sharing.');
     } finally {
       setIsSharing(false);
@@ -129,7 +127,6 @@ export default function TikTokVideoScreen({ navigation, route }: TikTokVideoScre
         Alert.alert('Save Failed', 'Failed to save video. Please check permissions.');
       }
     } catch (error) {
-      console.error('Error saving to gallery:', error);
       Alert.alert('Save Error', 'An error occurred while saving.');
     } finally {
       setIsSharing(false);
@@ -150,7 +147,6 @@ export default function TikTokVideoScreen({ navigation, route }: TikTokVideoScre
         Alert.alert('Sharing Failed', 'Sharing not available on this device.');
       }
     } catch (error) {
-      console.error('Error sharing video:', error);
       Alert.alert('Sharing Error', 'An error occurred while sharing.');
     } finally {
       setIsSharing(false);

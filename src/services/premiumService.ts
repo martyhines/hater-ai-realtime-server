@@ -129,7 +129,6 @@ export class PremiumService {
       const unlockedFeatures = await this.storage.getUnlockedFeatures();
       return unlockedFeatures.includes(featureId);
     } catch (error) {
-      console.error('Error checking feature unlock status:', error);
       return false;
     }
   }
@@ -185,7 +184,6 @@ export class PremiumService {
       const success = await iapService.purchaseProduct(featureId);
       return success;
     } catch (error) {
-      console.error('Error purchasing feature:', error);
       Alert.alert('Purchase Failed', 'An error occurred during purchase.');
       return false;
     }
@@ -231,11 +229,9 @@ export class PremiumService {
         'Subscription Active!',
         `${plan.name} has been activated with all premium features!`,
         [{ text: 'OK' }]
-      );
-
+        );
       return true;
     } catch (error) {
-      console.error('Error purchasing subscription:', error);
       Alert.alert('Purchase Failed', 'An error occurred during purchase.');
       return false;
     }
@@ -253,7 +249,7 @@ export class PremiumService {
           { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
           { text: 'Purchase', onPress: () => resolve(true) },
         ]
-      );
+        );
     });
   }
 
@@ -269,7 +265,7 @@ export class PremiumService {
           { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
           { text: 'Subscribe', onPress: () => resolve(true) },
         ]
-      );
+        );
     });
   }
 
@@ -286,7 +282,6 @@ export class PremiumService {
         await this.storage.setUnlockedFeatures(unlockedFeatures);
       }
     } catch (error) {
-      console.error('Error unlocking feature:', error);
       throw error;
     }
   }
@@ -329,7 +324,6 @@ export class PremiumService {
 
       return true;
     } catch (error) {
-      console.error('Error checking subscription status:', error);
       return false;
     }
   }
@@ -341,7 +335,6 @@ export class PremiumService {
     try {
       return await this.storage.getUnlockedFeatures();
     } catch (error) {
-      console.error('Error getting unlocked features:', error);
       return [];
     }
   }
@@ -440,7 +433,6 @@ export class PremiumService {
       const success = await iapService.purchaseProduct(productId);
       return success;
     } catch (error) {
-      console.error('Error purchasing personality pack:', error);
       Alert.alert('Purchase Failed', 'An error occurred during purchase.');
       return false;
     }
@@ -495,7 +487,6 @@ export class PremiumService {
       const success = await iapService.purchaseProduct(productId);
       return success;
     } catch (error) {
-      console.error('Error purchasing individual personality:', error);
       Alert.alert('Purchase Failed', 'An error occurred during purchase.');
       return false;
     }
@@ -513,7 +504,7 @@ export class PremiumService {
           { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
           { text: 'Purchase', onPress: () => resolve(true) },
         ]
-      );
+        );
     });
   }
 
@@ -529,7 +520,7 @@ export class PremiumService {
           { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
           { text: 'Purchase', onPress: () => resolve(true) },
         ]
-      );
+        );
     });
   }
 
@@ -544,7 +535,6 @@ export class PremiumService {
         await this.storage.setUnlockedPersonalities(unlockedPersonalities);
       }
     } catch (error) {
-      console.error('Error unlocking personality:', error);
       throw error;
     }
   }
@@ -557,7 +547,6 @@ export class PremiumService {
       const unlockedPersonalities = await this.storage.getUnlockedPersonalities();
       return unlockedPersonalities.includes(personalityId);
     } catch (error) {
-      console.error('Error checking personality unlock status:', error);
       return false;
     }
   }
@@ -569,7 +558,6 @@ export class PremiumService {
     try {
       return await this.storage.getUnlockedPersonalities();
     } catch (error) {
-      console.error('Error getting unlocked personalities:', error);
       return [];
     }
   }
@@ -588,9 +576,7 @@ export class PremiumService {
       // Clear subscription status
       await this.storage.setSubscriptionStatus(null);
 
-      console.log('✅ All IAP ownership has been reset');
-    } catch (error) {
-      console.error('Error resetting IAP ownership:', error);
+      } catch (error) {
       throw error;
     }
   }
@@ -604,11 +590,8 @@ export class PremiumService {
 
       // If IAPs are available, use real purchase
       if (iapService.isAvailable()) {
-        console.log('IAPs are available, using real purchase');
         return false; // Don't simulate if real IAPs work
       }
-
-      console.log(`🔧 Simulating purchase of ${itemType}: ${itemId}`);
 
       if (itemType === 'feature') {
         // Unlock the feature
@@ -641,7 +624,6 @@ export class PremiumService {
       Alert.alert('Purchase Simulated', `Successfully simulated purchase of ${itemType}: ${itemId}`);
       return true;
     } catch (error) {
-      console.error('Error simulating purchase:', error);
       Alert.alert('Simulation Failed', 'Failed to simulate purchase');
       return false;
     }

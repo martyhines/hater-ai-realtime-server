@@ -6,23 +6,6 @@ export interface Message {
   isTyping?: boolean;
 }
 
-export interface CustomModel {
-  id: string;
-  name: string;
-  endpoint: string;
-  apiKey?: string;
-  headers?: Record<string, string>;
-  requestFormat: 'openai' | 'cohere' | 'huggingface' | 'custom';
-  responsePath: string; // JSON path to extract response text
-  parameters: {
-    temperature?: number;
-    maxTokens?: number;
-    topP?: number;
-    frequencyPenalty?: number;
-    presencePenalty?: number;
-  };
-  promptTemplate?: string; // Custom prompt formatting
-}
 
 export interface VoiceSettings {
   voice: string;
@@ -45,8 +28,6 @@ export interface UserSettings {
   enableNotifications: boolean;
   enableSound: boolean;
   allowCursing: boolean;
-  customModels?: CustomModel[]; // Add custom models to settings
-  personalization?: Record<string, any>; // Personalization quiz data
   voiceSettings?: VoiceSettings; // Voice settings for text-to-speech
   speechToTextSettings?: SpeechToTextSettings; // Speech-to-text settings
   // Voice: premium realtime voice toggle and basic monetization field
