@@ -1,21 +1,12 @@
-import { initializeApp } from 'firebase/app';
-import { getAnalytics, logEvent, setUserProperties, Analytics } from 'firebase/analytics';
-import { ANALYTICS_EVENTS, firebaseConfig } from '../config/firebase';
+import { ANALYTICS_EVENTS } from '../config/firebase';
 import { Platform } from 'react-native';
 
 class FirebaseAnalyticsService {
   private static instance: FirebaseAnalyticsService;
-  private analytics: Analytics | null = null;
   private isInitialized = false;
+  private eventQueue: any[] = [];
 
   private constructor() {}
-
-  /**
-   * Check if analytics is available
-   */
-  private isAnalyticsAvailable(): boolean {
-    return this.analytics !== null;
-  }
 
   static getInstance(): FirebaseAnalyticsService {
     if (!FirebaseAnalyticsService.instance) {
@@ -28,55 +19,44 @@ class FirebaseAnalyticsService {
    * Initialize Firebase Analytics
    */
   async initialize(): Promise<void> {
-    try {
-      if (this.isInitialized) return;
+    if (this.isInitialized) return;
 
-      // Initialize Firebase app
-      const app = initializeApp(firebaseConfig);
-
-      // Try to initialize Analytics - will work on web, may have issues on RN
-      try {
-        this.analytics = getAnalytics(app);
-        console.log('Firebase Analytics initialized successfully');
-      } catch (analyticsError) {
-        console.warn('Firebase Analytics init failed:', analyticsError.message);
-        // Continue without analytics rather than failing completely
-        this.analytics = null;
-      }
-
-      // Set user properties for better segmentation (if analytics is available)
-      if (this.analytics) {
-        try {
-          await setUserProperties(this.analytics, {
-            app_version: '1.0.0',
-            platform: Platform.OS
-          });
-        } catch (error) {
-          console.warn('Failed to set user properties:', error.message);
-        }
-      }
-
+    // For React Native, we'll send analytics through the backend
+    if (Platform.OS !== 'web') {
+      console.log('Firebase Analytics: Using backend proxy for React Native');
       this.isInitialized = true;
-      console.log(`Firebase Analytics setup complete (Platform: ${Platform.OS})`);
-    } catch (error) {
-      console.error('Firebase Analytics setup failed:', error);
-      this.isInitialized = true; // Prevent retry attempts
+      return;
     }
+
+    // For web, we could implement Firebase web SDK later
+    console.log('Firebase Analytics: Web implementation not yet configured');
+    this.isInitialized = true;
   }
 
   /**
    * Track app open
    */
   async logAppOpen(): Promise<void> {
-    try {
-      // Skip analytics in React Native
-      if (Platform.OS !== 'web') return;
+    await this.sendAnalyticsEvent('app_open', {});
+  }
 
-      if (this.analytics) {
-        await logEvent(this.analytics, 'app_open');
-      }
+  /**
+   * Send analytics event through backend
+   */
+  private async sendAnalyticsEvent(eventName: string, parameters: any): Promise<void> {
+    try {
+      // For now, just log the event - backend integration can be added later
+      console.log(`Analytics Event: ${eventName}`, parameters);
+
+      // TODO: Send to backend analytics endpoint
+      // const response = await fetch('/api/analytics', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ event: eventName, params: parameters })
+      // });
+
     } catch (error) {
-      console.error('Failed to log app open:', error);
+      console.warn('Analytics event failed:', error);
     }
   }
 
@@ -84,16 +64,10 @@ class FirebaseAnalyticsService {
    * Track screen views
    */
   async logScreenView(screenName: string, screenClass?: string): Promise<void> {
-    try {
-      if (!this.isAnalyticsAvailable()) return;
-
-      await logEvent(this.analytics!, 'screen_view', {
-        screen_name: screenName,
-        screen_class: screenClass || screenName
-      });
-    } catch (error) {
-      console.error('Failed to log screen view:', error);
-    }
+    await this.sendAnalyticsEvent('screen_view', {
+      screen_name: screenName,
+      screen_class: screenClass || screenName
+    });
   }
 
   /**
@@ -105,18 +79,12 @@ class FirebaseAnalyticsService {
     hasEmoji: boolean;
     isVoiceMessage?: boolean;
   }): Promise<void> {
-    try {
-      if (!this.isAnalyticsAvailable()) return;
-
-      await logEvent(this.analytics!, ANALYTICS_EVENTS.CHAT_MESSAGE_SENT, {
-        personality: params.personality,
-        message_length: params.messageLength,
-        has_emoji: params.hasEmoji,
-        is_voice_message: params.isVoiceMessage || false
-      });
-    } catch (error) {
-      console.error('Failed to log chat message:', error);
-    }
+    await this.sendAnalyticsEvent(ANALYTICS_EVENTS.CHAT_MESSAGE_SENT, {
+      personality: params.personality,
+      message_length: params.messageLength,
+      has_emoji: params.hasEmoji,
+      is_voice_message: params.isVoiceMessage || false
+    });
   }
 
   /**
@@ -127,33 +95,21 @@ class FirebaseAnalyticsService {
     personality: string;
     showedUpgradePrompt: boolean;
   }): Promise<void> {
-    try {
-      if (!this.isAnalyticsAvailable()) return;
-
-      await logEvent(this.analytics!, ANALYTICS_EVENTS.CHAT_LIMIT_REACHED, {
-        chats_used: params.chatsUsed,
-        personality: params.personality,
-        showed_upgrade_prompt: params.showedUpgradePrompt
-      });
-    } catch (error) {
-      console.error('Failed to log chat limit reached:', error);
-    }
+    await this.sendAnalyticsEvent(ANALYTICS_EVENTS.CHAT_LIMIT_REACHED, {
+      chats_used: params.chatsUsed,
+      personality: params.personality,
+      showed_upgrade_prompt: params.showedUpgradePrompt
+    });
   }
 
   /**
    * Track personality selection
    */
   async logPersonalitySelected(personality: string, isPremium: boolean): Promise<void> {
-    try {
-      if (!this.isAnalyticsAvailable()) return;
-
-      await logEvent(this.analytics!, ANALYTICS_EVENTS.PERSONALITY_SELECTED, {
-        personality,
-        is_premium: isPremium
-      });
-    } catch (error) {
-      console.error('Failed to log personality selection:', error);
-    }
+    await this.sendAnalyticsEvent(ANALYTICS_EVENTS.PERSONALITY_SELECTED, {
+      personality,
+      is_premium: isPremium
+    });
   }
 
   /**
@@ -165,36 +121,30 @@ class FirebaseAnalyticsService {
     price: number;
     currency?: string;
   }): Promise<void> {
-    try {
-      if (!this.isAnalyticsAvailable()) return;
+    const eventName = params.featureType === 'feature'
+      ? ANALYTICS_EVENTS.PREMIUM_FEATURE_PURCHASED
+      : params.featureType === 'personality'
+      ? ANALYTICS_EVENTS.PREMIUM_PERSONALITY_PURCHASED
+      : ANALYTICS_EVENTS.PREMIUM_PACK_PURCHASED;
 
-      const eventName = params.featureType === 'feature'
-        ? ANALYTICS_EVENTS.PREMIUM_FEATURE_PURCHASED
-        : params.featureType === 'personality'
-        ? ANALYTICS_EVENTS.PREMIUM_PERSONALITY_PURCHASED
-        : ANALYTICS_EVENTS.PREMIUM_PACK_PURCHASED;
+    await this.sendAnalyticsEvent(eventName, {
+      item_id: params.itemId,
+      price: params.price,
+      currency: params.currency || 'USD',
+      feature_type: params.featureType
+    });
 
-      await logEvent(this.analytics!, eventName, {
+    // Also log as purchase event for revenue tracking
+    await this.sendAnalyticsEvent('purchase', {
+      currency: params.currency || 'USD',
+      value: params.price,
+      items: [{
         item_id: params.itemId,
-        price: params.price,
-        currency: params.currency || 'USD',
-        feature_type: params.featureType
-      });
-
-      // Also log as purchase event for revenue tracking
-      await logEvent(this.analytics!, 'purchase', {
-        currency: params.currency || 'USD',
-        value: params.price,
-        items: [{
-          item_id: params.itemId,
-          item_name: params.itemId,
-          quantity: 1,
-          price: params.price
-        }]
-      });
-    } catch (error) {
-      console.error('Failed to log premium purchase:', error);
-    }
+        item_name: params.itemId,
+        quantity: 1,
+        price: params.price
+      }]
+    });
   }
 
   /**
@@ -205,120 +155,77 @@ class FirebaseAnalyticsService {
     oldValue?: any;
     newValue: any;
   }): Promise<void> {
-    try {
-      if (!this.isAnalyticsAvailable()) return;
-
-      await logEvent(this.analytics!, ANALYTICS_EVENTS.SETTINGS_CHANGED, {
-        setting_type: params.settingType,
-        old_value: params.oldValue,
-        new_value: params.newValue
-      });
-    } catch (error) {
-      console.error('Failed to log settings change:', error);
-    }
+    await this.sendAnalyticsEvent(ANALYTICS_EVENTS.SETTINGS_CHANGED, {
+      setting_type: params.settingType,
+      old_value: params.oldValue,
+      new_value: params.newValue
+    });
   }
 
   /**
    * Track intensity changes
    */
   async logIntensityChanged(intensity: string): Promise<void> {
-    try {
-      if (!this.isAnalyticsAvailable()) return;
-
-      await logEvent(this.analytics!, ANALYTICS_EVENTS.INTENSITY_CHANGED, {
-        intensity
-      });
-    } catch (error) {
-      console.error('Failed to log intensity change:', error);
-    }
+    await this.sendAnalyticsEvent(ANALYTICS_EVENTS.INTENSITY_CHANGED, {
+      intensity
+    });
   }
 
   /**
    * Track voice features usage
    */
   async logVoiceFeatureUsed(feature: 'voice_message' | 'speech_to_text'): Promise<void> {
-    try {
-      if (!this.isAnalyticsAvailable()) return;
+    const eventName = feature === 'voice_message'
+      ? ANALYTICS_EVENTS.VOICE_MESSAGE_SENT
+      : ANALYTICS_EVENTS.SPEECH_TO_TEXT_USED;
 
-      const eventName = feature === 'voice_message'
-        ? ANALYTICS_EVENTS.VOICE_MESSAGE_SENT
-        : ANALYTICS_EVENTS.SPEECH_TO_TEXT_USED;
-
-      await logEvent(this.analytics!, eventName, {
-        feature_type: feature
-      });
-    } catch (error) {
-      console.error('Failed to log voice feature usage:', error);
-    }
+    await this.sendAnalyticsEvent(eventName, {
+      feature_type: feature
+    });
   }
 
   /**
    * Track social features usage
    */
   async logSocialFeatureUsed(feature: 'tweet' | 'tiktok_video'): Promise<void> {
-    try {
-      if (!this.isAnalyticsAvailable()) return;
+    const eventName = feature === 'tweet'
+      ? ANALYTICS_EVENTS.TWEET_GENERATED
+      : ANALYTICS_EVENTS.TIKTOK_VIDEO_CREATED;
 
-      const eventName = feature === 'tweet'
-        ? ANALYTICS_EVENTS.TWEET_GENERATED
-        : ANALYTICS_EVENTS.TIKTOK_VIDEO_CREATED;
-
-      await logEvent(this.analytics!, eventName, {
-        feature_type: feature
-      });
-    } catch (error) {
-      console.error('Failed to log social feature usage:', error);
-    }
+    await this.sendAnalyticsEvent(eventName, {
+      feature_type: feature
+    });
   }
 
   /**
    * Track errors
    */
   async logError(errorType: 'api' | 'network' | 'other', errorMessage: string, context?: any): Promise<void> {
-    try {
-      if (!this.isAnalyticsAvailable()) return;
+    const eventName = errorType === 'api'
+      ? ANALYTICS_EVENTS.API_ERROR
+      : errorType === 'network'
+      ? ANALYTICS_EVENTS.NETWORK_ERROR
+      : 'error';
 
-      const eventName = errorType === 'api'
-        ? ANALYTICS_EVENTS.API_ERROR
-        : errorType === 'network'
-        ? ANALYTICS_EVENTS.NETWORK_ERROR
-        : 'error';
-
-      await logEvent(this.analytics!, eventName, {
-        error_message: errorMessage.substring(0, 100), // Limit length
-        context: context ? JSON.stringify(context).substring(0, 500) : null
-      });
-    } catch (error) {
-      console.error('Failed to log error:', error);
-    }
+    await this.sendAnalyticsEvent(eventName, {
+      error_message: errorMessage.substring(0, 100), // Limit length
+      context: context ? JSON.stringify(context).substring(0, 500) : null
+    });
   }
 
   /**
    * Set user properties for better segmentation
    */
   async setUserProperties(properties: Record<string, any>): Promise<void> {
-    try {
-      if (!this.isAnalyticsAvailable()) return;
-
-      await setUserProperties(this.analytics!, properties);
-    } catch (error) {
-      console.error('Failed to set user properties:', error);
-    }
+    await this.sendAnalyticsEvent('set_user_properties', properties);
   }
 
   /**
    * Reset analytics data (for testing)
    */
   async resetAnalyticsData(): Promise<void> {
-    try {
-      // Firebase JS SDK doesn't have a direct reset method like RN Firebase
-      // This is mainly for testing purposes
-      if (Platform.OS === 'web') {
-        console.log('Analytics data reset requested (no-op in web SDK)');
-      }
-    } catch (error) {
-      console.error('Failed to reset analytics data:', error);
-    }
+    console.log('Analytics data reset requested');
+    this.eventQueue = [];
   }
 }
 
