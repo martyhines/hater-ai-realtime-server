@@ -50,7 +50,8 @@ class FirebaseAnalyticsService {
       console.log(`Analytics Event: ${eventName}`, parameters);
 
       // Send to backend analytics endpoint
-      const response = await fetch('http://localhost:8787/api/analytics', {
+      const analyticsUrl = `${API_CONFIG.BACKEND.BASE_URL}/api/analytics`;
+      const response = await fetch(analyticsUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
