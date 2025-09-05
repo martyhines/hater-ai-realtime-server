@@ -8,6 +8,7 @@ import {
   Switch,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,6 +43,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
   const [unlockedPersonalities, setUnlockedPersonalities] = useState<string[]>([]);
   const [isPremiumLoading, setIsPremiumLoading] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [activeTab, setActiveTab] = useState<'personalities' | 'intensity' | 'preferences' | 'premium'>('personalities');
 
   const personalities = [
     {
@@ -389,15 +391,41 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        {[
+          { key: 'personalities', label: 'Personalities', icon: 'person' },
+          { key: 'intensity', label: 'Intensity', icon: 'flame' },
+          { key: 'preferences', label: 'Settings', icon: 'settings' },
+          { key: 'premium', label: 'Premium', icon: 'star' },
+        ].map((tab) => (
+          <TouchableOpacity
+            key={tab.key}
+            style={[styles.tab, activeTab === tab.key && styles.activeTab]}
+            onPress={() => setActiveTab(tab.key as any)}
+          >
+            <Ionicons
+              name={tab.icon as any}
+              size={16}
+              color={activeTab === tab.key ? '#FFD700' : '#ccc'}
+            />
+            <Text style={[styles.tabText, activeTab === tab.key && styles.activeTabText]}>
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.content}
       >
         {/* AI Personality Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Choose Your AI Enemy</Text>
-          <Text style={styles.sectionSubtitle}>Pick the personality that will roast you</Text>
+        {activeTab === 'personalities' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Choose Your AI Enemy</Text>
+            <Text style={styles.sectionSubtitle}>Pick the personality that will roast you</Text>
           
           {personalities.map((personality) => {
             const isUnlocked = unlockedPersonalities.includes(personality.id) || 
@@ -456,9 +484,11 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
               </TouchableOpacity>
             );
           })}
-        </View>
+          </View>
+        )}
 
         {/* Roast Intensity Section */}
+        {activeTab === 'intensity' && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Roast Intensity</Text>
           <Text style={styles.sectionSubtitle}>How hard should your AI enemy go?</Text>
@@ -486,9 +516,11 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
             </TouchableOpacity>
           ))}
-        </View>
+          </View>
+        )}
 
         {/* Preferences Section */}
+        {activeTab === 'preferences' && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
           
@@ -572,9 +604,11 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
             <Ionicons name="chevron-forward" size={24} color="#ccc" />
           </TouchableOpacity> */}
-        </View>
+          </View>
+        )}
 
         {/* Premium Features Section */}
+        {activeTab === 'premium' && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🔥 Premium Features</Text>
           <Text style={styles.sectionSubtitle}>Unlock the full potential of your AI enemy</Text>
@@ -609,7 +643,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
             </TouchableOpacity>
           ))}
-        </View>
+          </View>
+        )}
 
         {/* Clear API Key Button */}
         {isAIEnabled && (
@@ -685,6 +720,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    margin: 20,
+    marginBottom: 10,
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 6,
+  },
+  activeTab: {
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+  },
+  tabText: {
+    fontSize: 12,
+    color: '#ccc',
+    fontWeight: '500',
+  },
+  activeTabText: {
+    color: '#FFD700',
+    fontWeight: '600',
   },
   scrollView: {
     flex: 1,
