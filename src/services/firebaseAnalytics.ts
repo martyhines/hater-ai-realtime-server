@@ -1,4 +1,5 @@
 import { ANALYTICS_EVENTS } from '../config/firebase';
+import { API_CONFIG } from '../config/api';
 import { Platform } from 'react-native';
 
 class FirebaseAnalyticsService {
@@ -45,15 +46,26 @@ class FirebaseAnalyticsService {
    */
   private async sendAnalyticsEvent(eventName: string, parameters: any): Promise<void> {
     try {
-      // For now, just log the event - backend integration can be added later
+      // Log to console for debugging
       console.log(`Analytics Event: ${eventName}`, parameters);
 
-      // TODO: Send to backend analytics endpoint
-      // const response = await fetch('/api/analytics', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ event: eventName, params: parameters })
-      // });
+      // Send to backend analytics endpoint
+      const response = await fetch('http://localhost:8787/api/analytics', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_CONFIG.REALTIME.APP_AUTH_TOKEN}`,
+        },
+        body: JSON.stringify({
+          event: eventName,
+          params: parameters,
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      if (!response.ok) {
+        console.warn('Analytics backend request failed:', response.status);
+      }
 
     } catch (error) {
       console.warn('Analytics event failed:', error);

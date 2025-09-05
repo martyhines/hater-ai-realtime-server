@@ -38,6 +38,44 @@ app.use(
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
+// POST /api/analytics → logs analytics events to Firebase
+app.post('/api/analytics', async (req, res) => {
+  try {
+    const { event, params, timestamp } = req.body;
+
+    // Optional auth check
+    const requiredToken = process.env.APP_AUTH_TOKEN;
+    if (requiredToken) {
+      const auth = req.get('authorization') || '';
+      const token = auth.startsWith('Bearer ') ? auth.substring(7) : '';
+      if (token !== requiredToken) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+    }
+
+    // Log the analytics event
+    console.log(`📊 Analytics Event: ${event}`, {
+      params,
+      timestamp,
+      ip: req.ip,
+      userAgent: req.get('user-agent')
+    });
+
+    // TODO: Send to Firebase Analytics using Firebase Admin SDK
+    // For now, just acknowledge receipt
+    res.json({
+      success: true,
+      event,
+      logged: true,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Analytics endpoint error:', error);
+    res.status(500).json({ error: 'Analytics logging failed' });
+  }
+});
+
 // POST /realtime-token → returns ephemeral session JSON from OpenAI Realtime
 app.post('/realtime-token', async (req, res) => {
   try {
