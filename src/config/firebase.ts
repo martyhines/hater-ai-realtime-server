@@ -1,11 +1,11 @@
 // Firebase configuration
 export const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef123456"
+  apiKey: "AIzaSyAsd-WurrDB4G5Z_RXRtgYBVWlAk6vfT5g",
+  authDomain: "hater-ai.firebaseapp.com",
+  projectId: "hater-ai",
+  storageBucket: "hater-ai.firebasestorage.app",
+  messagingSenderId: "317634354253",
+  appId: "1:317634354253:ios:931ae0f0efe653ec4f1004"
 };
 
 // Analytics event names

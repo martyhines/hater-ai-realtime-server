@@ -38,12 +38,13 @@
     },
     "extra": {
       "eas": {
-        "projectId": "your-project-id-here"
+        "projectId": "317634354253"
       }
     },
     "plugins": [
       "expo-secure-store",
-      "expo-audio"
+      "expo-audio",
+      "expo-dev-client"
     ]
   }
 }
