@@ -20,7 +20,7 @@ import SpeechToTextSettingsScreen from './src/screens/SpeechToTextSettingsScreen
 export type RootStackParamList = {
   Home: undefined;
   Chat: undefined;
-  Settings: { scrollTo?: string } | undefined;
+  Settings: { scrollTo?: string; initialTab?: 'personalities' | 'intensity' | 'preferences' | 'premium' } | undefined;
   ApiKey: undefined;
   HowToCustomModel: undefined;
   TikTokVideo: {

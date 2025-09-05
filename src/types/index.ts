@@ -65,7 +65,7 @@ export const getPersonalityInfo = (personalityKey: string): PersonalityInfo => {
     sarcastic: { name: 'Sarcastic Sam', emoji: '😏' },
     brutal: { name: 'Brutal Betty', emoji: '💀' },
     witty: { name: 'Witty Will', emoji: '🧠' },
-    condescending: { name: 'Condescending Bobert', emoji: '🤓' },
+    condescending: { name: 'Condescending Carl', emoji: '🤓' },
     streetsmart: { name: 'Street Smart', emoji: '🔥' },
     newyorker: { name: 'The Posh New Yorker', emoji: '🗽' },
     bronxbambino: { name: 'The Bronx Bambino', emoji: '🏙️' },

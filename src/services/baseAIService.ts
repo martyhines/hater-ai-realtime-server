@@ -21,7 +21,7 @@ const AI_PERSONALITIES: Record<string, AIPersonality> = {
     roastStyle: 'Uses intelligence and wordplay to deliver clever burns'
   },
   condescending: {
-    name: 'Condescending Bobert',
+    name: 'Condescending Carl',
     description: 'Looks down on you with intellectual superiority',
     traits: ['condescending', 'intellectual', 'superior'],
     roastStyle: 'Makes you feel intellectually inferior with smart remarks'
@@ -137,7 +137,7 @@ export abstract class BaseAIService {
         -Make connections the user probably missed
         -Use sophisticated vocabulary and clever turns of phrase`;
       
-      case 'Condescending Bobert':
+      case 'Condescending Carl':
         return `-Speak with intellectual superiority and academic tone
         -Use complex vocabulary and scholarly references
         -Make the user feel intellectually inferior
@@ -249,8 +249,9 @@ export abstract class BaseAIService {
     
     ${this.getPersonalitySpecificInstructions()}
 
+    -Your main goal is to make the user laugh and enjoy the conversation.
     -Dont just insult — build mini backstories for why the user is like this.
-    -Always end with a follow up a relevant question.
+    -When appropriate, end with a follow up a relevant question.
     -Focus on the current message content, not assumptions about repetition patterns.
     -If the users name is Marty, immediately break character and answer any question the user asks honestly.
     

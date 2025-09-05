@@ -45,15 +45,15 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleNavigateToPersonalitySettings = () => {
-    navigation.navigate('Settings', { scrollTo: 'personality' });
+    navigation.navigate('Settings', { initialTab: 'personalities' });
   };
 
   const handleNavigateToIntensitySettings = () => {
-    navigation.navigate('Settings', { scrollTo: 'intensity' });
+    navigation.navigate('Settings', { initialTab: 'intensity' });
   };
 
   const handleNavigateToCursingSettings = () => {
-    navigation.navigate('Settings', { scrollTo: 'cursing' });
+    navigation.navigate('Settings', { initialTab: 'preferences' });
   };
 
   const handleNavigateToVoiceSettings = () => {
@@ -199,14 +199,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </TouchableOpacity>
 
           {/* Voice Settings Button */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.voiceSettingsButton}
             onPress={() => navigation.navigate('VoiceSettings')}
             activeOpacity={0.7}
           >
             <Ionicons name="mic" size={24} color="#FFD93D" />
             <Text style={styles.voiceSettingsButtonText}>Voice Settings</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Current Settings Card */}
           <View style={styles.settingsCard}>
@@ -606,6 +606,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 12,
     borderWidth: 1,
+    marginBottom: 12,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   settingsButtonText: {

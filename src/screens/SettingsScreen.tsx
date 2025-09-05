@@ -362,39 +362,20 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
     return unsubscribe;
   }, [navigation]);
 
-  // Handle scrolling to specific sections from HomeScreen
+  // Handle initial tab selection from navigation
   useEffect(() => {
-    const scrollTo = route.params?.scrollTo;
-    if (scrollTo && scrollViewRef.current) {
-      // Small delay to ensure the component has rendered
-      setTimeout(() => {
-        let yOffset = 0;
-
-        switch (scrollTo) {
-          case 'personality':
-            yOffset = 0; // Top of screen
-            break;
-          case 'intensity':
-            yOffset = 400; // Around the Roast Intensity section
-            break;
-          case 'cursing':
-            yOffset = 600; // Around the Cursing section
-            break;
-          default:
-            yOffset = 0;
-        }
-
-        scrollViewRef.current?.scrollTo({ y: yOffset, animated: true });
-      }, 500);
+    const initialTab = route.params?.initialTab;
+    if (initialTab && ['personalities', 'intensity', 'preferences', 'premium'].includes(initialTab)) {
+      setActiveTab(initialTab as typeof activeTab);
     }
-  }, [route.params?.scrollTo]);
+  }, [route.params?.initialTab]);
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
         {[
-          { key: 'personalities', label: 'Personalities', icon: 'person' },
+          { key: 'personalities', label: 'Personas', icon: 'person' },
           { key: 'intensity', label: 'Intensity', icon: 'flame' },
           { key: 'preferences', label: 'Settings', icon: 'settings' },
           { key: 'premium', label: 'Premium', icon: 'star' },
