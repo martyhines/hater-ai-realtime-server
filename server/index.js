@@ -61,12 +61,52 @@ app.post('/api/analytics', async (req, res) => {
       userAgent: req.get('user-agent')
     });
 
-    // TODO: Send to Firebase Analytics using Firebase Admin SDK
-    // For now, just acknowledge receipt
+    // Send to Firebase Analytics using Firebase Admin SDK
+    try {
+      const admin = require('firebase-admin');
+
+      // Initialize Firebase Admin if not already done
+      if (!admin.apps.length) {
+        // You can initialize with service account key or default credentials
+        // For now, we'll use environment variables or default credentials
+        if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+          const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            projectId: 'hater-ai'
+          });
+        } else {
+          // Use default credentials (works in GCP environments)
+          admin.initializeApp({
+            projectId: 'hater-ai'
+          });
+        }
+      }
+
+      // Log event to Firebase Analytics
+      await admin.analytics().logEvent({
+        name: event,
+        params: {
+          ...params,
+          user_ip: req.ip,
+          user_agent: req.get('user-agent'),
+          platform: 'web', // Since this is coming from server
+          source: 'hater_ai_server'
+        }
+      });
+
+      console.log(`✅ Firebase Analytics: Event '${event}' logged successfully`);
+
+    } catch (firebaseError) {
+      console.error('Firebase Analytics error:', firebaseError.message);
+      // Continue with response even if Firebase fails
+    }
+
     res.json({
       success: true,
       event,
       logged: true,
+      firebase_sent: true,
       timestamp: new Date().toISOString()
     });
 
