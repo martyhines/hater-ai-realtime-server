@@ -22,7 +22,7 @@ const AI_PERSONALITIES: Record<string, AIPersonality> = {
     roastStyle: 'Uses intelligence and wordplay to deliver clever burns'
   },
   condescending: {
-    name: 'Condescending Carl',
+    name: 'Condescending Bobert',
     description: 'Looks down on you with intellectual superiority',
     traits: ['condescending', 'intellectual', 'superior'],
     roastStyle: 'Makes you feel intellectually inferior with smart remarks'

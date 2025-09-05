@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
-import { UserSettings } from '../types';
+import { UserSettings, getPersonalityInfo } from '../types';
 import { StorageService } from '../services/storageService';
 import { StreakService } from '../services/streakService';
 import { PremiumService } from '../services/premiumService';
@@ -148,23 +148,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     return unsubscribe;
   }, [navigation]);
 
-  const getPersonalityInfo = () => {
-    const personalities = {
-      sarcastic: { name: 'Sarcastic Sam', emoji: '😏' },
-      brutal: { name: 'Brutal Betty', emoji: '💀' },
-      witty: { name: 'Witty Will', emoji: '🧠' },
-      condescending: { name: 'Condescending Bobert', emoji: '🤓' },
-      streetsmart: { name: 'Street Smart', emoji: '🔥' },
-      newyorker: { name: 'The Posh New Yorker', emoji: '🗽' },
-      bronxbambino: { name: 'The Bronx Bambino', emoji: '🏙️' },
-      britishgentleman: { name: 'British Gentleman', emoji: '🇬🇧' },
-      southernbelle: { name: 'Southern Belle', emoji: '🌹' },
-      valleygirl: { name: 'Valley Girl', emoji: '💅' },
-      surferdude: { name: 'Surfer Dude', emoji: '🏄‍♂️' },
-    };
-    const key = (settings.aiPersonality as keyof typeof personalities) || 'sarcastic';
-    return personalities[key] || personalities.sarcastic;
-  };
 
   const getIntensityInfo = () => {
     const intensities = {
@@ -176,7 +159,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     return intensities[key] || intensities.medium;
   };
 
-  const personality = getPersonalityInfo();
+  const personality = getPersonalityInfo(settings.aiPersonality);
   const intensity = getIntensityInfo();
 
   return (

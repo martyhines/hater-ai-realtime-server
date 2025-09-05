@@ -53,4 +53,27 @@ export type AIProvider = 'cohere' | 'openai' | 'gemini';
 
 export type RoastIntensity = 'mild' | 'medium' | 'savage';
 
-export type AIPersonalityType = 'sarcastic' | 'witty' | 'brutal' | 'playful' | 'streetsmart'; 
+export type AIPersonalityType = 'sarcastic' | 'witty' | 'brutal' | 'condescending' | 'streetsmart' | 'newyorker' | 'bronxbambino' | 'britishgentleman' | 'southernbelle' | 'valleygirl' | 'surferdude';
+
+export interface PersonalityInfo {
+  name: string;
+  emoji: string;
+}
+
+export const getPersonalityInfo = (personalityKey: string): PersonalityInfo => {
+  const personalities: Record<string, PersonalityInfo> = {
+    sarcastic: { name: 'Sarcastic Sam', emoji: '😏' },
+    brutal: { name: 'Brutal Betty', emoji: '💀' },
+    witty: { name: 'Witty Will', emoji: '🧠' },
+    condescending: { name: 'Condescending Bobert', emoji: '🤓' },
+    streetsmart: { name: 'Street Smart', emoji: '🔥' },
+    newyorker: { name: 'The Posh New Yorker', emoji: '🗽' },
+    bronxbambino: { name: 'The Bronx Bambino', emoji: '🏙️' },
+    britishgentleman: { name: 'British Gentleman', emoji: '🇬🇧' },
+    southernbelle: { name: 'Southern Belle', emoji: '🌹' },
+    valleygirl: { name: 'Valley Girl', emoji: '💅' },
+    surferdude: { name: 'Surfer Dude', emoji: '🏄‍♂️' },
+  };
+
+  return personalities[personalityKey] || personalities.sarcastic;
+}; 
