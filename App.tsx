@@ -1,3 +1,6 @@
+// 🔥 CRITICAL: Import Supabase FIRST before anything else
+import './src/config/supabase';
+
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -45,14 +48,16 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
-  // Initialize services on app start (no Firebase)
+  // Initialize services on app start
   useEffect(() => {
     const initializeServices = async () => {
       try {
-        // Initialize Auth Service (will use local storage only for now)
+        console.log('🚀 Initializing Supabase services...');
+
+        // Initialize Auth Service
         const authService = AuthService.getInstance();
         await authService.initialize();
-        console.log('✅ Services initialized');
+        console.log('✅ Supabase services initialized');
       } catch (error) {
         console.error('❌ Failed to initialize services:', error);
       }
