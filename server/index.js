@@ -41,7 +41,7 @@ app.get('/health', (_req, res) => res.json({ ok: true }));
 // POST /api/analytics → logs analytics events to Firebase
 app.post('/api/analytics', async (req, res) => {
   try {
-    const { event, params, timestamp } = req.body;
+    const { event, params, timestamp, userId } = req.body;
 
     // Optional auth check
     const requiredToken = process.env.APP_AUTH_TOKEN;
