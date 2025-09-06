@@ -7,23 +7,23 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, ActivityIndicator } from 'react-native';
-import { UserSettings } from 'src/types/index';
+import { UserSettings } from './src/types/index';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import FirebaseAnalyticsService from 'src/services/firebaseAnalytics';
-import AuthService from 'src/services/authService';
+import FirebaseAnalyticsService from './src/services/firebaseAnalytics';
+import AuthService from './src/services/authService';
 
-import HomeScreen from 'src/screens/HomeScreen';
-import ChatScreen from 'src/screens/ChatScreen';
-import SettingsScreen from 'src/screens/SettingsScreen';
-import ApiKeyScreen from 'src/screens/ApiKeyScreen';
-import HowToCustomModelScreen from 'src/screens/HowToCustomModelScreen';
-import TikTokVideoScreen from 'src/screens/TikTokVideoScreen';
-import { FEATURES } from 'src/config/features';
-import TweetGeneratorScreen from 'src/screens/TweetGeneratorScreen';
-import ScreenshotScreen from 'src/screens/ScreenshotScreen';
-import VoiceSettingsScreen from 'src/screens/VoiceSettingsScreen';
-import SpeechToTextSettingsScreen from 'src/screens/SpeechToTextSettingsScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import ChatScreen from './src/screens/ChatScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
+import ApiKeyScreen from './src/screens/ApiKeyScreen';
+import HowToCustomModelScreen from './src/screens/HowToCustomModelScreen';
+import TikTokVideoScreen from './src/screens/TikTokVideoScreen';
+import { FEATURES } from './src/config/features';
+import TweetGeneratorScreen from './src/screens/TweetGeneratorScreen';
+import ScreenshotScreen from './src/screens/ScreenshotScreen';
+import VoiceSettingsScreen from './src/screens/VoiceSettingsScreen';
+import SpeechToTextSettingsScreen from './src/screens/SpeechToTextSettingsScreen';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -54,13 +54,7 @@ export default function App() {
   const [isFirebaseReady, setIsFirebaseReady] = useState(false);
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
 
-  // 🔥 DEBUG: Prove auth component is registered
-  useEffect(() => {
-    // @ts-ignore private field: dev-only debug
-    const providers = app._container?.providers?.keys?.() || [];
-    console.log('🔍 Firebase providers after init:', [...providers]);
-    // Expected to include: 'auth', 'firestore', 'app'
-  }, []);
+  // Firebase auth should now work with simplified approach
 
   // Initialize Firebase services on app start
   useEffect(() => {
