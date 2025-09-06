@@ -1,4 +1,5 @@
-import { ANALYTICS_EVENTS } from '../config/firebase';
+import { initializeApp, getApps } from 'firebase/app';
+import { ANALYTICS_EVENTS, firebaseConfig } from '../config/firebase';
 import { API_CONFIG } from '../config/api';
 import { Platform } from 'react-native';
 import AuthService from './authService';
@@ -23,16 +24,32 @@ class FirebaseAnalyticsService {
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    // For React Native, we'll send analytics through the backend
-    if (Platform.OS !== 'web') {
-      console.log('Firebase Analytics: Using backend proxy for React Native');
-      this.isInitialized = true;
-      return;
-    }
+    try {
+      // Initialize Firebase app for shared use with Auth service
+      const existingApps = getApps();
 
-    // For web, we could implement Firebase web SDK later
-    console.log('Firebase Analytics: Web implementation not yet configured');
-    this.isInitialized = true;
+      if (existingApps.length === 0) {
+        // Initialize Firebase app if it doesn't exist
+        initializeApp(firebaseConfig);
+        console.log('Firebase Analytics: Initialized shared Firebase app');
+      } else {
+        console.log('Firebase Analytics: Using existing Firebase app');
+      }
+
+      // For React Native, we'll send analytics through the backend
+      if (Platform.OS !== 'web') {
+        console.log('Firebase Analytics: Using backend proxy for React Native');
+        this.isInitialized = true;
+        return;
+      }
+
+      // For web, we could implement Firebase web SDK later
+      console.log('Firebase Analytics: Web implementation not yet configured');
+      this.isInitialized = true;
+    } catch (error) {
+      console.error('Firebase Analytics initialization failed:', error);
+      this.isInitialized = true; // Prevent retry loops
+    }
   }
 
   /**

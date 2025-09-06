@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { firebaseConfig } from '../config/firebase';
@@ -27,8 +27,21 @@ class AuthService {
     if (this.isInitialized) return;
 
     try {
-      // Initialize Firebase (v9 modular style)
-      const app = initializeApp(firebaseConfig);
+      // Check if Firebase app already exists (from Analytics service)
+      let app;
+      const existingApps = getApps();
+
+      if (existingApps.length > 0) {
+        // Use existing app
+        app = existingApps[0];
+        console.log('Using existing Firebase app for Auth');
+      } else {
+        // Initialize new Firebase app
+        app = initializeApp(firebaseConfig);
+        console.log('Initialized new Firebase app for Auth');
+      }
+
+      // Get auth and firestore instances
       this.auth = getAuth(app);
       this.db = getFirestore(app);
 
@@ -42,6 +55,7 @@ class AuthService {
       console.log('Firebase Auth initialized successfully');
     } catch (error) {
       console.error('Firebase Auth initialization failed:', error);
+      console.error('Error details:', error.message);
     }
   }
 
