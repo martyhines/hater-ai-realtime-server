@@ -1,5 +1,6 @@
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { initializeAuth, signInAnonymously, onAuthStateChanged, getReactNativePersistence } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirebaseApp } from '../config/firebase';
 import { UserSettings } from '../types';
 
@@ -26,12 +27,20 @@ class AuthService {
     if (this.isInitialized) return;
 
     try {
+      console.log(' ✅ Initializing Firebase Auth');
       // Use centralized Firebase app
       const app = getFirebaseApp();
+      console.log(' ✅ Firebase app obtained:', app ? 'YES' : 'NO');
 
-      // Get auth and firestore instances
-      this.auth = getAuth(app);
+      // Initialize auth with AsyncStorage persistence (Expo SDK 53 fix)
+      console.log(' ✅ Initializing auth with AsyncStorage persistence...');
+      this.auth = initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage),
+      });
+      console.log(' ✅ Auth instance initialized with persistence');
+
       this.db = getFirestore(app);
+      console.log(' ✅ Firestore instance obtained');
 
       // Listen for auth state changes
       onAuthStateChanged(this.auth, (user) => {
