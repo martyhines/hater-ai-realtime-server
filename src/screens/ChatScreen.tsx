@@ -442,7 +442,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     Keyboard.dismiss();
 
     // Analytics removed - using local storage only
-    }
 
     try {
       // Simulate typing delay
