@@ -5,6 +5,7 @@ import { UserSettings } from './src/types/index';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import FirebaseAnalyticsService from './src/services/firebaseAnalytics';
+import AuthService from './src/services/authService';
 
 import HomeScreen from './src/screens/HomeScreen';
 import ChatScreen from './src/screens/ChatScreen';
@@ -44,19 +45,29 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
-  // Initialize Firebase Analytics on app start
+  // Initialize Firebase services on app start
   useEffect(() => {
-    const initializeAnalytics = async () => {
+    const initializeServices = async () => {
       try {
+        // Initialize Analytics
         const analyticsService = FirebaseAnalyticsService.getInstance();
         await analyticsService.initialize();
         await analyticsService.logAppOpen();
+
+        // Initialize Authentication
+        const authService = AuthService.getInstance();
+        await authService.initialize();
+
+        // Sign in anonymously
+        await authService.signInAnonymously();
+
+        console.log('All Firebase services initialized successfully');
       } catch (error) {
-        console.error('Failed to initialize Firebase Analytics:', error);
+        console.error('Failed to initialize Firebase services:', error);
       }
     };
 
-    initializeAnalytics();
+    initializeServices();
   }, []);
 
   return (

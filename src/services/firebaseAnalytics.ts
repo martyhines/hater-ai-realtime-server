@@ -1,6 +1,7 @@
 import { ANALYTICS_EVENTS } from '../config/firebase';
 import { API_CONFIG } from '../config/api';
 import { Platform } from 'react-native';
+import AuthService from './authService';
 
 class FirebaseAnalyticsService {
   private static instance: FirebaseAnalyticsService;
@@ -46,8 +47,22 @@ class FirebaseAnalyticsService {
    */
   private async sendAnalyticsEvent(eventName: string, parameters: any): Promise<void> {
     try {
+      // Get user information
+      const authService = AuthService.getInstance();
+      const userId = authService.getUserId();
+      const isSignedIn = authService.isSignedIn();
+
+      // Enhanced parameters with user info
+      const enhancedParams = {
+        ...parameters,
+        user_id: userId,
+        is_authenticated: isSignedIn,
+        platform: Platform.OS,
+        app_version: '1.0.0'
+      };
+
       // Log to console for debugging
-      console.log(`Analytics Event: ${eventName}`, parameters);
+      console.log(`Analytics Event: ${eventName}`, enhancedParams);
 
       // Send to backend analytics endpoint
       const analyticsUrl = `${API_CONFIG.BACKEND.BASE_URL}/api/analytics`;
@@ -59,7 +74,8 @@ class FirebaseAnalyticsService {
         },
         body: JSON.stringify({
           event: eventName,
-          params: parameters,
+          params: enhancedParams,
+          userId: userId,
           timestamp: new Date().toISOString()
         })
       });

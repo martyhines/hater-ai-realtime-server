@@ -21,6 +21,7 @@ import { StreakService } from '../services/streakService';
 import { FEATURES } from '../config/features';
 import { PremiumService } from '../services/premiumService';
 import FirebaseAnalyticsService from '../services/firebaseAnalytics';
+import AuthService from '../services/authService';
 
 type SettingsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Settings'>;
 type SettingsScreenRouteProp = RouteProp<RootStackParamList, 'Settings'>;
@@ -154,9 +155,19 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
     const newSettings = { ...settings, aiPersonality: personality as any };
     setSettings(newSettings);
 
-    // Save to persistent storage
+    // Save to local storage
     const storage = StorageService.getInstance();
     await storage.saveSettings(newSettings);
+
+    // Save to Firebase (authenticated users)
+    try {
+      const authService = AuthService.getInstance();
+      if (authService.isSignedIn()) {
+        await authService.saveUserSettings(newSettings);
+      }
+    } catch (error) {
+      console.error('Firebase settings save error:', error);
+    }
 
     // Track analytics
     try {
@@ -172,9 +183,19 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
     const newSettings = { ...settings, roastIntensity: intensity as any };
     setSettings(newSettings);
 
-    // Save to persistent storage
+    // Save to local storage
     const storage = StorageService.getInstance();
     await storage.saveSettings(newSettings);
+
+    // Save to Firebase (authenticated users)
+    try {
+      const authService = AuthService.getInstance();
+      if (authService.isSignedIn()) {
+        await authService.saveUserSettings(newSettings);
+      }
+    } catch (error) {
+      console.error('Firebase settings save error:', error);
+    }
 
     // Track analytics
     try {

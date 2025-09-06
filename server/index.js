@@ -101,9 +101,11 @@ app.post('/api/analytics', async (req, res) => {
           ...params,
           user_ip: req.ip,
           user_agent: req.get('user-agent'),
-          platform: 'web',
+          platform: params.platform || 'unknown',
           source: 'hater_ai_server'
         },
+        user_id: userId || null,
+        is_authenticated: !!userId,
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
         created_at: new Date().toISOString()
       };
@@ -111,7 +113,7 @@ app.post('/api/analytics', async (req, res) => {
       // Store in Firestore
       await analyticsCollection.add(analyticsData);
 
-      console.log(`✅ Firebase Analytics: Event '${event}' logged successfully`);
+      console.log(`✅ Firebase Analytics: Event '${event}' logged successfully for user ${userId || 'anonymous'}`);
 
     } catch (firebaseError) {
       console.error('Firebase Analytics error:', firebaseError.message);
