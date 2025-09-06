@@ -1,7 +1,6 @@
-import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { firebaseConfig } from '../config/firebase';
+import { getFirebaseApp } from '../config/firebase';
 import { UserSettings } from '../types';
 
 class AuthService {
@@ -27,19 +26,8 @@ class AuthService {
     if (this.isInitialized) return;
 
     try {
-      // Check if Firebase app already exists (from Analytics service)
-      let app;
-      const existingApps = getApps();
-
-      if (existingApps.length > 0) {
-        // Use existing app
-        app = existingApps[0];
-        console.log('Using existing Firebase app for Auth');
-      } else {
-        // Initialize new Firebase app
-        app = initializeApp(firebaseConfig);
-        console.log('Initialized new Firebase app for Auth');
-      }
+      // Use centralized Firebase app
+      const app = getFirebaseApp();
 
       // Get auth and firestore instances
       this.auth = getAuth(app);

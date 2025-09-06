@@ -8,6 +8,25 @@ export const firebaseConfig = {
   appId: "1:317634354253:ios:931ae0f0efe653ec4f1004"
 };
 
+// Centralized Firebase app instance
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+
+let firebaseApp: FirebaseApp | null = null;
+
+export const getFirebaseApp = (): FirebaseApp => {
+  if (!firebaseApp) {
+    const existingApps = getApps();
+    if (existingApps.length > 0) {
+      firebaseApp = existingApps[0];
+      console.log('Using existing Firebase app');
+    } else {
+      firebaseApp = initializeApp(firebaseConfig);
+      console.log('Initialized new Firebase app');
+    }
+  }
+  return firebaseApp;
+};
+
 // Analytics event names
 export const ANALYTICS_EVENTS = {
   // Chat events

@@ -1,5 +1,4 @@
-import { initializeApp, getApps } from 'firebase/app';
-import { ANALYTICS_EVENTS, firebaseConfig } from '../config/firebase';
+import { ANALYTICS_EVENTS, getFirebaseApp } from '../config/firebase';
 import { API_CONFIG } from '../config/api';
 import { Platform } from 'react-native';
 import AuthService from './authService';
@@ -25,16 +24,8 @@ class FirebaseAnalyticsService {
     if (this.isInitialized) return;
 
     try {
-      // Initialize Firebase app for shared use with Auth service
-      const existingApps = getApps();
-
-      if (existingApps.length === 0) {
-        // Initialize Firebase app if it doesn't exist
-        initializeApp(firebaseConfig);
-        console.log('Firebase Analytics: Initialized shared Firebase app');
-      } else {
-        console.log('Firebase Analytics: Using existing Firebase app');
-      }
+      // Initialize centralized Firebase app
+      getFirebaseApp();
 
       // For React Native, we'll send analytics through the backend
       if (Platform.OS !== 'web') {
