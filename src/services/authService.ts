@@ -70,7 +70,9 @@ class AuthService {
       settings: {
         aiPersonality: 'sarcastic',
         roastIntensity: 'medium',
-        cursingAllowed: true,
+        allowCursing: true,
+        enableNotifications: true,
+        enableSound: true,
       },
       premiumFeatures: [],
     };
