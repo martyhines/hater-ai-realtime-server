@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged, User, Auth } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, collection, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { firebaseConfig } from '../config/firebase';
 import { UserSettings } from '../types';
 
@@ -27,6 +27,7 @@ class AuthService {
     if (this.isInitialized) return;
 
     try {
+      // Initialize Firebase (v9 modular style)
       const app = initializeApp(firebaseConfig);
       this.auth = getAuth(app);
       this.db = getFirestore(app);
@@ -47,7 +48,7 @@ class AuthService {
   /**
    * Sign in anonymously
    */
-  async signInAnonymously(): Promise<User | null> {
+  async signInAnonymously(): Promise<any | null> {
     try {
       if (!this.auth) {
         console.error('Auth not initialized');
@@ -161,7 +162,7 @@ class AuthService {
 
       if (userDoc.exists()) {
         const data = userDoc.data();
-        return data.settings || null;
+        return data?.settings || null;
       }
 
       return null;
@@ -183,7 +184,7 @@ class AuthService {
 
       if (userDoc.exists()) {
         const data = userDoc.data();
-        const premiumFeatures = data.premiumFeatures || [];
+        const premiumFeatures = data?.premiumFeatures || [];
 
         if (!premiumFeatures.includes(featureId)) {
           premiumFeatures.push(featureId);
@@ -213,7 +214,7 @@ class AuthService {
 
       if (userDoc.exists()) {
         const data = userDoc.data();
-        const premiumFeatures = data.premiumFeatures || [];
+        const premiumFeatures = data?.premiumFeatures || [];
         return premiumFeatures.includes(featureId);
       }
 
@@ -230,7 +231,7 @@ class AuthService {
   async signOut(): Promise<void> {
     try {
       if (this.auth) {
-        await this.auth.signOut();
+        await firebase.auth().signOut();
         console.log('User signed out');
       }
     } catch (error) {
