@@ -1,29 +1,19 @@
-import {
-  signInAnonymously as fbSignInAnonymously,
-  onAuthStateChanged,
-  signOut as fbSignOut,
-  type Auth,
-  type User,
-  type Unsubscribe,
-} from 'firebase/auth';
-import {
-  doc,
-  setDoc,
-  getDoc,
-  updateDoc,
-  serverTimestamp,
-  arrayUnion,
-  type Firestore,
-} from 'firebase/firestore';
-import { auth } from '../config/firebaseAuth';
-import { db } from '../config/firebaseDb';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserSettings } from '../types';
+
+interface LocalUser {
+  id: string;
+  createdAt: string;
+  lastActive: string;
+  settings: UserSettings;
+  premiumFeatures: string[];
+}
 
 class AuthService {
   private static instance: AuthService;
-  private currentUser: User | null = null;
+  private currentUser: LocalUser | null = null;
   private isInitialized = false;
-  private authUnsub: Unsubscribe | null = null;
+  private readonly USER_STORAGE_KEY = '@hater_ai_user';
 
   private constructor() {}
 
@@ -40,11 +30,15 @@ class AuthService {
     try {
       console.log('🔥 Initializing AuthService...');
 
-      // Set up auth state listener
-      this.authUnsub = onAuthStateChanged(auth, (user) => {
-        this.currentUser = user;
-        console.log('🔄 Auth state changed:', user ? `Signed in: ${user.uid}` : 'Signed out');
-      });
+      // Load existing user from storage or create new one
+      const existingUser = await this.loadUserFromStorage();
+      if (existingUser) {
+        this.currentUser = existingUser;
+        console.log('✅ Existing user loaded:', existingUser.id);
+      } else {
+        this.currentUser = await this.createNewUser();
+        console.log('✅ New user created:', this.currentUser.id);
+      }
 
       this.isInitialized = true;
       console.log('🎉 AuthService initialization COMPLETE');
@@ -55,57 +49,48 @@ class AuthService {
     }
   }
 
-  async signInAnonymously(): Promise<User | null> {
+  private async loadUserFromStorage(): Promise<LocalUser | null> {
     try {
-      const cred = await fbSignInAnonymously(auth);
-      const user = cred.user;
-
-      console.log('Anonymous sign-in successful:', user.uid);
-      await this.createOrTouchUserDocument(user.uid);
-      return user;
+      const userData = await AsyncStorage.getItem(this.USER_STORAGE_KEY);
+      return userData ? JSON.parse(userData) : null;
     } catch (error) {
-      console.error('Anonymous sign-in failed:', error);
+      console.error('Failed to load user from storage:', error);
       return null;
     }
   }
 
-  private async createOrTouchUserDocument(userId: string): Promise<void> {
-    try {
+  private async createNewUser(): Promise<LocalUser> {
+    const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const now = new Date().toISOString();
 
-      const userDocRef = doc(db, 'users', userId);
-      const snap = await getDoc(userDocRef);
+    const newUser: LocalUser = {
+      id: userId,
+      createdAt: now,
+      lastActive: now,
+      settings: {
+        aiPersonality: 'sarcastic',
+        roastIntensity: 'medium',
+        cursingAllowed: true,
+      },
+      premiumFeatures: [],
+    };
 
-      if (!snap.exists()) {
-        const defaultSettings: UserSettings = {
-          aiPersonality: 'sarcastic',
-          roastIntensity: 'medium',
-          enableNotifications: true,
-          enableSound: true,
-        };
-
-        await setDoc(userDocRef, {
-          userId,
-          settings: defaultSettings,
-          createdAt: serverTimestamp(),
-          lastActive: serverTimestamp(),
-          premiumFeatures: [],
-          analyticsEnabled: true,
-        });
-        console.log('Created new user document:', userId);
-      } else {
-        await updateDoc(userDocRef, { lastActive: serverTimestamp() });
-      }
-    } catch (error) {
-      console.error('Failed to create/update user document:', error);
-    }
+    await AsyncStorage.setItem(this.USER_STORAGE_KEY, JSON.stringify(newUser));
+    return newUser;
   }
 
-  getCurrentUser(): User | null {
+  private async saveUserToStorage(): Promise<void> {
+    if (!this.currentUser) return;
+    this.currentUser.lastActive = new Date().toISOString();
+    await AsyncStorage.setItem(this.USER_STORAGE_KEY, JSON.stringify(this.currentUser));
+  }
+
+  getCurrentUser(): LocalUser | null {
     return this.currentUser;
   }
 
   getUserId(): string | null {
-    return this.currentUser?.uid ?? null;
+    return this.currentUser?.id ?? null;
   }
 
   isSignedIn(): boolean {
@@ -115,11 +100,8 @@ class AuthService {
   async saveUserSettings(settings: UserSettings): Promise<void> {
     try {
       if (!this.currentUser) return;
-      const userDocRef = doc(db, 'users', this.currentUser.uid);
-      await updateDoc(userDocRef, {
-        settings,
-        lastActive: serverTimestamp(),
-      });
+      this.currentUser.settings = settings;
+      await this.saveUserToStorage();
       console.log('User settings saved');
     } catch (error) {
       console.error('Failed to save user settings:', error);
@@ -128,10 +110,7 @@ class AuthService {
 
   async loadUserSettings(): Promise<UserSettings | null> {
     try {
-      if (!this.currentUser) return null;
-      const userDocRef = doc(db, 'users', this.currentUser.uid);
-      const snap = await getDoc(userDocRef);
-      return snap.exists() ? (snap.data()?.settings ?? null) : null;
+      return this.currentUser?.settings ?? null;
     } catch (error) {
       console.error('Failed to load user settings:', error);
       return null;
@@ -141,13 +120,11 @@ class AuthService {
   async unlockPremiumFeature(featureId: string): Promise<void> {
     try {
       if (!this.currentUser) return;
-      const userDocRef = doc(db, 'users', this.currentUser.uid);
-      // idempotent + race-safe
-      await updateDoc(userDocRef, {
-        premiumFeatures: arrayUnion(featureId),
-        lastActive: serverTimestamp(),
-      });
-      console.log('Premium feature unlocked:', featureId);
+      if (!this.currentUser.premiumFeatures.includes(featureId)) {
+        this.currentUser.premiumFeatures.push(featureId);
+        await this.saveUserToStorage();
+        console.log('Premium feature unlocked:', featureId);
+      }
     } catch (error) {
       console.error('Failed to unlock premium feature:', error);
     }
@@ -155,10 +132,7 @@ class AuthService {
 
   async hasPremiumFeature(featureId: string): Promise<boolean> {
     try {
-      if (!this.currentUser) return false;
-      const snap = await getDoc(doc(db, 'users', this.currentUser.uid));
-      const features: string[] = snap.data()?.premiumFeatures ?? [];
-      return features.includes(featureId);
+      return this.currentUser?.premiumFeatures.includes(featureId) ?? false;
     } catch (error) {
       console.error('Failed to check premium feature:', error);
       return false;
@@ -167,12 +141,19 @@ class AuthService {
 
   async signOut(): Promise<void> {
     try {
-      await fbSignOut(auth);
+      // For local storage, just clear the current user
+      this.currentUser = null;
+      await AsyncStorage.removeItem(this.USER_STORAGE_KEY);
       console.log('User signed out');
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Sign out failed:', error);
     }
+  }
+
+  // Method to simulate anonymous sign-in (already done in initialize)
+  async signInAnonymously(): Promise<LocalUser | null> {
+    // Already handled in initialize()
+    return this.currentUser;
   }
 }
 

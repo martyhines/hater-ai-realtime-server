@@ -20,7 +20,6 @@ import { StorageService } from '../services/storageService';
 import { StreakService } from '../services/streakService';
 import { FEATURES } from '../config/features';
 import { PremiumService } from '../services/premiumService';
-import FirebaseAnalyticsService from '../services/firebaseAnalytics';
 import AuthService from '../services/authService';
 
 type SettingsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Settings'>;
@@ -169,14 +168,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
       console.error('Firebase settings save error:', error);
     }
 
-    // Track analytics
-    try {
-      const analytics = FirebaseAnalyticsService.getInstance();
-      const isPremium = !['sarcastic', 'brutal', 'witty', 'condescending', 'streetsmart', 'newyorker'].includes(personality);
-      await analytics.logPersonalitySelected(personality, isPremium);
-    } catch (error) {
-      console.error('Analytics error:', error);
-    }
+    // Analytics removed - using local storage only
   };
 
   const updateIntensity = async (intensity: string) => {
@@ -197,13 +189,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
       console.error('Firebase settings save error:', error);
     }
 
-    // Track analytics
-    try {
-      const analytics = FirebaseAnalyticsService.getInstance();
-      await analytics.logIntensityChanged(intensity);
-    } catch (error) {
-      console.error('Analytics error:', error);
-    }
+    // Analytics removed - using local storage only
   };
 
   const toggleNotifications = async () => {
