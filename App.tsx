@@ -1,7 +1,7 @@
 // 🔥 CRITICAL: Import Firebase modules FIRST before anything else
-import 'src/config/firebaseAuth';
-import 'src/config/firebaseDb';
-import { app } from 'src/config/firebase';
+import './src/config/firebaseAuth';
+import './src/config/firebaseDb';
+import { app } from './src/config/firebase';
 
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
