@@ -1,5 +1,23 @@
-import { initializeAuth, signInAnonymously, onAuthStateChanged, getReactNativePersistence } from 'firebase/auth';
-import { getFirestore, collection, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import {
+  initializeAuth,
+  signInAnonymously as fbSignInAnonymously,
+  onAuthStateChanged,
+  getReactNativePersistence,
+  signOut as fbSignOut,
+  type Auth,
+  type User,
+  type Unsubscribe,
+} from 'firebase/auth';
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  serverTimestamp,
+  arrayUnion,
+  type Firestore,
+} from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirebaseApp } from '../config/firebase';
 import { UserSettings } from '../types';
@@ -7,9 +25,10 @@ import { UserSettings } from '../types';
 class AuthService {
   private static instance: AuthService;
   private auth: Auth | null = null;
-  private db: any = null;
+  private db: Firestore | null = null;
   private currentUser: User | null = null;
   private isInitialized = false;
+  private authUnsub: Unsubscribe | null = null;
 
   private constructor() {}
 
@@ -20,60 +39,69 @@ class AuthService {
     return AuthService.instance;
   }
 
-  /**
-   * Initialize Firebase Auth and Firestore
-   */
   async initialize(): Promise<void> {
-    if (this.isInitialized) return;
+    // Guard against multiple initializations
+    if (this.isInitialized && this.auth && this.db) {
+      console.log('🔄 Firebase Auth already initialized, skipping');
+      return;
+    }
 
     try {
-      console.log(' ✅ Initializing Firebase Auth');
-      // Use centralized Firebase app
+      console.log('🔥 Initializing Firebase Auth...');
       const app = getFirebaseApp();
-      console.log(' ✅ Firebase app obtained:', app ? 'YES' : 'NO');
+      console.log('✅ Firebase app obtained');
 
-      // Initialize auth with AsyncStorage persistence (Expo SDK 53 fix)
-      console.log(' ✅ Initializing auth with AsyncStorage persistence...');
-      this.auth = initializeAuth(app, {
-        persistence: getReactNativePersistence(AsyncStorage),
-      });
-      console.log(' ✅ Auth instance initialized with persistence');
+      // CRITICAL: initializeAuth must run exactly once per app lifecycle
+      if (!this.auth) {
+        console.log('🔐 Initializing Auth with AsyncStorage persistence...');
+        this.auth = initializeAuth(app, {
+          persistence: getReactNativePersistence(AsyncStorage),
+        });
+        console.log('✅ Auth initialized with persistence');
+      }
 
-      this.db = getFirestore(app);
-      console.log(' ✅ Firestore instance obtained');
+      if (!this.db) {
+        this.db = getFirestore(app);
+        console.log('✅ Firestore initialized');
+      }
 
-      // Listen for auth state changes
-      onAuthStateChanged(this.auth, (user) => {
+      // Debug: Confirm Auth provider is registered
+      // @ts-ignore - Private field access for debugging
+      const providers = app._container?.providers?.keys?.() || [];
+      console.log('🔍 Firebase providers:', [...providers]);
+
+      // Clean up old listener if hot-reloaded
+      if (this.authUnsub) {
+        this.authUnsub();
+      }
+
+      // Set up auth state listener
+      this.authUnsub = onAuthStateChanged(this.auth, (user) => {
         this.currentUser = user;
-        console.log('Auth state changed:', user ? 'Signed in' : 'Signed out');
+        console.log('🔄 Auth state changed:', user ? `Signed in: ${user.uid}` : 'Signed out');
       });
 
       this.isInitialized = true;
-      console.log('Firebase Auth initialized successfully');
-    } catch (error) {
-      console.error('Firebase Auth initialization failed:', error);
-      console.error('Error details:', error.message);
+      console.log('🎉 Firebase Auth initialization COMPLETE');
+    } catch (error: any) {
+      console.error('❌ Firebase Auth initialization FAILED:', error);
+      console.error('❌ Error details:', error?.message ?? error);
+      throw error; // Re-throw to prevent silent failures
     }
   }
 
-  /**
-   * Sign in anonymously
-   */
-  async signInAnonymously(): Promise<any | null> {
+  async signInAnonymously(): Promise<User | null> {
     try {
       if (!this.auth) {
         console.error('Auth not initialized');
         return null;
       }
 
-      const userCredential = await signInAnonymously(this.auth);
-      const user = userCredential.user;
+      const cred = await fbSignInAnonymously(this.auth);
+      const user = cred.user;
 
       console.log('Anonymous sign-in successful:', user.uid);
-
-      // Create user document in Firestore
-      await this.createUserDocument(user.uid);
-
+      await this.createOrTouchUserDocument(user.uid);
       return user;
     } catch (error) {
       console.error('Anonymous sign-in failed:', error);
@@ -81,18 +109,14 @@ class AuthService {
     }
   }
 
-  /**
-   * Create user document in Firestore
-   */
-  private async createUserDocument(userId: string): Promise<void> {
+  private async createOrTouchUserDocument(userId: string): Promise<void> {
     try {
       if (!this.db) return;
 
       const userDocRef = doc(this.db, 'users', userId);
-      const userDoc = await getDoc(userDocRef);
+      const snap = await getDoc(userDocRef);
 
-      if (!userDoc.exists()) {
-        // Create new user document with defaults
+      if (!snap.exists()) {
         const defaultSettings: UserSettings = {
           aiPersonality: 'sarcastic',
           roastIntensity: 'medium',
@@ -103,146 +127,89 @@ class AuthService {
         await setDoc(userDocRef, {
           userId,
           settings: defaultSettings,
-          createdAt: new Date().toISOString(),
-          lastActive: new Date().toISOString(),
+          createdAt: serverTimestamp(),
+          lastActive: serverTimestamp(),
           premiumFeatures: [],
-          analyticsEnabled: true
+          analyticsEnabled: true,
         });
-
         console.log('Created new user document:', userId);
       } else {
-        // Update last active
-        await updateDoc(userDocRef, {
-          lastActive: new Date().toISOString()
-        });
+        await updateDoc(userDocRef, { lastActive: serverTimestamp() });
       }
     } catch (error) {
-      console.error('Failed to create user document:', error);
+      console.error('Failed to create/update user document:', error);
     }
   }
 
-  /**
-   * Get current user
-   */
   getCurrentUser(): User | null {
     return this.currentUser;
   }
 
-  /**
-   * Get user ID
-   */
   getUserId(): string | null {
-    return this.currentUser?.uid || null;
+    return this.currentUser?.uid ?? null;
   }
 
-  /**
-   * Check if user is signed in
-   */
   isSignedIn(): boolean {
-    return this.currentUser !== null;
+    return this.currentUser != null;
   }
 
-  /**
-   * Save user settings to Firestore
-   */
   async saveUserSettings(settings: UserSettings): Promise<void> {
     try {
       if (!this.db || !this.currentUser) return;
-
       const userDocRef = doc(this.db, 'users', this.currentUser.uid);
       await updateDoc(userDocRef, {
         settings,
-        lastActive: new Date().toISOString()
+        lastActive: serverTimestamp(),
       });
-
       console.log('User settings saved');
     } catch (error) {
       console.error('Failed to save user settings:', error);
     }
   }
 
-  /**
-   * Load user settings from Firestore
-   */
   async loadUserSettings(): Promise<UserSettings | null> {
     try {
       if (!this.db || !this.currentUser) return null;
-
       const userDocRef = doc(this.db, 'users', this.currentUser.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        return data?.settings || null;
-      }
-
-      return null;
+      const snap = await getDoc(userDocRef);
+      return snap.exists() ? (snap.data()?.settings ?? null) : null;
     } catch (error) {
       console.error('Failed to load user settings:', error);
       return null;
     }
   }
 
-  /**
-   * Unlock premium feature for user
-   */
   async unlockPremiumFeature(featureId: string): Promise<void> {
     try {
       if (!this.db || !this.currentUser) return;
-
       const userDocRef = doc(this.db, 'users', this.currentUser.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        const premiumFeatures = data?.premiumFeatures || [];
-
-        if (!premiumFeatures.includes(featureId)) {
-          premiumFeatures.push(featureId);
-
-          await updateDoc(userDocRef, {
-            premiumFeatures,
-            lastActive: new Date().toISOString()
-          });
-
-          console.log('Premium feature unlocked:', featureId);
-        }
-      }
+      // idempotent + race-safe
+      await updateDoc(userDocRef, {
+        premiumFeatures: arrayUnion(featureId),
+        lastActive: serverTimestamp(),
+      });
+      console.log('Premium feature unlocked:', featureId);
     } catch (error) {
       console.error('Failed to unlock premium feature:', error);
     }
   }
 
-  /**
-   * Check if user has premium feature
-   */
   async hasPremiumFeature(featureId: string): Promise<boolean> {
     try {
       if (!this.db || !this.currentUser) return false;
-
-      const userDocRef = doc(this.db, 'users', this.currentUser.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        const premiumFeatures = data?.premiumFeatures || [];
-        return premiumFeatures.includes(featureId);
-      }
-
-      return false;
+      const snap = await getDoc(doc(this.db, 'users', this.currentUser.uid));
+      const features: string[] = snap.data()?.premiumFeatures ?? [];
+      return features.includes(featureId);
     } catch (error) {
       console.error('Failed to check premium feature:', error);
       return false;
     }
   }
 
-  /**
-   * Sign out (for future use)
-   */
   async signOut(): Promise<void> {
     try {
       if (this.auth) {
-        await firebase.auth().signOut();
+        await fbSignOut(this.auth);
         console.log('User signed out');
       }
     } catch (error) {

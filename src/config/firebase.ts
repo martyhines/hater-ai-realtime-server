@@ -8,23 +8,12 @@ export const firebaseConfig = {
   appId: "1:317634354253:ios:931ae0f0efe653ec4f1004"
 };
 
-// Centralized Firebase app instance
-import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-
-let firebaseApp: FirebaseApp | null = null;
+// Centralized Firebase app instance - PURE, no Auth touches
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 
 export const getFirebaseApp = (): FirebaseApp => {
-  if (!firebaseApp) {
-    const existingApps = getApps();
-    if (existingApps.length > 0) {
-      firebaseApp = existingApps[0];
-      console.log('Using existing Firebase app');
-    } else {
-      firebaseApp = initializeApp(firebaseConfig);
-      console.log('Initialized new Firebase app');
-    }
-  }
-  return firebaseApp;
+  // Use getApp() if exists, otherwise initializeApp()
+  return getApps().length ? getApp() : initializeApp(firebaseConfig);
 };
 
 // Analytics event names

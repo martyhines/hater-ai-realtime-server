@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { UserSettings } from './src/types/index';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -45,30 +46,53 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
+  const [isFirebaseReady, setIsFirebaseReady] = useState(false);
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
+
   // Initialize Firebase services on app start
   useEffect(() => {
     const initializeServices = async () => {
       try {
-        // Initialize Analytics
+        console.log('🚀 Starting Firebase initialization...');
+
+        // Initialize Analytics FIRST
         const analyticsService = FirebaseAnalyticsService.getInstance();
         await analyticsService.initialize();
         await analyticsService.logAppOpen();
+        console.log('📊 Analytics initialized');
 
-        // Initialize Authentication
+        // Initialize Authentication SECOND
         const authService = AuthService.getInstance();
         await authService.initialize();
+        console.log('🔐 Auth initialized');
 
-        // Sign in anonymously
+        // Sign in anonymously THIRD
         await authService.signInAnonymously();
+        console.log('👤 Anonymous sign-in complete');
 
-        console.log('All Firebase services initialized successfully');
+        console.log('🎉 All Firebase services initialized successfully');
+        setIsFirebaseReady(true);
       } catch (error) {
-        console.error('Failed to initialize Firebase services:', error);
+        console.error('❌ Failed to initialize Firebase services:', error);
+        setFirebaseError(error instanceof Error ? error.message : 'Unknown error');
+        setIsFirebaseReady(true); // Still show app even if Firebase fails
       }
     };
 
     initializeServices();
   }, []);
+
+  // Show loading screen until Firebase is ready
+  if (!isFirebaseReady) {
+    return (
+      <SafeAreaProvider>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+          <Text style={{ color: '#fff', fontSize: 18, marginBottom: 20 }}>🔥 Initializing Hater AI...</Text>
+          <ActivityIndicator size="large" color="#fff" />
+        </View>
+      </SafeAreaProvider>
+    );
+  }
 
   return (
     <SafeAreaProvider>
