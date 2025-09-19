@@ -426,36 +426,38 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             </TouchableOpacity>
           )}
 
-          {/* Debug: Reset IAP Ownership */}
-          <TouchableOpacity
-            style={styles.debugButton}
-            onPress={async () => {
-              Alert.alert(
-                'Reset IAP Ownership',
-                'This will remove all purchased features and personalities for testing purposes. Continue?',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Reset',
-                    style: 'destructive',
-                    onPress: async () => {
-                      try {
-                        const premiumService = PremiumService.getInstance();
-                        await premiumService.resetAllIAPOwnership();
-                        Alert.alert('Success', 'All IAP ownership has been reset!');
-                      } catch (error) {
-                        Alert.alert('Error', 'Failed to reset IAP ownership');
+          {/* Debug: Reset IAP Ownership - Only show in development */}
+          {__DEV__ && (
+            <TouchableOpacity
+              style={styles.debugButton}
+              onPress={async () => {
+                Alert.alert(
+                  'Reset IAP Ownership',
+                  'This will remove all purchased features and personalities for testing purposes. Continue?',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Reset',
+                      style: 'destructive',
+                      onPress: async () => {
+                        try {
+                          const premiumService = PremiumService.getInstance();
+                          await premiumService.resetAllIAPOwnership();
+                          Alert.alert('Success', 'All IAP ownership has been reset!');
+                        } catch (error) {
+                          Alert.alert('Error', 'Failed to reset IAP ownership');
+                        }
                       }
                     }
-                  }
-                ]
-              );
-            }}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="bug" size={16} color="#666" />
-            <Text style={styles.debugButtonText}>Reset IAPs (Debug)</Text>
-          </TouchableOpacity>
+                  ]
+                );
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="bug" size={16} color="#666" />
+              <Text style={styles.debugButtonText}>Reset IAPs (Debug)</Text>
+            </TouchableOpacity>
+          )}
 
 
 
