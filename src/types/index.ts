@@ -22,7 +22,6 @@ export interface UserSettings {
   enableSound: boolean;
   allowCursing: boolean;
   voiceSettings?: VoiceSettings; // Voice settings for text-to-speech
-  speechToTextSettings?: SpeechToTextSettings; // Speech-to-text settings
   // Voice: premium realtime voice toggle and basic monetization field
   realtimeVoiceEnabled?: boolean; // OpenAI Realtime Voice (beta)
   subscriptionTier?: 'free' | 'pro' | 'creator';

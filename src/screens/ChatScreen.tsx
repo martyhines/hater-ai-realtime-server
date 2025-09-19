@@ -85,27 +85,18 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       const remaining = await storage.getRemainingFreeChats();
       const hasSubscription = await (premiumService as any).hasActiveSubscription();
 
-      console.log('🔄 Updating chat usage:', {
-        usage,
-        remaining,
-        hasSubscription
-      });
 
       setChatUsage(usage);
 
       // Determine what to show based on user status
       if (hasSubscription) {
         setRemainingFreeChats(999); // Unlimited
-        console.log('🎯 Showing: Unlimited chats');
       } else if (usage.packChats > 0 && remaining === 0) {
         setRemainingFreeChats(0); // Has pack chats but no free chats
-        console.log('🎯 Showing: Pack chats available');
       } else if (remaining > 0) {
         setRemainingFreeChats(remaining); // Show remaining free chats
-        console.log('🎯 Showing: Free chats remaining');
       } else {
         setRemainingFreeChats(0); // No chats available
-        console.log('🎯 Showing: No chats available');
       }
     } catch (error) {
       console.error('❌ Error updating chat usage:', error);
@@ -541,7 +532,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleShareRoast = async () => {
     try {
-      console.log('📤 Sharing roast using existing ScreenshotService...');
 
       // Navigate to the ScreenshotScreen which properly uses the ScreenshotService
       // This is the same approach as the camera button and ensures proper UI capture
@@ -587,10 +577,8 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           isForSharing: true
         });
 
-        console.log('📸 Navigated to ScreenshotScreen for sharing');
       } else {
         // Fallback to text-only sharing if no AI service
-        console.log('⚠️ No AI service available, using text-only sharing');
 
         const shareOptions = {
           message: `🤖 "${item.text.length > 100 ? item.text.substring(0, 100) + '...' : item.text}" #AIRoast\n\nGet the app: https://apps.apple.com/app/hater-ai`,
@@ -599,11 +587,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
 
         const result = await Share.share(shareOptions);
 
-        if (result.action === Share.sharedAction) {
-          console.log('🎉 Successfully shared roast (text-only)');
-        } else if (result.action === Share.dismissedAction) {
-          console.log('📝 Share sheet dismissed by user');
-        }
       }
 
     } catch (error) {
@@ -708,9 +691,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     // Get current personality from AI service settings
     if (aiService && 'settings' in aiService) {
       const personalityKey = (aiService as any).settings?.aiPersonality || 'sarcastic';
-      console.log('🔍 ChatScreen: Getting personality name for key:', personalityKey);
       const personality = getPersonalityInfo(personalityKey);
-      console.log('🔍 ChatScreen: Personality info:', personality);
       return personality ? personality.name : 'AI Assistant';
     }
     return 'AI Assistant';

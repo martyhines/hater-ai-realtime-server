@@ -148,7 +148,6 @@ app.post('/v1/chat', async (req, res) => {
         });
         
         if (geminiResponse) {
-          console.log('[chat] provider=gemini ok ip=%s messages=%d', ip, safeMessages.length);
           return res.json(geminiResponse);
         }
       } catch (geminiError) {
@@ -166,7 +165,6 @@ app.post('/v1/chat', async (req, res) => {
         });
         
         if (cohereResponse) {
-          console.log('[chat] provider=cohere ok ip=%s messages=%d', ip, safeMessages.length);
           return res.json(cohereResponse);
         }
       } catch (cohereError) {
@@ -201,7 +199,6 @@ app.post('/v1/chat', async (req, res) => {
       const data = await resp.json();
       // Add AI service info to OpenAI response
       data.ai_service = 'openai';
-      console.log('[chat] provider=openai ok ip=%s messages=%d', ip, safeMessages.length);
       return res.json(data);
     }
 

@@ -443,19 +443,9 @@ export class StorageService {
         count: 0,
         packChats: 0
       }));
-      console.log('✅ Chat usage reset successfully');
     } catch (error) {
       console.error('❌ Failed to reset chat usage:', error);
     }
   }
 
-  // Debug method to check current chat usage
-  async debugChatUsage(): Promise<void> {
-    try {
-      const usage = await this.getChatUsage();
-      console.log('📊 Current chat usage:', usage);
-    } catch (error) {
-      console.error('❌ Failed to debug chat usage:', error);
-    }
-  }
 } 

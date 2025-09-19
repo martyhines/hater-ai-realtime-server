@@ -180,11 +180,6 @@ export class IAPService {
   private async handleSuccessfulPurchase(purchase: Purchase): Promise<void> {
     try {
       const productId = purchase.productId;
-      console.log(`✅ IAP: Purchase successful for product: ${productId}`, {
-        transactionId: purchase.transactionId,
-        purchaseTime: purchase.transactionDate,
-        receipt: purchase.transactionReceipt ? 'Present' : 'Missing'
-      });
 
       // Determine what was purchased and unlock the appropriate content
       if (productId.startsWith('pack_')) {

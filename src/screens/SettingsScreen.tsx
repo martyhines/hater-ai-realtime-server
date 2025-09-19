@@ -1119,17 +1119,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
                   <Text style={styles.debugButtonText}>Reset Chats</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[styles.debugButton, { backgroundColor: '#9C27B0' }]}
-                  onPress={async () => {
-                    const storage = StorageService.getInstance() as any;
-                    await storage.debugChatUsage();
-                    Alert.alert('Check Console', 'Chat usage data logged to console!');
-                  }}
-                >
-                  <Ionicons name="bug" size={16} color="#fff" />
-                  <Text style={styles.debugButtonText}>Debug Usage</Text>
-                </TouchableOpacity>
               </View>
 
               {/* Row 3 */}
