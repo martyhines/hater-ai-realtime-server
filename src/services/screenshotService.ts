@@ -44,7 +44,7 @@ export class ScreenshotService {
         result: 'tmpfile' as const,
       };
 
-      const screenshotPath = await ViewShot.captureRef(viewRef, options);
+      const screenshotPath = await (ViewShot as any).captureRef(viewRef, options);
 
       // For now, just return the screenshot as-is
       // In production, you could add watermarks or branding here
