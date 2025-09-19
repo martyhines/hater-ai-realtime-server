@@ -28,7 +28,7 @@ export type RootStackParamList = {
   Home: undefined;
   Chat: undefined;
   Settings: { scrollTo?: string; initialTab?: 'personalities' | 'intensity' | 'preferences' | 'premium' } | undefined;
-  Insights: undefined;
+  Insights: { global?: boolean } | undefined;
   ApiKey: undefined;
   HowToCustomModel: undefined;
   TikTokVideo: {

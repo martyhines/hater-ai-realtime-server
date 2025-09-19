@@ -57,6 +57,10 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     navigation.navigate('Insights');
   };
 
+  const handleGlobalInsights = () => {
+    navigation.navigate('Insights', { global: true });
+  };
+
   const handleNavigateToIntensitySettings = () => {
     navigation.navigate('Settings', { initialTab: 'intensity' });
   };
@@ -231,6 +235,17 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           >
             <Ionicons name="analytics" size={24} color="#fff" />
             <Text style={styles.insightsButtonText}>Your Insights</Text>
+          </TouchableOpacity>
+
+          {/* Global Insights Button */}
+          <TouchableOpacity
+            style={styles.globalInsightsButton}
+            onPress={handleGlobalInsights}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="earth" size={24} color="#FFD700" />
+            <Ionicons name="lock-closed" size={12} color="#FFD700" style={styles.lockIcon} />
+            <Text style={styles.globalInsightsButtonText}>Global Insights</Text>
           </TouchableOpacity>
 
           {/* Voice Settings Button */}
@@ -720,6 +735,29 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginLeft: 8,
     fontWeight: '600',
+  },
+  globalInsightsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    backgroundColor: 'rgba(255, 215, 0, 0.1)', // Golden tint for premium
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 12,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+  },
+  globalInsightsButtonText: {
+    fontSize: 16,
+    color: '#FFD700',
+    marginLeft: 8,
+    fontWeight: '600',
+  },
+  lockIcon: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
   },
   debugButton: {
     flexDirection: 'row',
