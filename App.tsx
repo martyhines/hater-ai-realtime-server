@@ -15,8 +15,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import ApiKeyScreen from './src/screens/ApiKeyScreen';
-import HowToCustomModelScreen from './src/screens/HowToCustomModelScreen';
-import TikTokVideoScreen from './src/screens/TikTokVideoScreen';
+
 import { FEATURES } from './src/config/features';
 // import TweetGeneratorScreen from './src/screens/TweetGeneratorScreen';
 import ScreenshotScreen from './src/screens/ScreenshotScreen';
@@ -30,7 +29,6 @@ export type RootStackParamList = {
   Settings: { scrollTo?: string; initialTab?: 'personalities' | 'intensity' | 'preferences' | 'premium' } | undefined;
   Insights: { global?: boolean } | undefined;
   ApiKey: undefined;
-  HowToCustomModel: undefined;
   TikTokVideo: {
     roastText: string;
     settings: UserSettings;
@@ -166,18 +164,6 @@ export default function App() {
             component={ApiKeyScreen}
             options={{ title: 'Enable AI' }}
           />
-          <Stack.Screen 
-            name="HowToCustomModel" 
-            component={HowToCustomModelScreen} 
-            options={{ title: 'How to Add Custom Models' }}
-          />
-          {FEATURES.ENABLE_TIKTOK_VIDEO ? (
-            <Stack.Screen 
-              name="TikTokVideo" 
-              component={TikTokVideoScreen} 
-              options={{ title: 'Create TikTok Video' }}
-            />
-          ) : null}
           {/* <Stack.Screen 
             name="TweetGenerator" 
             component={TweetGeneratorScreen} 
