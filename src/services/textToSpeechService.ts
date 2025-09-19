@@ -46,7 +46,7 @@ export class TextToSpeechService {
         name: voice.name,
         language: voice.language,
         quality: voice.quality as 'Enhanced' | 'Default',
-        gender: voice.gender as 'Male' | 'Female',
+        gender: (voice as any).gender as 'Male' | 'Female',
       }));
     } catch (error) {
       return this.getDefaultVoices();
