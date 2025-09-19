@@ -604,7 +604,7 @@ export class AIService {
     const contextualResponse = this.getContextualResponse(messageType);
     
     // Get personality-based roast with enriched context
-    const roastResponse = this.getRoastResponse(enrichedContext);
+    const roastResponse = this.getRoastResponse(userContext);
     
     // Combine or choose between contextual and roast responses
     const response = this.shouldUseContextual(messageType) 
