@@ -19,7 +19,7 @@ Welcome to Hater AI ("we," "our," or "us"). We are committed to protecting your 
 - **Performance Data**: App performance metrics and diagnostics
 
 ### Information from Third Parties
-- **AI Service Providers**: When using AI features, your messages are sent to third-party AI providers (OpenAI, Cohere, Hugging Face)
+- **AI Service Providers**: When using AI features, your messages are sent to third-party AI providers (Gemini, OpenAI, Cohere)
 - **Apple App Store**: Purchase history and transaction data through In-App Purchases
 
 ## How We Use Your Information
@@ -92,7 +92,6 @@ We do not sell, trade, or otherwise transfer your personal information to third 
 When you use AI features, your messages are sent to third-party providers:
 - **OpenAI**: For GPT-powered responses
 - **Cohere**: For AI text generation
-- **Hugging Face**: For open-source AI models
 
 Each provider has its own privacy policy that applies to data processed by their services.
 

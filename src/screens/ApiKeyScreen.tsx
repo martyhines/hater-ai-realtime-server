@@ -23,27 +23,24 @@ interface Props {
 }
 
 const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
-  const [selectedProvider, setSelectedProvider] = useState<'openai' | 'cohere' | 'gemini' | 'custom'>('cohere');
+  const [selectedProvider, setSelectedProvider] = useState<'openai' | 'cohere' | 'gemini'>('cohere');
   const [apiKey, setApiKey] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [existingKeys, setExistingKeys] = useState<{
     openai: boolean;
     cohere: boolean;
     gemini: boolean;
-    custom: boolean;
   }>({
     openai: false,
     cohere: false,
     gemini: false,
-    custom: false,
   });
   const [isLoading, setIsLoading] = useState(true);
 
   const providerNames = {
     openai: 'OpenAI',
     cohere: 'Cohere',
-    gemini: 'Google Gemini',
-    custom: 'Custom Model'
+    gemini: 'Google Gemini'
   };
 
   // Check for existing API keys on component mount and when screen focuses
@@ -52,18 +49,16 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
       try {
         const storage = StorageService.getInstance();
 
-        const [openaiKey, cohereKey, geminiKey, customModels] = await Promise.all([
+        const [openaiKey, cohereKey, geminiKey] = await Promise.all([
           storage.getOpenAIKey(),
           storage.getCohereKey(),
           storage.getGeminiKey(),
-          storage.getCustomModels(),
         ]);
 
         setExistingKeys({
           openai: !!openaiKey,
           cohere: !!cohereKey,
           gemini: !!geminiKey,
-          custom: customModels.length > 0,
         });
       } catch (error) {
         } finally {
@@ -81,18 +76,16 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
         try {
           const storage = StorageService.getInstance();
 
-          const [openaiKey, cohereKey, geminiKey, customModels] = await Promise.all([
+          const [openaiKey, cohereKey, geminiKey] = await Promise.all([
             storage.getOpenAIKey(),
             storage.getCohereKey(),
             storage.getGeminiKey(),
-            storage.getCustomModels(),
           ]);
 
           setExistingKeys({
             openai: !!openaiKey,
             cohere: !!cohereKey,
             gemini: !!geminiKey,
-            custom: customModels.length > 0,
           });
         } catch (error) {
           }
@@ -115,11 +108,8 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleProviderSelect = (provider: 'openai' | 'cohere' | 'gemini' | 'custom') => {
-    if (provider === 'custom') {
-      // Navigate to custom models screen
-      navigation.navigate('CustomModel');
-    } else if (existingKeys[provider]) {
+  const handleProviderSelect = (provider: 'openai' | 'cohere' | 'gemini') => {
+    if (existingKeys[provider]) {
       // If this provider already has a key, navigate directly to Chat
       navigation.navigate('Chat');
     } else {
@@ -154,27 +144,22 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
         case 'gemini':
           await storage.saveGeminiKey(apiKey);
           break;
-        case 'custom':
-          // Custom models are handled in CustomModelScreen
-          break;
       }
 
       setApiKey('');
       setSelectedProvider('cohere');
 
       // Refresh existing keys
-      const [openaiKey, cohereKey, geminiKey, customModels] = await Promise.all([
+      const [openaiKey, cohereKey, geminiKey] = await Promise.all([
         storage.getOpenAIKey(),
         storage.getCohereKey(),
         storage.getGeminiKey(),
-        storage.getCustomModels(),
       ]);
 
       setExistingKeys({
         openai: !!openaiKey,
         cohere: !!cohereKey,
         gemini: !!geminiKey,
-        custom: customModels.length > 0,
       });
 
       Alert.alert('Success', `${providerNames[selectedProvider]} API key saved successfully!`);
@@ -185,7 +170,7 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleDeleteApiKey = async (provider: 'openai' | 'cohere' | 'gemini' | 'custom') => {
+  const handleDeleteApiKey = async (provider: 'openai' | 'cohere' | 'gemini') => {
     Alert.alert(
       'Delete API Key',
       `Are you sure you want to delete your ${providerNames[provider]} API key?`,
@@ -211,24 +196,19 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
                 case 'gemini':
                   await storage.deleteGeminiKey();
                   break;
-                case 'custom':
-                  // Custom models are handled in CustomModelScreen
-                  break;
               }
 
               // Refresh existing keys
-              const [openaiKey, cohereKey, geminiKey, customModels] = await Promise.all([
+              const [openaiKey, cohereKey, geminiKey] = await Promise.all([
                 storage.getOpenAIKey(),
                 storage.getCohereKey(),
                 storage.getGeminiKey(),
-                storage.getCustomModels(),
               ]);
 
               setExistingKeys({
                 openai: !!openaiKey,
                 cohere: !!cohereKey,
                 gemini: !!geminiKey,
-                custom: customModels.length > 0,
               });
 
               Alert.alert('Success', `${providerNames[provider]} API key deleted successfully!`);
@@ -422,32 +402,6 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
             )}
           </View>
 
-          <TouchableOpacity
-            style={[
-              styles.providerCard,
-              selectedProvider === 'custom' && styles.selectedProviderCard,
-              existingKeys.custom && styles.providerCardWithKey
-            ]}
-            onPress={() => handleProviderSelect('custom')}
-          >
-            <View style={styles.providerHeader}>
-              <Ionicons name="construct" size={24} color="#FFD700" />
-              <Text style={styles.providerName}>Custom Model</Text>
-              {existingKeys.custom && (
-                <View style={styles.keyIndicator}>
-                  <Ionicons name="checkmark-circle" size={20} color="#4ECDC4" />
-                  <Text style={styles.keyIndicatorText}>Ready</Text>
-                </View>
-              )}
-            </View>
-            <Text style={styles.providerDescription}>
-              Add your own AI models • Custom endpoints • Flexible configuration
-            </Text>
-            <Text style={styles.providerKeyFormat}>Configure your own API endpoints and parameters</Text>
-            {existingKeys.custom && (
-              <Text style={styles.readyToUseText}>✅ Ready to use - tap to start chatting!</Text>
-            )}
-          </TouchableOpacity>
         </View>
 
         {/* API Key Input - Only show if no key exists for selected provider */}

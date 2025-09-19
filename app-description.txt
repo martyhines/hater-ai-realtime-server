@@ -15,7 +15,7 @@ FEATURES:
 💬 INTERACTIVE CHAT EXPERIENCE
 • Real-time AI conversations
 • Customizable roasting intensity
-• Multiple AI providers (OpenAI, Cohere, Hugging Face)
+• Multiple AI providers (OpenAI, Cohere, Gemini)
 • Context-aware responses
 
 🔥 PREMIUM FEATURES
