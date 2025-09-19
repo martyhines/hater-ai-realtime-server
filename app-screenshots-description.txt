@@ -1,0 +1,46 @@
+# SCREENSHOT DESCRIPTIONS FOR APP STORE
+
+## Screenshot 1: Personality Selection
+"Choose from multiple AI personalities - each with unique roasting styles and attitudes!"
+
+## Screenshot 2: Chat Interface
+"Real-time AI conversations with customizable intensity levels"
+
+## Screenshot 3: Premium Features
+"Unlock unlimited roasts, chat packs, and premium personalities"
+
+## Screenshot 4: Settings Screen
+"Customize your AI experience with different providers and preferences"
+
+## Screenshot 5: Different Personalities
+"Explore various AI characters from witty comedians to savage critics"
+
+---
+
+# WHAT MAKES HATER AI UNIQUE:
+
+✅ **Personality Variety** - 15+ unique AI characters with distinct voices
+✅ **Real-time Chat** - Instant responses with contextual understanding
+✅ **Multiple AI Providers** - OpenAI, Cohere, Hugging Face integration
+✅ **Flexible Pricing** - Free tier + affordable premium options
+✅ **Entertainment Focus** - Pure fun with customizable intensity
+✅ **Cross-platform** - Works on iOS and Android
+✅ **Offline Support** - Premium users can chat offline
+
+---
+
+# TARGET AUDIENCE:
+• Comedy lovers (18-35)
+• Social media creators
+• Party hosts
+• People who enjoy self-deprecating humor
+• Tech enthusiasts interested in AI
+
+---
+
+# COMPETITIVE ADVANTAGES:
+• More personality variety than competitors
+• Better pricing (free tier + affordable IAP)
+• Multiple AI providers for variety
+• Customizable intensity levels
+• Focus on entertainment vs utility

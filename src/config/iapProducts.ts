@@ -21,19 +21,46 @@ export const IAP_PRODUCTS = {
 
   // Individual Personalities
   PERSONALITIES: {
+    // Cultural/Regional Pack
     BRITISH_GENTLEMAN: 'personality_british_gentleman',
     SOUTHERN_BELLE: 'personality_southern_belle',
     VALLEY_GIRL: 'personality_valley_girl',
     SURFER_DUDE: 'personality_surfer_dude',
     BRONX_BAMBINO: 'personality_bronx_bambino',
+    NEW_YORKER: 'personality_new_yorker',
+
+    // Professional/Expert Pack
+    GRAMMAR_POLICE: 'personality_grammar_police',
+    FITNESS_COACH: 'personality_fitness_coach',
+    CHEF_GORDON: 'personality_chef_gordon',
+    DETECTIVE: 'personality_detective',
+    THERAPIST: 'personality_therapist',
+
+    // Pop Culture Pack
+    MEAN_GIRL: 'personality_mean_girl',
+    TIKTOK_INFLUENCER: 'personality_tiktok_influencer',
+    BOOMER: 'personality_boomer',
+    HIPSTER: 'personality_hipster',
+    KAREN: 'personality_karen',
   },
 
   // Premium Features
   FEATURES: {
     ALLOW_CURSING: 'allow_cursing',
-    UNLIMITED_ROASTS: 'unlimited_roasts',
-    CUSTOM_PERSONALITIES: 'custom_personalities',
-    VOICE_ROASTS: 'voice_roasts',
+  },
+
+  // Chat Packs (Consumable)
+  CHAT_PACKS: {
+    CHAT_PACK_20: 'chat_pack_20',
+    CHAT_PACK_50: 'chat_pack_50',
+  },
+
+  // Subscription Plans
+  SUBSCRIPTIONS: {
+    BASIC_MONTHLY: 'subscription_basic_monthly',
+    PRO_MONTHLY: 'subscription_pro_monthly',
+    PRO_YEARLY: 'subscription_pro_yearly',
+    LIFETIME: 'subscription_lifetime',
   },
 } as const;
 
@@ -46,9 +73,17 @@ export const PRODUCT_PRICING = {
   INDIVIDUAL_PERSONALITY_PRICE: 1.99,
   FEATURE_PRICES: {
     allow_cursing: 2.99,
-    unlimited_roasts: 4.99,
-    custom_personalities: 3.99,
-    voice_roasts: 1.99,
+  },
+
+  CHAT_PACK_PRICES: {
+    chat_pack_20: 3.99,
+    chat_pack_50: 6.99,
+  },
+  SUBSCRIPTION_PRICES: {
+    basic_monthly: 4.99,
+    pro_monthly: 9.99,
+    pro_yearly: 99.99,
+    lifetime: 199.99,
   },
 } as const;
 
@@ -56,11 +91,21 @@ export const PRODUCT_PRICING = {
  * Get all product IDs as a flat array
  */
 export const getAllProductIds = (): string[] => {
-  return [
-    ...Object.values(IAP_PRODUCTS.PACKS),
-    ...Object.values(IAP_PRODUCTS.PERSONALITIES),
-    ...Object.values(IAP_PRODUCTS.FEATURES),
+  const packs = Object.values(IAP_PRODUCTS.PACKS);
+  const personalities = Object.values(IAP_PRODUCTS.PERSONALITIES);
+  const features = Object.values(IAP_PRODUCTS.FEATURES);
+  const chatPacks = Object.values(IAP_PRODUCTS.CHAT_PACKS);
+  const subscriptions = Object.values(IAP_PRODUCTS.SUBSCRIPTIONS);
+
+  const allIds = [
+    ...packs,
+    ...personalities,
+    ...features,
+    ...chatPacks,
+    ...subscriptions,
   ];
+
+  return allIds;
 };
 
 /**
@@ -69,10 +114,12 @@ export const getAllProductIds = (): string[] => {
 export const getProductType = (productId: string): 'nonConsumable' | 'consumable' | 'subscription' => {
   if (productId.startsWith('pack_') || productId.startsWith('personality_')) {
     return 'nonConsumable';
+  } else if (productId.startsWith('chat_pack_')) {
+    return 'consumable';
   } else if (productId.startsWith('subscription_')) {
     return 'subscription';
   } else {
-    return 'consumable';
+    return 'nonConsumable'; // Default to nonConsumable for features
   }
 };
 
@@ -84,6 +131,12 @@ export const getProductPrice = (productId: string): number => {
     return PRODUCT_PRICING.PACK_PRICE;
   } else if (productId.startsWith('personality_')) {
     return PRODUCT_PRICING.INDIVIDUAL_PERSONALITY_PRICE;
+  } else if (productId.startsWith('chat_pack_')) {
+    return PRODUCT_PRICING.CHAT_PACK_PRICES[productId as keyof typeof PRODUCT_PRICING.CHAT_PACK_PRICES] || 0;
+  } else if (productId.startsWith('subscription_')) {
+    // Extract the plan ID from the product ID
+    const planId = productId.replace('subscription_', '').replace('_monthly', '_monthly').replace('_yearly', '_yearly').replace('_lifetime', '_lifetime');
+    return PRODUCT_PRICING.SUBSCRIPTION_PRICES[planId as keyof typeof PRODUCT_PRICING.SUBSCRIPTION_PRICES] || 0;
   } else {
     return PRODUCT_PRICING.FEATURE_PRICES[productId as keyof typeof PRODUCT_PRICING.FEATURE_PRICES] || 0;
   }

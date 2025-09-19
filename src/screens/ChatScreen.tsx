@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Alert } from 'react-native';
 import {
   View,
   Text,
@@ -10,6 +11,7 @@ import {
   Platform,
   ActivityIndicator,
   Keyboard,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,7 +27,9 @@ import { StorageService } from '../services/storageService';
 import { TikTokVideoService } from '../services/tikTokVideoService';
 import TextToSpeechService from '../services/textToSpeechService';
 import SpeechToTextService from '../services/speechToTextService';
-import { TwitterShareService } from '../services/twitterShareService';
+import { ScreenshotService } from '../services/screenshotService';
+import { AnalyticsService } from '../services/analyticsService';
+import { PremiumService } from '../services/premiumService';
 
 
 type ChatScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
@@ -55,10 +59,58 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   
   const flatListRef = useRef<FlatList>(null);
 
+  // Update chat usage data
+  const updateChatUsage = async () => {
+    try {
+      const storage = StorageService.getInstance() as any;
+      const premiumService = PremiumService.getInstance();
+
+      const usage = await storage.getChatUsage();
+      const remaining = await storage.getRemainingFreeChats();
+      const hasSubscription = await (premiumService as any).hasActiveSubscription();
+
+      console.log('🔄 Updating chat usage:', {
+        usage,
+        remaining,
+        hasSubscription
+      });
+
+      setChatUsage(usage);
+
+      // Determine what to show based on user status
+      if (hasSubscription) {
+        setRemainingFreeChats(999); // Unlimited
+        console.log('🎯 Showing: Unlimited chats');
+      } else if (usage.packChats > 0 && remaining === 0) {
+        setRemainingFreeChats(0); // Has pack chats but no free chats
+        console.log('🎯 Showing: Pack chats available');
+      } else if (remaining > 0) {
+        setRemainingFreeChats(remaining); // Show remaining free chats
+        console.log('🎯 Showing: Free chats remaining');
+      } else {
+        setRemainingFreeChats(0); // No chats available
+        console.log('🎯 Showing: No chats available');
+      }
+    } catch (error) {
+      console.error('❌ Error updating chat usage:', error);
+    }
+  };
+
   // Speech-to-text state
   const [isRecording, setIsRecording] = useState(false);
   const [transcriptionText, setTranscriptionText] = useState('');
   const [speechToTextSettings, setSpeechToTextSettings] = useState<any>(null);
+
+  // Chat usage state
+  const [chatUsage, setChatUsage] = useState<{ date: string; count: number; packChats: number } | null>(null);
+  const [remainingFreeChats, setRemainingFreeChats] = useState(7);
+  const [showLimitWarning, setShowLimitWarning] = useState(false);
+  const [personalityUpdateKey, setPersonalityUpdateKey] = useState(0); // Force re-renders when personality changes
+
+  // Load chat usage on mount
+  useEffect(() => {
+    updateChatUsage();
+  }, []);
 
   // Function to switch between available providers
   const switchProvider = async (provider: AIProvider) => {
@@ -252,10 +304,12 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       const reloadSettings = async () => {
+        // Update chat usage in case user subscribed or purchased chat packs
+        await updateChatUsage();
         try {
           const storage = StorageService.getInstance();
           const savedSettings = (await storage.getSettings()) || {};
-          
+
           const settings: UserSettings = {
             roastIntensity: 'medium',
             aiPersonality: 'sarcastic',
@@ -265,11 +319,14 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
             ...savedSettings,
           };
 
+
           // If BYOK is disabled, keep using backend-powered OpenAI
           if (!FEATURES.ENABLE_BYOK) {
-            setAiService(new OpenAIService(settings, ''));
+            const newAiService = new OpenAIService(settings, '');
+            setAiService(newAiService);
             setIsAIEnabled(true);
             setActiveProvider('openai');
+            setPersonalityUpdateKey(prev => prev + 1); // Force re-render
             return;
           }
 
@@ -290,17 +347,23 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
 
           // Set the best available provider as default (Cohere > Gemini > OpenAI)
           if (cohereKey) {
-            setAiService(new CohereService(settings, cohereKey));
+            const newAiService = new CohereService(settings, cohereKey);
+            setAiService(newAiService);
             setIsAIEnabled(true);
             setActiveProvider('cohere');
+            setPersonalityUpdateKey(prev => prev + 1); // Force re-render
           } else if (geminiKey) {
-            setAiService(new GeminiService(settings, geminiKey));
+            const newAiService = new GeminiService(settings, geminiKey);
+            setAiService(newAiService);
             setIsAIEnabled(true);
             setActiveProvider('gemini');
+            setPersonalityUpdateKey(prev => prev + 1); // Force re-render
           } else if (openaiKey) {
-            setAiService(new OpenAIService(settings, openaiKey));
+            const newAiService = new OpenAIService(settings, openaiKey);
+            setAiService(newAiService);
             setIsAIEnabled(true);
             setActiveProvider('openai');
+            setPersonalityUpdateKey(prev => prev + 1); // Force re-render
           } else {
             setIsAIEnabled(false);
             const errorMessage: Message = {
@@ -427,6 +490,51 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   const sendMessage = async () => {
     if (!inputText.trim() || !aiService) return;
 
+    // Check rate limits before sending
+    try {
+      const storage = StorageService.getInstance() as any;
+      const canSend = await storage.canSendMessage();
+
+      if (!canSend) {
+        const premiumService = PremiumService.getInstance();
+        const hasSubscription = await (premiumService as any).hasActiveSubscription();
+
+        if (!hasSubscription) {
+          // Check if user has pack chats
+          const usage = await storage.getChatUsage();
+
+          // Show appropriate message
+          Alert.alert(
+            'Chat Limit Reached',
+            usage.packChats > 0
+              ? `You've used all your free chats today, but you have ${usage.packChats} pack chats available!`
+              : 'You\'ve used all your free chats today! Upgrade to continue chatting.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: usage.packChats > 0 ? 'Continue with Pack' : 'Upgrade',
+                onPress: () => navigation.navigate('Settings')
+              }
+            ]
+          );
+          return;
+        }
+      }
+
+      // Consume chat credit
+      const creditConsumed = await (storage as any).consumeChatCredit();
+      if (!creditConsumed) {
+        Alert.alert('Error', 'Unable to process chat. Please try again.');
+        return;
+      }
+
+      // Update chat usage in real-time
+      await updateChatUsage();
+    } catch (error) {
+      // Rate limiting error - allow message to proceed
+      console.error('Rate limiting error:', error);
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputText.trim(),
@@ -441,9 +549,22 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     // Hide keyboard after sending message
     Keyboard.dismiss();
 
-    // Analytics removed - using local storage only
+    // Track message sent
+    const startTime = Date.now();
+    const messageLength = userMessage.text.length;
+    const hasEmoji = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/u.test(userMessage.text);
+    const personality = (aiService as any).settings?.aiPersonality || 'brutal';
+
+    // Track the message sent event
+    await AnalyticsService.trackEvent('chat_message_sent', {
+      personality,
+      messageLength,
+      hasEmoji,
+      isVoice: false
+    });
 
     try {
+
       // Simulate typing delay
       await aiService.simulateTyping();
 
@@ -460,6 +581,17 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
 
       setMessages(prev => [...prev, aiMessage]);
 
+      // Update chat usage after successful response
+      await updateChatUsage();
+
+      // Track successful response
+      const responseTime = Date.now() - startTime;
+      await AnalyticsService.trackEvent('ai_response_success', {
+        personality,
+        responseTimeMs: responseTime,
+        responseLength: aiResponse.length
+      });
+
       // Auto-play voice if enabled
       try {
         const voiceSettings = await TextToSpeechService.getVoiceSettings();
@@ -468,9 +600,17 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           await TextToSpeechService.speakRoast(aiResponse, personality);
         }
       } catch (error) {
+        // Voice error - continue without voice
+        console.error('Voice error:', error);
       }
     } catch (error) {
-      // Error logged
+      // Track error
+      await AnalyticsService.trackEvent('ai_response_error', {
+        personality,
+        errorType: 'generation_failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: "Ugh, even my responses are broken because of you. Try again.",
@@ -500,29 +640,76 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleShareToTwitter = async () => {
+  const handleShareRoast = async () => {
     try {
-      const twitterService = TwitterShareService.getInstance();
-      
-      const success = await twitterService.shareRoastToTwitter(
-        item.text,
-        true // include app link
-      );
-      
-      if (success) {
-        // Show success feedback
-      } else {
-        // Fall back to tweet generator
-        navigation.navigate('TweetGenerator', {
+      console.log('📤 Sharing roast using existing ScreenshotService...');
+
+      // Navigate to the ScreenshotScreen which properly uses the ScreenshotService
+      // This is the same approach as the camera button and ensures proper UI capture
+      if (aiService) {
+        const settings = (aiService as any).settings || {
+          roastIntensity: 'medium',
+          aiPersonality: 'sarcastic',
+          allowCursing: false,
+        };
+
+        // Extract the user's prompt that led to this roast (to avoid non-serializable timestamps)
+        let userPrompt = null;
+        try {
+          if (messages && Array.isArray(messages)) {
+            const aiIndex = messages.findIndex((m: any) => m.text === item.text && m.sender === 'ai');
+            if (aiIndex > -1) {
+              for (let i = aiIndex - 1; i >= 0; i -= 1) {
+                const m = messages[i];
+                if (m && m.sender === 'user' && typeof m.text === 'string' && m.text.trim().length > 0) {
+                  userPrompt = m.text.trim();
+                  break;
+                }
+              }
+            }
+            // Fallback: last user message
+            if (!userPrompt) {
+              const lastUser = [...messages].reverse().find((m: any) => m.sender === 'user' && m.text);
+              if (lastUser) {
+                userPrompt = (lastUser.text as string).trim();
+              }
+            }
+          }
+        } catch (e) {
+          // Ignore extraction errors; prompt simply won't be shown
+          console.log('⚠️ Could not extract user prompt for screenshot');
+        }
+
+        navigation.navigate('Screenshot', {
           roastText: item.text,
+          userName: settings?.userName,
+          userPrompt: userPrompt, // Pass only the serializable userPrompt instead of entire messages array
+          // Add a flag to indicate this is for sharing (not just saving)
+          isForSharing: true
         });
+
+        console.log('📸 Navigated to ScreenshotScreen for sharing');
+      } else {
+        // Fallback to text-only sharing if no AI service
+        console.log('⚠️ No AI service available, using text-only sharing');
+
+        const shareOptions = {
+          message: `🤖 "${item.text.length > 100 ? item.text.substring(0, 100) + '...' : item.text}" #AIRoast\n\nGet the app: https://apps.apple.com/app/hater-ai`,
+          title: 'Share your Hater AI roast'
+        };
+
+        const result = await Share.share(shareOptions);
+
+        if (result.action === Share.sharedAction) {
+          console.log('🎉 Successfully shared roast (text-only)');
+        } else if (result.action === Share.dismissedAction) {
+          console.log('📝 Share sheet dismissed by user');
+        }
       }
+
     } catch (error) {
-      // Error logged
-      // Fall back to tweet generator
-      navigation.navigate('TweetGenerator', {
-        roastText: item.text,
-      });
+      console.error('💥 Error sharing roast:', error);
+      Alert.alert('Sharing Error', 'Unable to share roast. Please try again.');
     }
   };
 
@@ -533,10 +720,39 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         aiPersonality: 'sarcastic',
         allowCursing: false,
       };
+
+      // Extract the user's prompt that led to this roast (to avoid non-serializable timestamps)
+      let userPrompt = null;
+      try {
+        if (messages && Array.isArray(messages)) {
+          const aiIndex = messages.findIndex((m: any) => m.text === item.text && m.sender === 'ai');
+          if (aiIndex > -1) {
+            for (let i = aiIndex - 1; i >= 0; i -= 1) {
+              const m = messages[i];
+              if (m && m.sender === 'user' && typeof m.text === 'string' && m.text.trim().length > 0) {
+                userPrompt = m.text.trim();
+                break;
+              }
+            }
+          }
+          // Fallback: last user message
+          if (!userPrompt) {
+            const lastUser = [...messages].reverse().find((m: any) => m.sender === 'user' && m.text);
+            if (lastUser) {
+              userPrompt = (lastUser.text as string).trim();
+            }
+          }
+        }
+      } catch (e) {
+        // Ignore extraction errors; prompt simply won't be shown
+        console.log('⚠️ Could not extract user prompt for screenshot');
+      }
+
       navigation.navigate('Screenshot', {
         roastText: item.text,
         userName: settings?.userName,
-        messages: messages,
+        userPrompt: userPrompt, // Pass only the serializable userPrompt instead of entire messages array
+        // isForSharing defaults to false for camera button
       });
     }
   };
@@ -575,19 +791,17 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
                       <Ionicons name="videocam" size={16} color="#4ECDC4" />
                     </TouchableOpacity>
                   ) : null}
-                  {FEATURES.ENABLE_TWITTER_SHARE && (
-                    <TouchableOpacity
-                      style={styles.shareButton}
-                      onPress={handleShareToTwitter}
-                    >
-                      <Ionicons name="logo-twitter" size={16} color="#1DA1F2" />
-                    </TouchableOpacity>
-                  )}
+                  {/* <TouchableOpacity
+                    style={styles.shareButton}
+                    onPress={handleShareRoast}
+                  >
+                    <Ionicons name="share-social" size={16} color="#4CAF50" />
+                  </TouchableOpacity> */}
                   <TouchableOpacity
                     style={styles.shareButton}
                     onPress={handleShareScreenshot}
                   >
-                    <Ionicons name="camera" size={16} color="#FF6B6B" />
+                    <Ionicons name="share" size={16} color="white" />
                   </TouchableOpacity>
                 </View>
               )}
@@ -617,7 +831,9 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     // Get current personality from AI service settings
     if (aiService && 'settings' in aiService) {
       const personalityKey = (aiService as any).settings?.aiPersonality || 'sarcastic';
+      console.log('🔍 ChatScreen: Getting personality name for key:', personalityKey);
       const personality = getPersonalityInfo(personalityKey);
+      console.log('🔍 ChatScreen: Personality info:', personality);
       return personality ? personality.name : 'AI Assistant';
     }
     return 'AI Assistant';
@@ -655,7 +871,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
               size={16}
               color={isAIEnabled ? "#FFD700" : "#ccc"}
             />
-            <Text style={[styles.aiStatusText, { color: isAIEnabled ? "#FFD700" : "#ccc" }]}>
+            <Text key={`personality-${personalityUpdateKey}`} style={[styles.aiStatusText, { color: isAIEnabled ? "#FFD700" : "#ccc" }]}>
               {isAIEnabled ? `${getModelName()}` : "AI Service Unavailable"}
             </Text>
           </View>
@@ -730,6 +946,31 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         />
         {/* Input Section */}
         <View style={styles.inputContainer}>
+          {/* Chat Usage Display */}
+          {chatUsage && (
+            <View style={styles.usageDisplay}>
+              <Ionicons name="chatbubble" size={14} color="#FFD700" />
+              <Text style={styles.usageText}>
+                {remainingFreeChats >= 999
+                  ? 'Unlimited chats - enjoy!'
+                  : remainingFreeChats > 0
+                    ? `${remainingFreeChats} free chats left today`
+                    : chatUsage.packChats > 0
+                      ? `${chatUsage.packChats} pack chats available`
+                      : 'Chat limit reached - upgrade to continue'
+                }
+              </Text>
+              {remainingFreeChats < 999 && remainingFreeChats === 0 && chatUsage.packChats === 0 && (
+                <TouchableOpacity
+                  style={styles.upgradeButton}
+                  onPress={() => navigation.navigate('Settings')}
+                >
+                  <Text style={styles.upgradeButtonText}>Upgrade</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
           <View style={styles.inputWrapper}>
             {/* Voice Button */}
             {FEATURES.ENABLE_REALTIME_VOICE && (
@@ -935,6 +1176,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#fff',
     marginTop: 16,
+  },
+  usageDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    borderRadius: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+  },
+  usageText: {
+    fontSize: 12,
+    color: '#FFD700',
+    marginLeft: 6,
+    flex: 1,
+  },
+  upgradeButton: {
+    backgroundColor: '#FF6B6B',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  upgradeButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   aiStatusHeader: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',

@@ -91,7 +91,6 @@ export class OpenAIService extends BaseAIService {
       return data.choices[0].message.content.trim();
     } catch (error) {
       // Log error for debugging but don't expose sensitive details
-      console.error('OpenAI service error:', error instanceof Error ? error.message : 'Unknown error');
       throw error;
     }
   }

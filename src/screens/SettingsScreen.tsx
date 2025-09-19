@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   Dimensions,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,9 +19,11 @@ import { RootStackParamList } from '../../App';
 import { UserSettings } from '../types';
 import { StorageService } from '../services/storageService';
 import { StreakService } from '../services/streakService';
+import { AnalyticsService } from '../services/analyticsService';
 import { FEATURES } from '../config/features';
 import { PremiumService } from '../services/premiumService';
 import AuthService from '../services/authService';
+import Constants from 'expo-constants';
 
 type SettingsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Settings'>;
 type SettingsScreenRouteProp = RouteProp<RootStackParamList, 'Settings'>;
@@ -45,6 +48,57 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isPremiumLoading, setIsPremiumLoading] = useState(false);
   const [streak, setStreak] = useState(0);
   const [activeTab, setActiveTab] = useState<'personalities' | 'intensity' | 'preferences' | 'premium'>('personalities');
+
+  // Build type detection
+  const getBuildInfo = () => {
+    const appOwnership = Constants.appOwnership;
+    const isDevelopment = __DEV__;
+    const isProduction = !isDevelopment;
+
+    // Check for development client indicators
+    const isDevClient = Constants.executionEnvironment === 'storeClient';
+
+    // More robust detection logic
+    if (isDevClient && isDevelopment) {
+      return {
+        type: 'Development Build',
+        color: '#4ECDC4',
+        icon: 'construct',
+        description: 'Full IAP support'
+      };
+    } else if (appOwnership === 'expo' && isDevelopment) {
+      return {
+        type: 'Expo Go (Dev)',
+        color: '#FF6B35',
+        icon: 'logo-react',
+        description: 'Limited IAP support'
+      };
+    } else if (appOwnership === 'standalone' && isDevelopment) {
+      return {
+        type: 'Development Build',
+        color: '#4ECDC4',
+        icon: 'construct',
+        description: 'Full IAP support'
+      };
+    } else if (isProduction) {
+      return {
+        type: 'Production Build',
+        color: '#45B7D1',
+        icon: 'checkmark-circle',
+        description: 'Live app'
+      };
+    } else {
+      // Fallback detection
+      return {
+        type: 'Development Build',
+        color: '#4ECDC4',
+        icon: 'construct',
+        description: 'Full IAP support'
+      };
+    }
+  };
+
+  const buildInfo = getBuildInfo();
 
   const personalities = [
     {
@@ -124,6 +178,80 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
       description: 'Laid-back but cutting with "bro" and "rad" energy',
       traits: ['Laid-back', 'Chill', 'Observant', 'Authentic'],
     },
+
+    // Professional/Expert Personalities
+    {
+      id: 'grammar_police',
+      name: 'Grammar Police',
+      emoji: '📝',
+      description: 'The ultimate language enforcer who corrects every mistake',
+      traits: ['Pedantic', 'Corrective', 'Linguistic'],
+    },
+    {
+      id: 'fitness_coach',
+      name: 'Fitness Coach',
+      emoji: '💪',
+      description: 'Motivational trainer with zero tolerance for laziness',
+      traits: ['Motivational', 'Fit', 'Intense'],
+    },
+    {
+      id: 'chef_gordon',
+      name: 'Chef Gordon',
+      emoji: '👨‍🍳',
+      description: 'Culinary perfectionist with a famous temper',
+      traits: ['Perfectionist', 'Passionate', 'Demanding'],
+    },
+    {
+      id: 'detective',
+      name: 'Detective',
+      emoji: '🕵️‍♂️',
+      description: 'Sharp investigator who sees through your BS',
+      traits: ['Observant', 'Skeptical', 'Analytical'],
+    },
+    {
+      id: 'therapist',
+      name: 'Therapist',
+      emoji: '🛋️',
+      description: 'Professional counselor with deep psychological insights',
+      traits: ['Insightful', 'Analytical', 'Empathetic'],
+    },
+
+    // Pop Culture Personalities
+    {
+      id: 'mean_girl',
+      name: 'Mean Girl',
+      emoji: '👑',
+      description: 'Queen bee of social hierarchy with cutting remarks',
+      traits: ['Social', 'Cutting', 'Popular'],
+    },
+    {
+      id: 'tiktok_influencer',
+      name: 'TikTok Influencer',
+      emoji: '📱',
+      description: 'Trendy content creator with viral roast potential',
+      traits: ['Trendy', 'Viral', 'Dramatic'],
+    },
+    {
+      id: 'boomer',
+      name: 'Boomer',
+      emoji: '👴',
+      description: 'Classic generation wisdom mixed with modern disdain',
+      traits: ['Experienced', 'Opinionated', 'Traditional'],
+    },
+    {
+      id: 'hipster',
+      name: 'Hipster',
+      emoji: '🕶️',
+      description: 'Ironically cool with superior taste and endless sarcasm',
+      traits: ['Ironic', 'Cultured', 'Superior'],
+    },
+    {
+      id: 'karen',
+      name: 'Karen',
+      emoji: '📢',
+      description: 'Entitled customer service nightmare with attitude',
+      traits: ['Entitled', 'Demanding', 'Dramatic'],
+    },
   ];
 
   const intensities = [
@@ -151,6 +279,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
   ];
 
   const updatePersonality = async (personality: string) => {
+    const oldPersonality = settings.aiPersonality;
     const newSettings = { ...settings, aiPersonality: personality as any };
     setSettings(newSettings);
 
@@ -158,20 +287,24 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
     const storage = StorageService.getInstance();
     await storage.saveSettings(newSettings);
 
-    // Save to Firebase (authenticated users)
+    // Save to Supabase (authenticated users)
     try {
       const authService = AuthService.getInstance();
       if (authService.isSignedIn()) {
         await authService.saveUserSettings(newSettings);
       }
     } catch (error) {
-      console.error('Firebase settings save error:', error);
-    }
+      }
 
-    // Analytics removed - using local storage only
+    // Track personality change
+    await AnalyticsService.trackEvent('personality_changed', {
+      oldValue: oldPersonality,
+      newValue: personality
+    });
   };
 
   const updateIntensity = async (intensity: string) => {
+    const oldIntensity = settings.roastIntensity;
     const newSettings = { ...settings, roastIntensity: intensity as any };
     setSettings(newSettings);
 
@@ -179,17 +312,20 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
     const storage = StorageService.getInstance();
     await storage.saveSettings(newSettings);
 
-    // Save to Firebase (authenticated users)
+    // Save to Supabase (authenticated users)
     try {
       const authService = AuthService.getInstance();
       if (authService.isSignedIn()) {
         await authService.saveUserSettings(newSettings);
       }
     } catch (error) {
-      console.error('Firebase settings save error:', error);
-    }
+      }
 
-    // Analytics removed - using local storage only
+    // Track intensity change
+    await AnalyticsService.trackEvent('intensity_changed', {
+      oldValue: oldIntensity,
+      newValue: intensity
+    });
   };
 
   const toggleNotifications = async () => {
@@ -257,14 +393,52 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
       const premiumService = PremiumService.getInstance();
       const success = await premiumService.purchaseFeature(featureId);
       if (success) {
+        // Track successful purchase
+        await AnalyticsService.trackEvent('premium_purchase_success', {
+          featureId,
+          price: PremiumService.getInstance().getPremiumFeatures().find(f => f.id === featureId)?.price || 0
+        });
+
         // Reload unlocked features
         const features = await premiumService.getUnlockedFeatures();
         setUnlockedFeatures(features);
+
+        // If it's a chat pack purchase, update chat usage
+        if (featureId.startsWith('chat_pack_')) {
+          const storage = StorageService.getInstance() as any;
+          await storage.getChatUsage(); // This will trigger the chat screen to update when it refocuses
+        }
+      } else {
+        // Track failed purchase
+        await AnalyticsService.trackEvent('premium_purchase_failed', {
+          featureId,
+          reason: 'payment_failed'
+        });
       }
     } catch (error) {
       } finally {
       setIsPremiumLoading(false);
     }
+  };
+
+  // Helper function to find which pack contains a personality
+  const getPackForPersonality = (personalityId: string): string | null => {
+    const packs = PremiumService.getInstance().getPersonalityPacks();
+    for (const pack of packs) {
+      if (pack.personalities.includes(personalityId)) {
+        return pack.id;
+      }
+    }
+    return null;
+  };
+
+  // Helper function to get pack info for a personality
+  const getPackInfoForPersonality = (personalityId: string) => {
+    const packId = getPackForPersonality(personalityId);
+    if (!packId) return null;
+
+    const packs = PremiumService.getInstance().getPersonalityPacks();
+    return packs.find(p => p.id === packId) || null;
   };
 
   const handlePersonalityPackPurchase = async (packId: string) => {
@@ -273,6 +447,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
       const premiumService = PremiumService.getInstance();
       const success = await premiumService.purchasePersonalityPack(packId);
       if (success) {
+        // Add a small delay to ensure IAP processing is complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         // Reload unlocked personalities
         const personalities = await premiumService.getUnlockedPersonalities();
         setUnlockedPersonalities(personalities);
@@ -283,12 +460,60 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
+  const handleSubscriptionPress = async (planId: string) => {
+    const plan = PremiumService.getInstance().getSubscriptionPlans().find(p => p.id === planId);
+    if (!plan) return;
+
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Alert.alert(
+        'Subscribe to Premium',
+        `Would you like to subscribe to "${plan.name}" for $${plan.price}/${plan.duration === 'lifetime' ? 'once' : plan.duration}?\n\n${plan.description}\n\nFeatures included:\n${plan.features.map(f => `• ${f.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`).join('\n')}`,
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Subscribe', onPress: () => resolve(true) },
+        ]
+      );
+    });
+
+    if (!confirmed) return;
+
+    setIsPremiumLoading(true);
+    try {
+      const premiumService = PremiumService.getInstance();
+      const success = await premiumService.purchaseSubscription(planId);
+      if (success) {
+        // Add a small delay to ensure IAP processing is complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Reload unlocked features and personalities
+        const features = await premiumService.getUnlockedFeatures();
+        const personalities = await premiumService.getUnlockedPersonalities();
+
+        setUnlockedFeatures(features);
+        setUnlockedPersonalities(personalities);
+
+        Alert.alert(
+          'Subscription Active! 🎉',
+          `${plan.name} has been activated! You now have access to all premium features.`,
+          [{ text: 'Awesome!' }]
+        );
+      }
+    } catch (error) {
+      Alert.alert('Subscription Failed', 'Unable to process subscription. Please try again.');
+    } finally {
+      setIsPremiumLoading(false);
+    }
+  };
+
   const handleIndividualPersonalityPurchase = async (personalityId: string) => {
     setIsPremiumLoading(true);
     try {
       const premiumService = PremiumService.getInstance();
       const success = await premiumService.purchaseIndividualPersonality(personalityId);
       if (success) {
+        // Add a small delay to ensure IAP processing is complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         // Reload unlocked personalities
         const personalities = await premiumService.getUnlockedPersonalities();
         setUnlockedPersonalities(personalities);
@@ -397,13 +622,31 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Build Indicator */}
+      <TouchableOpacity
+        style={[styles.buildIndicator, { backgroundColor: buildInfo.color }]}
+        onPress={() => {
+          Alert.alert(
+            'Build Information',
+            `Type: ${buildInfo.type}\nDescription: ${buildInfo.description}\n\nApp Ownership: ${Constants.appOwnership}\nExecution Environment: ${Constants.executionEnvironment}\nDevelopment Mode: ${__DEV__}`,
+            [{ text: 'OK' }]
+          );
+        }}
+      >
+        <Ionicons name={buildInfo.icon as any} size={16} color="white" />
+        <Text style={styles.buildText}>
+          {buildInfo.type} - {buildInfo.description}
+        </Text>
+        <Ionicons name="information-circle" size={14} color="white" style={{ opacity: 0.7 }} />
+      </TouchableOpacity>
+
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
         {[
-          { key: 'personalities', label: 'Personas', icon: 'person' },
-          { key: 'intensity', label: 'Intensity', icon: 'flame' },
+          { key: 'personalities', label: 'Enemies', icon: 'person' },
+          { key: 'intensity', label: 'Power', icon: 'flame' },
           { key: 'preferences', label: 'Settings', icon: 'settings' },
-          { key: 'premium', label: 'Premium', icon: 'star' },
+          { key: 'premium', label: 'Subs+', icon: 'star' },
         ].map((tab) => (
           <TouchableOpacity
             key={tab.key}
@@ -434,10 +677,11 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.sectionSubtitle}>Pick the personality that will roast you</Text>
           
           {personalities.map((personality) => {
-            const isUnlocked = unlockedPersonalities.includes(personality.id) || 
-                              ['sarcastic', 'brutal', 'witty', 'condescending', 'streetsmart', 'newyorker'].includes(personality.id);
+            const isInUnlockedList = unlockedPersonalities.includes(personality.id);
+            const isFreePersonality = ['sarcastic', 'brutal', 'witty', 'condescending', 'streetsmart'].includes(personality.id);
+            const isUnlocked = isInUnlockedList || isFreePersonality;
             const isLocked = !isUnlocked;
-            
+
             return (
               <TouchableOpacity
                 key={personality.id}
@@ -449,13 +693,40 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
                 onPress={() => {
                   if (isLocked) {
                     // Show purchase options for locked personality
+                    const packId = getPackForPersonality(personality.id);
+                    const packName = packId ? PremiumService.getInstance().getPersonalityPacks().find(p => p.id === packId)?.name : 'Personality Pack';
+
+                    // Create enhanced pack contents message
+                    const packInfo = getPackInfoForPersonality(personality.id);
+                    let packContentsMessage = '';
+
+                    if (packInfo) {
+                      const ownedCount = packInfo.personalities.filter(p => unlockedPersonalities.includes(p)).length;
+                      const totalCount = packInfo.personalities.length;
+
+                      packContentsMessage = `\n\n📦 ${packName} Pack Contents (${ownedCount}/${totalCount} unlocked):`;
+
+                      // Show all personalities in the pack with ownership status
+                      packInfo.personalities.forEach(packPersonalityId => {
+                        const packPersonality = personalities.find(p => p.id === packPersonalityId);
+                        const isOwned = unlockedPersonalities.includes(packPersonalityId);
+                        const statusIcon = isOwned ? '✅' : '🔒';
+
+                        if (packPersonality) {
+                          packContentsMessage += `\n${statusIcon} ${packPersonality.name}`;
+                        }
+                      });
+
+                      packContentsMessage += `\n\n💰 Save $${((packInfo.personalities.length - 1) * 1.99 - 7.99).toFixed(2)} by buying the pack!`;
+                    }
+
                     Alert.alert(
                       'Premium Personality',
-                      `"${personality.name}" is a premium personality.\n\nBuy individually for $1.99 or get the full Cultural/Regional pack for $7.99!`,
+                      `"${personality.name}" is a premium personality.\n\nBuy individually for $1.99 or get the full ${packName} for $7.99!${packContentsMessage}`,
                       [
                         { text: 'Cancel', style: 'cancel' },
                         { text: 'Buy Individual ($1.99)', onPress: () => handleIndividualPersonalityPurchase(personality.id) },
-                        { text: 'Buy Pack ($7.99)', onPress: () => handlePersonalityPackPurchase('cultural_regional') }
+                        { text: 'Buy Pack ($7.99)', onPress: () => packId ? handlePersonalityPackPurchase(packId) : null }
                       ]
                     );
 
@@ -479,6 +750,15 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
                   {isLocked && (
                     <Ionicons name="lock-closed" size={20} color="#FF6B6B" />
                   )}
+                  {/* Pack badge for premium personalities */}
+                  {isLocked && (() => {
+                    const packInfo = getPackInfoForPersonality(personality.id);
+                    return packInfo ? (
+                      <View style={styles.packBadge}>
+                        <Text style={styles.packBadgeIcon}>{packInfo.icon}</Text>
+                      </View>
+                    ) : null;
+                  })()}
                 </View>
                 <View style={styles.traitsContainer}>
                   {personality.traits.map((trait, index) => (
@@ -581,6 +861,22 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
 
           <TouchableOpacity
             style={styles.preferenceItem}
+            onPress={() => navigation.navigate('Insights')}
+          >
+            <View style={styles.preferenceInfo}>
+              <Ionicons name="analytics" size={24} color="#4CAF50" />
+              <View style={styles.preferenceText}>
+                <Text style={styles.preferenceTitle}>Your Insights</Text>
+                <Text style={styles.preferenceDescription}>
+                  View your chat statistics and personality usage
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#ccc" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.preferenceItem}
             onPress={() => navigation.navigate('VoiceSettings')}
           >
             <View style={styles.preferenceInfo}>
@@ -588,7 +884,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
               <View style={styles.preferenceText}>
                 <Text style={styles.preferenceTitle}>Voice Settings</Text>
                 <Text style={styles.preferenceDescription}>
-                  Configure Siri voice for AI roasts
+                  Basic voice features • Premium AI voices coming soon!
                 </Text>
               </View>
             </View>
@@ -613,12 +909,63 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         )}
 
-        {/* Premium Features Section */}
+        {/* Premium Section */}
         {activeTab === 'premium' && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🔥 Premium Features</Text>
-          <Text style={styles.sectionSubtitle}>Unlock the full potential of your AI enemy</Text>
-          
+          {/* Subscription Plans */}
+          <Text style={styles.sectionTitle}>💎 Premium Subscriptions</Text>
+          <Text style={styles.sectionSubtitle}>Get unlimited access with recurring benefits</Text>
+
+          {PremiumService.getInstance().getSubscriptionPlans().map((plan) => (
+            <TouchableOpacity
+              key={plan.id}
+              style={[
+                styles.subscriptionCard,
+                plan.popular && styles.popularSubscriptionCard
+              ]}
+              onPress={() => handleSubscriptionPress(plan.id)}
+            >
+              {plan.badge && (
+                <View style={[styles.badge, plan.popular && styles.popularBadge]}>
+                  <Text style={styles.badgeText}>{plan.badge}</Text>
+                </View>
+              )}
+              <View style={styles.subscriptionHeader}>
+                <View style={styles.subscriptionInfo}>
+                  <Text style={styles.subscriptionName}>
+                    {plan.name}
+                    {plan.popular && <Text style={styles.popularText}> 🔥</Text>}
+                  </Text>
+                  <Text style={styles.subscriptionDescription}>{plan.description}</Text>
+                  <Text style={styles.subscriptionPrice}>
+                    ${plan.price}/{plan.duration === 'lifetime' ? 'once' : plan.duration}
+                  </Text>
+                </View>
+                <View style={styles.subscriptionFeatures}>
+                  {plan.features.slice(0, 3).map((feature, index) => (
+                    <Text key={index} style={styles.featureText}>
+                      ✓ {feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </Text>
+                  ))}
+                  {plan.features.length > 3 && (
+                    <Text style={styles.moreFeaturesText}>
+                      +{plan.features.length - 3} more features
+                    </Text>
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <Text style={styles.dividerText}>OR</Text>
+          </View>
+
+          {/* Individual Features */}
+          <Text style={styles.sectionTitle}>🔥 Individual Features</Text>
+          <Text style={styles.sectionSubtitle}>Buy specific features as needed</Text>
+
           {PremiumService.getInstance().getPremiumFeatures().map((feature) => (
             <TouchableOpacity
               key={feature.id}
@@ -649,11 +996,86 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
             </TouchableOpacity>
           ))}
+
+          {/* IAP Test Button */}
+          {__DEV__ && (
+            <View style={styles.testSection}>
+              <Text style={styles.sectionTitle}>🧪 IAP Test</Text>
+              <Text style={styles.sectionSubtitle}>Test In-App Purchase functionality</Text>
+
+              <TouchableOpacity
+                style={[styles.premiumFeatureCard, { backgroundColor: '#E8F4FD' }]}
+                onPress={async () => {
+                  const iapService = (await import('../services/iapService')).IAPService.getInstance();
+
+                  // Test IAP availability
+                  const available = iapService.isAvailable();
+                  const status = iapService.getAvailabilityStatus();
+
+                  // Test product fetching
+                  const products = await iapService.getAvailableProducts();
+
+                  Alert.alert(
+                    'IAP Status Test',
+                    `Available: ${available}\n\n${status.reason || 'Ready for testing'}\n\nProducts Found: ${products.length}\n\n${products.length > 0 ? '✅ Products loaded successfully!' : '❌ No products found - check App Store Connect'}\n\nCheck console logs for detailed info.`,
+                    [{ text: 'OK' }]
+                  );
+                }}
+              >
+                <View style={styles.premiumFeatureHeader}>
+                  <Ionicons name="card" size={24} color="#2196F3" />
+                  <View style={styles.premiumFeatureInfo}>
+                    <Text style={styles.premiumFeatureName}>Test IAP Connection</Text>
+                    <Text style={styles.premiumFeatureDescription}>Check if IAP is working in this build</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#666" />
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Personality Packs */}
+          <Text style={styles.sectionTitle}>🎭 Personality Packs</Text>
+          <Text style={styles.sectionSubtitle}>Unlock entire collections of AI personalities</Text>
+
+          {PremiumService.getInstance().getPersonalityPacks().map((pack) => (
+            <TouchableOpacity
+              key={pack.id}
+              style={[
+                styles.packCard,
+                unlockedPersonalities.some(p => pack.personalities.includes(p)) && styles.unlockedPackCard
+              ]}
+              onPress={() => handlePersonalityPackPurchase(pack.id)}
+            >
+              <View style={styles.packHeader}>
+                <Text style={styles.packEmoji}>{pack.icon}</Text>
+                <View style={styles.packInfo}>
+                  <Text style={styles.packName}>
+                    {pack.name}
+                    {unlockedPersonalities.some(p => pack.personalities.includes(p)) && (
+                      <Text style={styles.unlockedBadge}> ✓ UNLOCKED</Text>
+                    )}
+                  </Text>
+                  <Text style={styles.packDescription}>{pack.description}</Text>
+                  <Text style={styles.packPersonalities}>
+                    {pack.personalities.length} personalities included
+                  </Text>
+                </View>
+                <View style={styles.packPrice}>
+                  {unlockedPersonalities.some(p => pack.personalities.includes(p)) ? (
+                    <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                  ) : (
+                    <Text style={styles.priceText}>${pack.price}</Text>
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
           </View>
         )}
 
         {/* Clear API Key Button */}
-        {isAIEnabled && (
+        {FEATURES.ENABLE_BYOK && isAIEnabled && (
           <TouchableOpacity
             style={styles.clearApiButton}
             onPress={async () => {
@@ -668,12 +1090,107 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
           </TouchableOpacity>
         )}
 
+        {/* Debug Session Buttons (Development Only) */}
+        {__DEV__ && (
+          <View style={styles.debugSection}>
+            <Text style={styles.debugTitle}>🧪 Session Debug (Dev Only)</Text>
+            <View style={styles.debugButtons}>
+              {/* Row 1 */}
+              <View style={styles.debugButtonRow}>
+                <TouchableOpacity
+                  style={[styles.debugButton, styles.debugButtonPrimary]}
+                  onPress={async () => {
+                    await AnalyticsService.startSession();
+                    Alert.alert('Session Started', 'New session has been started');
+                  }}
+                >
+                  <Ionicons name="play" size={16} color="#fff" />
+                  <Text style={styles.debugButtonText}>Start Session</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.debugButton, styles.debugButtonSecondary]}
+                  onPress={async () => {
+                    await AnalyticsService.endSession();
+                    Alert.alert('Session Ended', 'Current session has been ended and saved');
+                  }}
+                >
+                  <Ionicons name="stop" size={16} color="#fff" />
+                  <Text style={styles.debugButtonText}>End Session</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Row 2 */}
+              <View style={styles.debugButtonRow}>
+                <TouchableOpacity
+                  style={[styles.debugButton, { backgroundColor: '#FF9800' }]}
+                  onPress={async () => {
+                    const storage = StorageService.getInstance() as any;
+                    await storage.resetChatUsage();
+                    Alert.alert('Chat Usage Reset', 'Your chat limit has been reset to 7 free chats for today!');
+                  }}
+                >
+                  <Ionicons name="refresh" size={16} color="#fff" />
+                  <Text style={styles.debugButtonText}>Reset Chats</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.debugButton, { backgroundColor: '#9C27B0' }]}
+                  onPress={async () => {
+                    const storage = StorageService.getInstance() as any;
+                    await storage.debugChatUsage();
+                    Alert.alert('Check Console', 'Chat usage data logged to console!');
+                  }}
+                >
+                  <Ionicons name="bug" size={16} color="#fff" />
+                  <Text style={styles.debugButtonText}>Debug Usage</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Row 3 */}
+              <View style={styles.debugButtonRow}>
+                <TouchableOpacity
+                  style={[styles.debugButton, { backgroundColor: '#4CAF50' }]}
+                  onPress={async () => {
+                    const storage = StorageService.getInstance() as any;
+                    await storage.addChatPack(20);
+                    Alert.alert('Test Pack Added', 'Added 20 test chat pack!');
+                  }}
+                >
+                  <Ionicons name="add" size={16} color="#fff" />
+                  <Text style={styles.debugButtonText}>Add Test Pack</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.debugButton, { backgroundColor: '#FF5722' }]}
+                  onPress={async () => {
+                    const premiumService = PremiumService.getInstance();
+                    await (premiumService as any).simulatePurchase('feature', 'chat_pack_20');
+                    Alert.alert('Purchase Simulated', 'Chat pack 20 purchase simulated!');
+                  }}
+                >
+                  <Ionicons name="card" size={16} color="#fff" />
+                  <Text style={styles.debugButtonText}>Simulate Buy</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* Current Settings Summary */}
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>Current Setup</Text>
+          <View style={styles.summaryBackground}>
+            <Image
+              source={require('../../assets/images/roasterBase.png')}
+              style={styles.summaryImage}
+              resizeMode="cover"
+            />
+          </View>
+          <View style={styles.summaryForeground}>
+            <Text style={styles.summaryTitle}>Current Setup</Text>
           
           {/* AI Status */}
-          <View style={styles.summaryRow}>
+          {/* <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>AI Mode:</Text>
             <View style={styles.aiStatusRow}>
               <Ionicons 
@@ -685,7 +1202,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
                 {isAIEnabled ? "AI Enabled" : "AI Service Unavailable"}
               </Text>
             </View>
-          </View>
+          </View> */}
 
           {/* Streak Counter */}
           {streak > 0 && (
@@ -715,6 +1232,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
               {settings.allowCursing ? 'Allowed' : 'Disabled'}
             </Text>
           </View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -726,6 +1244,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
+  },
+  buildIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 10,
+    borderRadius: 20,
+    gap: 8,
+  },
+  buildText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  testSection: {
+    marginBottom: 32,
+    padding: 16,
+    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(33, 150, 243, 0.3)',
   },
   tabContainer: {
     flexDirection: 'row',
@@ -892,6 +1436,25 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginTop: 20,
+    overflow: 'hidden', // Ensure background image doesn't overflow
+  },
+  summaryBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  summaryImage: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.05, // Semi-transparent for readability
+  },
+  summaryForeground: {
+    position: 'relative',
+    padding: 16,
   },
   summaryTitle: {
     fontSize: 18,
@@ -941,6 +1504,22 @@ const styles = StyleSheet.create({
     color: '#FFD700',
     fontWeight: 'bold',
   },
+  packBadge: {
+    position: 'absolute',
+    top: -16,
+    right: -16,
+    // backgroundColor: 'rgba(22, 0, 0, 0.3)',
+    borderRadius: 6,
+    paddingHorizontal: 3,
+    paddingVertical: 1,
+    minWidth: 24,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  packBadgeIcon: {
+    fontSize: 16,
+    color: '#FFD700',
+  },
   premiumFeatureCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
@@ -986,6 +1565,181 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#4CAF50',
     fontWeight: 'bold',
+  },
+  subscriptionCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  popularSubscriptionCard: {
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+    borderWidth: 2,
+  },
+  badge: {
+    position: 'absolute',
+    top: -8,
+    right: 16,
+    backgroundColor: '#FF6B6B',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    zIndex: 1,
+  },
+  popularBadge: {
+    backgroundColor: '#FFD700',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  subscriptionHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  subscriptionInfo: {
+    flex: 1,
+  },
+  subscriptionName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  popularText: {
+    color: '#FFD700',
+  },
+  subscriptionDescription: {
+    fontSize: 14,
+    color: '#ccc',
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  subscriptionPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginBottom: 8,
+  },
+  subscriptionFeatures: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  featureText: {
+    fontSize: 12,
+    color: '#ccc',
+    marginBottom: 2,
+  },
+  moreFeaturesText: {
+    fontSize: 12,
+    color: '#888',
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+  divider: {
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerText: {
+    backgroundColor: '#1a1a1a',
+    color: '#666',
+    paddingHorizontal: 16,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  packCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  unlockedPackCard: {
+    borderColor: '#4CAF50',
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+  },
+  packHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  packEmoji: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  packInfo: {
+    flex: 1,
+  },
+  packName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  packDescription: {
+    fontSize: 14,
+    color: '#ccc',
+    marginBottom: 4,
+    lineHeight: 18,
+  },
+  packPersonalities: {
+    fontSize: 12,
+    color: '#888',
+  },
+  packPrice: {
+    alignItems: 'center',
+  },
+  debugSection: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+  },
+  debugTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  debugButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'center',
+  },
+  debugButtonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  debugButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    gap: 8,
+    minWidth: 120,
+  },
+  debugButtonPrimary: {
+    backgroundColor: '#4CAF50',
+  },
+  debugButtonSecondary: {
+    backgroundColor: '#FF6B6B',
+  },
+  debugButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

@@ -1,0 +1,52 @@
+# QUICK SETUP GUIDE: App Store Promotional Text
+
+## WHERE TO FIND IT:
+App Store Connect → Your App → App Store → [Current Version] → Promotional Text
+
+## CURRENT RECOMMENDED TEXT:
+"🎉 NEW: Get roasted by 15+ AI personalities! Free tier + chat packs from $3.99. Endless laughs await! 🤖🔥"
+
+## WHY THIS WORKS:
+✅ Highlights unique 15+ personalities (competitive advantage)
+✅ Shows pricing transparency ($3.99 chat packs)
+✅ Creates FOMO with "endless laughs"
+✅ Includes engaging emojis
+✅ Under 170 character limit (89 characters used)
+
+## A/B TESTING IDEAS:
+
+### Version A (Current):
+"🎉 NEW: Get roasted by 15+ AI personalities! Free tier + chat packs from $3.99. Endless laughs await! 🤖🔥"
+
+### Version B (Social Proof):
+"⭐ Join 10,000+ users! Get hilarious AI roasts from witty comedians & savage critics. Free daily chats! 🎭"
+
+### Version C (Urgency):
+"🚨 Limited time: Free personality unlock! Download now & discover unlimited AI roasting fun! 💬"
+
+### Version D (Technical):
+"⚡ Real-time AI chat! Choose from OpenAI, Cohere & Hugging Face. Customizable intensity levels! 🤖"
+
+## ROTATION SCHEDULE:
+- Week 1-2: Launch excitement (Version A)
+- Week 3-4: Social proof (Version B)
+- Week 5-6: Limited offer (Version C)
+- Week 7-8: Technical features (Version D)
+- Then rotate back...
+
+## TRACKING SUCCESS:
+Monitor in App Store Connect:
+- Impressions (how many saw it)
+- Conversion rate (downloads from views)
+- Compare against baseline (no promo text)
+
+## PRO TIPS:
+🎯 Update weekly to keep fresh
+📱 Test on actual devices (looks different on iPhone vs iPad)
+🎨 Use 2-3 emojis max for visual appeal
+📊 Track which versions perform best
+⏰ Time with app updates or holidays
+
+## EMERGENCY BACKUP TEXT:
+If you need to pull promo text quickly:
+"Download Hater AI - The ultimate AI roasting companion! 🤖🔥"

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,8 @@ interface ScreenshotScreenProps {
     params: {
       roastText: string;
       userName?: string;
-      messages?: any[];
+      userPrompt?: string; // Changed from messages array to serializable userPrompt string
+      isForSharing?: boolean;
     };
   };
 }
@@ -28,18 +29,28 @@ interface ScreenshotScreenProps {
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function ScreenshotScreen({ navigation, route }: ScreenshotScreenProps) {
-  const { roastText, userName, messages } = route.params;
-  // Find the user's prompt that led to this roast
-  const [userPrompt, setUserPrompt] = useState<string | null>(null);
+  const { roastText, userName, userPrompt: passedUserPrompt, isForSharing = false } = route.params;
+
+  // Use the passed userPrompt or find it from messages if available
+  const [userPrompt, setUserPrompt] = useState<string | null>(passedUserPrompt || null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [screenshotPath, setScreenshotPath] = useState<string | null>(null);
   const [format, setFormat] = useState<'portrait' | 'landscape'>('portrait');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const screenshotService = ScreenshotService.getInstance();
   const captureRef = useRef<View>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
+    // If we already have a userPrompt from params, use it
+    if (passedUserPrompt) {
+      setUserPrompt(passedUserPrompt);
+      return;
+    }
+
+    // Fallback: try to extract from messages if passed (for camera button compatibility)
     try {
+      const messages = (route.params as any).messages;
       if (!messages || !Array.isArray(messages)) {
         return;
       }
@@ -61,12 +72,36 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
     } catch (e) {
       // Ignore extraction errors; prompt simply won't be shown
     }
-  }, [messages, roastText]);
+  }, [passedUserPrompt, roastText, route.params]);
 
-  const captureScreenshot = async () => {
+  // Auto-capture screenshot when component mounts (especially for sharing)
+  useEffect(() => {
+    if (isForSharing) {
+      // Add a delay to ensure the component has fully rendered and ref is available
+      const timer = setTimeout(() => {
+        if (captureRef.current) {
+          captureScreenshot();
+        } else {
+          // Retry after another delay
+          setTimeout(() => {
+            if (captureRef.current) {
+              captureScreenshot();
+            } else {
+              Alert.alert('Error', 'Screenshot capture failed. Please try again.');
+              setIsCapturing(false);
+            }
+          }, 1000);
+        }
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isForSharing]); // captureScreenshot is now memoized with useCallback
+
+  const captureScreenshot = useCallback(async () => {
     try {
       setIsCapturing(true);
-      
+
       const config: ScreenshotConfig = {
         roastText,
         userName,
@@ -82,19 +117,34 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
       }
 
       const path = await screenshotService.captureChatScreenshot(captureRef, config);
+
       setScreenshotPath(path);
-      
-      Alert.alert(
-        'Success!',
-        'Screenshot captured successfully! You can now save it to your gallery or share it.'
-      );
+
+      // Auto-scroll to bottom to show Save/Share options
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 300);
+
+      // If this is for sharing, automatically trigger the share process
+      if (isForSharing) {
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          shareScreenshot();
+        }, 800); // Increased delay to allow scroll to complete first
+      } else {
+        Alert.alert(
+          'Success!',
+          'Screenshot captured successfully! You can now save it to your gallery or share it.'
+        );
+      }
 
     } catch (error) {
+      console.error('💥 Screenshot capture error:', error);
       Alert.alert('Error', 'Failed to capture screenshot. Please try again.');
     } finally {
       setIsCapturing(false);
     }
-  };
+  }, [roastText, userName, format, theme, isForSharing, screenshotService]);
 
   const saveToGallery = async () => {
     if (!screenshotPath) return;
@@ -118,8 +168,10 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
   };
 
   const shareScreenshot = async () => {
-    if (!screenshotPath) return;
-    
+    if (!screenshotPath) {
+      return;
+    }
+
     try {
       const hook = 'Got roasted by Hater AI 😈';
       const link = 'https://hater.ai';
@@ -155,8 +207,8 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
+    <ScrollView ref={scrollViewRef} style={styles.container}>
+      {/* <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -165,66 +217,86 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
         </TouchableOpacity>
         <Text style={styles.title}>Screenshot Tweet</Text>
         <View style={styles.placeholder} />
-      </View>
+      </View> */}
 
       <View style={styles.content}>
-        {/* Screenshot Preview */}
-        <View style={styles.previewSection}>
-          <Text style={styles.sectionTitle}>Screenshot Preview</Text>
-          <View style={styles.previewContainer}>
-            {/* Capture wrapper: dynamic size equals text bubble + padding */}
-            <View
-              ref={captureRef}
-              style={[
-                styles.captureWrapper,
-                theme === 'dark' ? styles.darkTheme : styles.lightTheme
-              ]}
-            >
-              {userPrompt ? (
-                <View style={styles.messageContainer}>
-                  <View style={styles.userMessage}>
-                    <Text style={styles.userText}>
-                      {userPrompt}
-                    </Text>
-                  </View>
-                </View>
-              ) : null}
-              <View style={styles.messageContainer}>
-                <View style={styles.aiMessage}>
-                  <Text style={styles.aiText}>
-                    {roastText}
-                  </Text>
-                </View>
+        {/* Title for sharing mode */}
+        {isForSharing && (
+          <View style={styles.shareTitleContainer}>
+            <Text style={styles.shareTitle}>Share Your Roast</Text>
+          </View>
+        )}
+
+        {/* Capture View - always rendered for screenshot functionality */}
+        <View
+          ref={captureRef}
+          style={[
+            styles.captureWrapper,
+            theme === 'dark' ? styles.darkTheme : styles.lightTheme,
+            isForSharing && styles.hidden // Hide visually in sharing mode
+          ]}
+        >
+          {userPrompt ? (
+            <View style={styles.messageContainer}>
+              <View style={styles.userMessage}>
+                <Text style={styles.userText}>
+                  {userPrompt}
+                </Text>
               </View>
             </View>
-
-            {/* Keep branding visible in the preview area below, but not captured */}
-            <View style={styles.brandingStatic}>
-              <View style={styles.brandingContent}>
-                <Image source={require('../../assets/icon.png')} style={{width: 24, height: 24}}/>
-                <Text style={styles.appName}>Hater AI</Text>
-              </View>
+          ) : null}
+          <View style={styles.messageContainer}>
+            <View style={styles.aiMessage}>
+              <Text style={styles.aiText}>
+                {roastText}
+              </Text>
             </View>
           </View>
         </View>
 
+        {/* Screenshot Preview - only show in manual mode */}
+        {!isForSharing && (
+          <View style={styles.previewSection}>
+            <Text style={styles.sectionTitle}>Screenshot Preview</Text>
+            <View style={styles.previewContainer}>
+              {/* The capture View is rendered above, so we just show branding here */}
+              <View style={styles.brandingStatic}>
+                <View style={styles.brandingContent}>
+                  <Image source={require('../../assets/icon.png')} style={{width: 24, height: 24}}/>
+                  <Text style={styles.appName}>Hater AI</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
 
 
-        {/* Capture Button */}
-        <TouchableOpacity
-          style={[styles.captureButton, isCapturing && styles.captureButtonDisabled]}
-          onPress={captureScreenshot}
-          disabled={isCapturing}
-        >
-          {isCapturing ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
+
+        {/* Capture Button - only show in manual mode */}
+        {!isForSharing && (
+          <TouchableOpacity
+            style={[styles.captureButton, isCapturing && styles.captureButtonDisabled]}
+            onPress={captureScreenshot}
+            disabled={isCapturing}
+          >
+            {isCapturing ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
             <>
-              <Ionicons name="camera" size={24} color="#FFFFFF" />
-              <Text style={styles.captureButtonText}>Capture Screenshot</Text>
+              <Ionicons name="share-social" size={24} color="#FFFFFF" />
+              <Text style={styles.captureButtonText}>Share Screenshot</Text>
             </>
-          )}
-        </TouchableOpacity>
+            )}
+          </TouchableOpacity>
+        )}
+
+        {/* Auto-capture loading state for sharing mode */}
+        {isForSharing && isCapturing && (
+          <View style={styles.autoCaptureContainer}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <Text style={styles.autoCaptureText}>Capturing screenshot...</Text>
+          </View>
+        )}
 
         {/* Share Options */}
         {screenshotPath && (
@@ -569,7 +641,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4ECDC4',
+    backgroundColor: '#4CAF50', // Share button green
     padding: 16,
     borderRadius: 12,
     marginBottom: 20,
@@ -609,5 +681,32 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginLeft: 8,
+  },
+  autoCaptureContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  autoCaptureText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  shareTitleContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  shareTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  hidden: {
+    opacity: 0,
+    position: 'absolute',
+    top: -1000, // Move off-screen but keep in layout
+    left: -1000,
   },
 }); 

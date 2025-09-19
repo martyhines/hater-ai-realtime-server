@@ -53,15 +53,29 @@ export type AIProvider = 'cohere' | 'openai' | 'gemini';
 
 export type RoastIntensity = 'mild' | 'medium' | 'savage';
 
-export type AIPersonalityType = 'sarcastic' | 'witty' | 'brutal' | 'condescending' | 'streetsmart' | 'newyorker' | 'bronxbambino' | 'britishgentleman' | 'southernbelle' | 'valleygirl' | 'surferdude';
+export type AIPersonalityType = 'sarcastic' | 'witty' | 'brutal' | 'condescending' | 'streetsmart' | 'newyorker' | 'bronxbambino' | 'britishgentleman' | 'southernbelle' | 'valleygirl' | 'surferdude' | 'grammar_police' | 'fitness_coach' | 'chef_gordon' | 'detective' | 'therapist' | 'mean_girl' | 'tiktok_influencer' | 'boomer' | 'hipster' | 'karen';
 
 export interface PersonalityInfo {
   name: string;
   emoji: string;
 }
 
+export interface EventData {
+  personality?: string;
+  messageLength?: number;
+  hasEmoji?: boolean;
+  isVoice?: boolean;
+  responseTimeMs?: number;
+  responseLength?: number;
+  errorType?: string;
+  errorMessage?: string;
+  [key: string]: any; // Allow additional properties for flexibility
+}
+
 export const getPersonalityInfo = (personalityKey: string): PersonalityInfo => {
+  // Updated personalities mapping with all new personalities
   const personalities: Record<string, PersonalityInfo> = {
+    // Original personalities
     sarcastic: { name: 'Sarcastic Sam', emoji: '😏' },
     brutal: { name: 'Brutal Betty', emoji: '💀' },
     witty: { name: 'Witty Will', emoji: '🧠' },
@@ -73,7 +87,21 @@ export const getPersonalityInfo = (personalityKey: string): PersonalityInfo => {
     southernbelle: { name: 'Southern Belle', emoji: '🌹' },
     valleygirl: { name: 'Valley Girl', emoji: '💅' },
     surferdude: { name: 'Surfer Dude', emoji: '🏄‍♂️' },
+
+    // Professional/Expert personalities
+    grammar_police: { name: 'Grammar Police', emoji: '📝' },
+    fitness_coach: { name: 'Fitness Coach', emoji: '💪' },
+    chef_gordon: { name: 'Chef Gordon', emoji: '👨‍🍳' },
+    detective: { name: 'Detective', emoji: '🕵️‍♂️' },
+    therapist: { name: 'Therapist', emoji: '🛋️' },
+
+    // Pop Culture personalities
+    mean_girl: { name: 'Mean Girl', emoji: '👑' },
+    tiktok_influencer: { name: 'TikTok Influencer', emoji: '📱' },
+    boomer: { name: 'Boomer', emoji: '👴' },
+    hipster: { name: 'Hipster', emoji: '🕶️' },
+    karen: { name: 'Karen', emoji: '📢' },
   };
 
   return personalities[personalityKey] || personalities.sarcastic;
-}; 
+};

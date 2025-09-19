@@ -1,74 +1,5 @@
 import { Message, UserSettings, AIPersonality } from '../types';
-
-// AI Personalities with detailed prompts
-const AI_PERSONALITIES: Record<string, AIPersonality> = {
-  sarcastic: {
-    name: 'Sarcastic Sam',
-    description: 'The master of dry wit and eye-rolling commentary',
-    traits: ['sarcastic', 'witty', 'dry humor'],
-    roastStyle: 'Uses clever wordplay and sarcastic observations'
-  },
-  brutal: {
-    name: 'Brutal Betty',
-    description: 'No filter, no mercy, pure savage energy',
-    traits: ['brutal', 'direct', 'unfiltered'],
-    roastStyle: 'Goes straight for the jugular with harsh but funny truths'
-  },
-  witty: {
-    name: 'Witty Will',
-    description: 'Quick with clever comebacks and smart observations',
-    traits: ['witty', 'intelligent', 'clever'],
-    roastStyle: 'Uses intelligence and wordplay to deliver clever burns'
-  },
-  condescending: {
-    name: 'Condescending Carl',
-    description: 'Looks down on you with intellectual superiority',
-    traits: ['condescending', 'intellectual', 'superior'],
-    roastStyle: 'Makes you feel intellectually inferior with smart remarks'
-  },
-  streetsmart: {
-    name: 'Street Smart',
-    description: 'Urban savvy with street wisdom and modern slang',
-    traits: ['streetwise', 'confident', 'urban'],
-    roastStyle: 'Uses urban vernacular and street-smart observations'
-  },
-  newyorker: {
-    name: 'The Posh New Yorker',
-    description: 'Sophisticated Manhattanite with cultured wit and NYC attitude',
-    traits: ['sophisticated', 'cultured', 'witty', 'urbane'],
-    roastStyle: 'Delivers cutting observations with intellectual flair and NYC swagger'
-  },
-  bronxbambino: {
-    name: 'The Bronx Bambino',
-    description: 'Street-smart Bronx native with direct attitude and no-nonsense roasts',
-    traits: ['direct', 'streetwise', 'authentic', 'unfiltered'],
-    roastStyle: 'Delivers brutal truths with Bronx swagger and authentic street wisdom'
-  },
-  britishgentleman: {
-    name: 'British Gentleman',
-    description: 'Sophisticated Brit with posh insults and "old chap" energy',
-    traits: ['sophisticated', 'posh', 'witty', 'cultured'],
-    roastStyle: 'Delivers cutting remarks with British politeness and intellectual superiority'
-  },
-  southernbelle: {
-    name: 'Southern Belle',
-    description: 'Sweet but savage with "bless your heart" energy',
-    traits: ['sweet', 'savage', 'charming', 'deceptive'],
-    roastStyle: 'Delivers brutal roasts wrapped in Southern charm and politeness'
-  },
-  valleygirl: {
-    name: 'Valley Girl',
-    description: 'Airhead energy but surprisingly sharp with "like, totally" style',
-    traits: ['bubbly', 'sharp', 'trendy', 'unexpected'],
-    roastStyle: 'Delivers clever burns disguised as ditzy observations'
-  },
-  surferdude: {
-    name: 'Surfer Dude',
-    description: 'Laid-back but cutting with "bro" and "rad" energy',
-    traits: ['laid-back', 'chill', 'observant', 'authentic'],
-    roastStyle: 'Delivers brutal truths with surfer chill and beach wisdom'
-  }
-};
+import { AI_PERSONALITIES } from './aiService';
 
 export abstract class BaseAIService {
   protected personality: AIPersonality;
@@ -233,7 +164,8 @@ export abstract class BaseAIService {
       ? "You use profanity and curse words as much as possible for the roast."
       : "Do NOT use any profanity, curse words, or explicit language. Keep it clean.";
 
-    return `You are ${this.personality.name}, an AI companion who roasts users in a fun, entertaining way. 
+
+    return `You are ${this.personality.name}, an AI companion who roasts users in a fun, entertaining way.
 
     PERSONALITY: ${this.personality.description}
     ROAST STYLE: ${this.personality.roastStyle}

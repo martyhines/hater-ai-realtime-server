@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -44,8 +45,16 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     navigation.navigate('Settings');
   };
 
+  const handlePremium = () => {
+    navigation.navigate('Settings', { initialTab: 'premium' });
+  };
+
   const handleNavigateToPersonalitySettings = () => {
     navigation.navigate('Settings', { initialTab: 'personalities' });
+  };
+
+  const handleInsights = () => {
+    navigation.navigate('Insights');
   };
 
   const handleNavigateToIntensitySettings = () => {
@@ -170,10 +179,15 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Hater AI</Text>
-            <Text style={styles.subtitle}>Shade Throwing At Its Finest</Text>
-          </View>
+          {/* <View style={styles.header}>
+            <Image
+              source={require('../../assets/images/roasterBase.png')}
+              style={styles.headerImage}
+              resizeMode="contain"
+            /> */}
+            {/* <Text style={styles.title}>Hater AI</Text>
+            <Text style={styles.subtitle}>Shade Throwing At Its Finest</Text> */}
+          {/* </View> */}
           {/* Main Action Button */}
           <TouchableOpacity
             style={styles.startButton}
@@ -188,14 +202,35 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.startButtonText}>Start Chatting</Text>
             </LinearGradient>
           </TouchableOpacity>
-          {/* Settings Button */}
+          {/* Settings and Premium Buttons Row */}
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.settingsButton}
+              onPress={handleSettings}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="settings-outline" size={24} color="#fff" />
+              <Text style={styles.settingsButtonText}>Settings</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.premiumButton}
+              onPress={handlePremium}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="diamond" size={24} color="#FFD700" />
+              <Text style={styles.premiumButtonText}>Premium</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Insights Button */}
           <TouchableOpacity
-            style={styles.settingsButton}
-            onPress={handleSettings}
+            style={styles.insightsButton}
+            onPress={handleInsights}
             activeOpacity={0.7}
           >
-            <Ionicons name="settings-outline" size={24} color="#fff" />
-            <Text style={styles.settingsButtonText}>Settings</Text>
+            <Ionicons name="analytics" size={24} color="#fff" />
+            <Text style={styles.insightsButtonText}>Your Insights</Text>
           </TouchableOpacity>
 
           {/* Voice Settings Button */}
@@ -210,7 +245,15 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
           {/* Current Settings Card */}
           <View style={styles.settingsCard}>
-            <Text style={styles.cardTitle}>Current Setup</Text>
+            <View style={styles.cardBackground}>
+              <Image
+                source={require('../../assets/images/roasterBase.png')}
+                style={styles.cardImage}
+                resizeMode="cover"
+              />
+            </View>
+            <View style={styles.cardForeground}>
+              {/* <Text style={styles.cardTitle}>Current Setup</Text> */}
             
             {/* Streak Counter */}
             {streak > 0 && (
@@ -283,6 +326,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               </View>
               <Ionicons name="chevron-forward" size={20} color="#666" />
             </TouchableOpacity>
+            </View>
           </View>
 
           {/* Voice Settings Button */}
@@ -422,8 +466,6 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 20,
-    marginTop: 20,
   },
   title: {
     fontSize: 36,
@@ -436,6 +478,11 @@ const styles = StyleSheet.create({
     color: '#ccc',
     textAlign: 'center',
   },
+  headerImage: {
+    width: 120,
+    height: 120,
+    marginBottom: 16,
+  },
   settingsCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 16,
@@ -443,6 +490,24 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+    overflow: 'hidden',
+  },
+  cardBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.05, // Very subtle for readability
+  },
+  cardForeground: {
+    position: 'relative',
   },
   cardTitle: {
     fontSize: 18,
@@ -597,19 +662,60 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
   settingsButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  premiumButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+  },
+  settingsButtonText: {
+    fontSize: 16,
+    color: '#fff',
+    marginLeft: 8,
+    fontWeight: '600',
+  },
+  premiumButtonText: {
+    fontSize: 16,
+    color: '#FFD700',
+    marginLeft: 8,
+    fontWeight: '600',
+  },
+  insightsButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
     paddingHorizontal: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(76, 175, 80, 0.2)', // Green tint for analytics
     borderRadius: 12,
     borderWidth: 1,
     marginBottom: 12,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(76, 175, 80, 0.3)',
   },
-  settingsButtonText: {
+  insightsButtonText: {
     fontSize: 16,
     color: '#fff',
     marginLeft: 8,

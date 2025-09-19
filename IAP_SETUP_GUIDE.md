@@ -20,9 +20,11 @@ Your app uses the following product IDs that must be configured in both stores:
 
 ### Premium Features
 - `allow_cursing` - Allow Cursing ($2.99)
-- `unlimited_roasts` - Unlimited Roasts ($4.99)
-- `custom_personalities` - Custom Personalities ($3.99)
-- `voice_roasts` - Voice Roasts ($1.99)
+- `unlimited_roasts` - Unlimited Roasts ($9.99)
+
+### Chat Packs (Consumable)
+- `chat_pack_20` - 20 Chat Pack ($3.99)
+- `chat_pack_50` - 50 Chat Pack ($6.99)
 
 ## 🍎 iOS App Store Connect Setup
 
@@ -37,7 +39,9 @@ Your app uses the following product IDs that must be configured in both stores:
 
 For each product ID above:
 
-1. **Product Type**: Select "Non-Consumable" (for packs/personalities) or "Consumable" (for features)
+1. **Product Type**:
+   - "Non-Consumable" (for personality packs and premium features)
+   - "Consumable" (for chat packs - can be purchased multiple times)
 2. **Product ID**: Use the exact ID from the list above
 3. **Reference Name**: Use a friendly name (e.g., "Cultural Regional Pack")
 4. **Price**: Set the price according to the pricing above

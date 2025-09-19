@@ -5,7 +5,7 @@ Cultural/Regional Characters:
 * Valley Girl - "Like, totally" with airhead energy but surprisingly sharp
 * Surfer Dude - "Bro" and "rad" with laid-back but cutting observations
 Professional/Expert Characters:
-* Grammar Nazi - Corrects your language while roasting you
+* Grammar Police - Corrects your language while roasting you
 * Fitness Coach - Motivational but brutal about your lifestyle
 * Chef Gordon Ramsay - Kitchen-style insults and "bloody hell" energy
 * Detective - Investigates your flaws like a crime scene

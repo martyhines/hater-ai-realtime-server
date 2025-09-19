@@ -1,6 +1,7 @@
 import { Alert } from 'react-native';
 import { StorageService } from './storageService';
 import { IAPService } from './iapService';
+import AuthService from './authService';
 
 export interface PremiumFeature {
   id: string;
@@ -15,8 +16,11 @@ export interface PremiumSubscription {
   id: string;
   name: string;
   price: number;
-  duration: 'month' | 'year';
+  duration: 'month' | 'year' | 'lifetime';
   features: string[];
+  description: string;
+  badge?: string;
+  popular?: boolean;
 }
 
 export interface PersonalityPack {
@@ -66,27 +70,19 @@ export class PremiumService {
         isUnlocked: false,
       },
       {
-        id: 'unlimited_roasts',
-        name: 'Unlimited Roasts',
-        description: 'Remove daily roast limits',
-        price: 4.99,
-        icon: '⚡',
-        isUnlocked: false,
-      },
-      {
-        id: 'custom_personalities',
-        name: 'Custom Personalities',
-        description: 'Create your own AI personality',
+        id: 'chat_pack_20',
+        name: '20 Chat Pack',
+        description: 'Get 20 additional chats to use anytime',
         price: 3.99,
-        icon: '🎭',
+        icon: '💬',
         isUnlocked: false,
       },
       {
-        id: 'voice_roasts',
-        name: 'Voice Roasts',
-        description: 'Hear your AI enemy speak the roasts',
-        price: 1.99,
-        icon: '🎤',
+        id: 'chat_pack_50',
+        name: '50 Chat Pack',
+        description: 'Get 50 additional chats to use anytime',
+        price: 6.99,
+        icon: '💬',
         isUnlocked: false,
       },
     ];
@@ -98,26 +94,60 @@ export class PremiumService {
   getSubscriptionPlans(): PremiumSubscription[] {
     return [
       {
-        id: 'basic',
+        id: 'basic_monthly',
         name: 'Basic Premium',
         price: 4.99,
         duration: 'month',
-        features: ['allow_cursing', 'voice_roasts'],
+        description: 'Unlock all 16 premium AI personalities from our Cultural, Professional, and Pop Culture packs',
+        features: [
+          'all_premium_personalities',
+          'allow_cursing',
+          'priority_support',
+          'monthly_insights'
+        ],
+        badge: 'Most Popular'
       },
       {
-        id: 'pro',
+        id: 'pro_monthly',
         name: 'Pro Premium',
         price: 9.99,
         duration: 'month',
-        features: ['allow_cursing', 'unlimited_roasts', 'custom_personalities', 'voice_roasts'],
+        description: 'Complete premium experience with unlimited chats and advanced features',
+        features: [
+          'all_basic_features',
+          'advanced_analytics',
+          'unlimited_chats'
+        ],
+        badge: 'Best Value',
+        popular: true
       },
       {
-        id: 'yearly_pro',
+        id: 'pro_yearly',
         name: 'Pro Premium (Yearly)',
         price: 99.99,
         duration: 'year',
-        features: ['allow_cursing', 'unlimited_roasts', 'custom_personalities', 'voice_roasts'],
+        description: 'Save 17% with annual Pro subscription and unlimited chats',
+        features: [
+          'all_basic_features',
+          'advanced_analytics',
+          'unlimited_chats'
+        ],
+        badge: 'Save 17%'
       },
+      {
+        id: 'lifetime',
+        name: 'Lifetime Pro',
+        price: 199.99,
+        duration: 'lifetime',
+        description: 'One-time payment, lifetime access with unlimited chats',
+        features: [
+          'all_basic_features',
+          'advanced_analytics',
+          'unlimited_chats',
+          'lifetime_support'
+        ],
+        badge: 'Lifetime'
+      }
     ];
   }
 
@@ -153,7 +183,9 @@ export class PremiumService {
       const iapService = IAPService.getInstance();
 
       // Check if IAP is available
-      if (!iapService.isAvailable()) {
+      const isIapAvailable = iapService.isAvailable();
+
+      if (!isIapAvailable) {
         const status = iapService.getAvailabilityStatus();
 
         // Offer to simulate the purchase for testing
@@ -182,6 +214,16 @@ export class PremiumService {
 
       // Purchase the feature
       const success = await iapService.purchaseProduct(featureId);
+
+      // If purchase was successful and it's a chat pack, credit the chats
+      if (success && featureId.startsWith('chat_pack_')) {
+        const packSize = featureId === 'chat_pack_20' ? 20 : featureId === 'chat_pack_50' ? 50 : 0;
+        if (packSize > 0) {
+          const storage = (await import('./storageService')).StorageService.getInstance();
+          await (storage as any).addChatPack(packSize);
+        }
+      }
+
       return success;
     } catch (error) {
       Alert.alert('Purchase Failed', 'An error occurred during purchase.');
@@ -199,40 +241,133 @@ export class PremiumService {
         throw new Error('Subscription plan not found');
       }
 
-      // Show purchase confirmation
-      const confirmed = await this.showSubscriptionConfirmation(plan);
-      if (!confirmed) {
+      // Use real IAP for payment (when available)
+      const iapService = IAPService.getInstance();
+
+      if (!iapService.isAvailable()) {
+        const status = iapService.getAvailabilityStatus();
+
+        // Offer to simulate the purchase for testing
+        const confirmed = await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            'IAP Not Available',
+            `${status.reason}\n\nWould you like to simulate this subscription for testing purposes?`,
+            [
+              { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+              {
+                text: 'Simulate',
+                onPress: () => resolve(true)
+              }
+            ]
+          );
+        });
+
+        if (!confirmed) return false;
+
+        // Simulate the subscription purchase
+        return await this.simulateSubscription(planId);
+      }
+
+      // Initialize IAP if needed
+      const initialized = await iapService.initialize();
+      if (!initialized) {
+        Alert.alert('Initialization Failed', 'Unable to initialize payment system. Please try again.');
         return false;
       }
 
-      // Simulate payment processing
-      const paymentSuccess = await this.processPayment(plan.price);
-      if (!paymentSuccess) {
-        Alert.alert('Payment Failed', 'Unable to process payment. Please try again.');
-        return false;
+      // Purchase the subscription
+      const productId = `subscription_${planId}`;
+      const success = await iapService.purchaseProduct(productId);
+
+      if (success) {
+        // Activate the subscription
+        await this.activateSubscription(plan);
       }
 
+      return success;
+    } catch (error) {
+      Alert.alert('Purchase Failed', 'An error occurred during purchase.');
+      return false;
+    }
+  }
+
+  /**
+   * Activate a subscription plan
+   */
+  private async activateSubscription(plan: PremiumSubscription): Promise<void> {
+    try {
       // Unlock all features in the plan
       for (const featureId of plan.features) {
-        await this.unlockFeature(featureId);
+        // Handle feature unlocking based on feature type
+        if (featureId === 'all_premium_personalities') {
+          // Unlock all premium personalities (newyorker, bronxbambino, britishgentleman, southernbelle, valleygirl, surferdude)
+          const premiumPersonalities = ['newyorker', 'bronxbambino', 'britishgentleman', 'southernbelle', 'valleygirl', 'surferdude'];
+
+          for (const personalityId of premiumPersonalities) {
+            await this.unlockPersonality(personalityId);
+          }
+
+          // Also unlock personalities from packs for completeness
+          const packPersonalities = this.getPersonalityPacks().flatMap(pack => pack.personalities);
+
+          for (const personalityId of packPersonalities) {
+            await this.unlockPersonality(personalityId);
+          }
+        } else if (featureId === 'all_basic_features') {
+          // Unlock basic features
+          const basicFeatures = ['allow_cursing', 'priority_support', 'monthly_insights'];
+          for (const featureId of basicFeatures) {
+            await this.unlockFeature(featureId);
+          }
+        } else if (featureId === 'advanced_analytics') {
+          // Unlock analytics features
+          await this.unlockFeature('advanced_analytics');
+        } else if (featureId === 'lifetime_support') {
+          // Lifetime support (just a feature flag)
+          await this.unlockFeature('lifetime_support');
+        } else {
+          // Regular feature
+          await this.unlockFeature(featureId);
+        }
       }
 
       // Set subscription status
+      const endDate = plan.duration === 'lifetime' ? null : this.calculateEndDate(plan.duration);
       await this.storage.setSubscriptionStatus({
         planId: plan.id,
         startDate: new Date().toISOString(),
-        endDate: this.calculateEndDate(plan.duration),
+        endDate: endDate,
         isActive: true,
       });
 
+      } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Simulate subscription purchase for testing
+   */
+  private async simulateSubscription(planId: string): Promise<boolean> {
+    try {
+      const plan = this.getSubscriptionPlans().find(p => p.id === planId);
+      if (!plan) {
+        return false;
+      }
+      // Activate the subscription
+      await this.activateSubscription(plan);
+      // Check what was actually saved
+      const savedPersonalities = await this.storage.getUnlockedPersonalities();
+
       Alert.alert(
-        'Subscription Active!',
-        `${plan.name} has been activated with all premium features!`,
-        [{ text: 'OK' }]
-        );
+        'Subscription Simulated! 🎉',
+        `${plan.name} has been activated! You now have access to all premium features.`,
+        [{ text: 'Awesome!' }]
+      );
+
       return true;
     } catch (error) {
-      Alert.alert('Purchase Failed', 'An error occurred during purchase.');
+      Alert.alert('Simulation Failed', 'Failed to simulate subscription');
       return false;
     }
   }
@@ -280,6 +415,16 @@ export class PremiumService {
       if (!unlockedFeatures.includes(featureId)) {
         unlockedFeatures.push(featureId);
         await this.storage.setUnlockedFeatures(unlockedFeatures);
+
+        // Also save to Supabase for authenticated users
+        try {
+          const authService = AuthService.getInstance();
+          if (authService.isSignedIn()) {
+            await authService.unlockPremiumFeature(featureId);
+          }
+        } catch (error) {
+          // Don't throw - local storage is still successful
+        }
       }
     } catch (error) {
       throw error;
@@ -349,7 +494,7 @@ export class PremiumService {
         name: 'Cultural/Regional Characters',
         description: 'Experience roasts from around the world with authentic regional personalities',
         price: 7.99,
-        personalities: ['britishgentleman', 'southernbelle', 'valleygirl', 'surferdude', 'bronxbambino'],
+        personalities: ['britishgentleman', 'southernbelle', 'valleygirl', 'surferdude', 'bronxbambino', 'newyorker'],
         icon: '🌍',
         isUnlocked: false,
       },
@@ -358,7 +503,7 @@ export class PremiumService {
         name: 'Professional/Expert Characters',
         description: 'Get roasted by experts in their fields with professional-grade insults',
         price: 7.99,
-        personalities: ['grammarnazi', 'fitnesscoach', 'chefgordon', 'detective', 'therapist'],
+        personalities: ['grammar_police', 'fitness_coach', 'chef_gordon', 'detective', 'therapist'],
         icon: '💼',
         isUnlocked: false,
       },
@@ -367,7 +512,7 @@ export class PremiumService {
         name: 'Pop Culture Characters',
         description: 'Roasts from your favorite pop culture personalities and trends',
         price: 7.99,
-        personalities: ['meangirl', 'tiktokinfluencer', 'boomer', 'hipster', 'karen'],
+        personalities: ['mean_girl', 'tiktok_influencer', 'boomer', 'hipster', 'karen'],
         icon: '📱',
         isUnlocked: false,
       },
@@ -530,9 +675,20 @@ export class PremiumService {
   private async unlockPersonality(personalityId: string): Promise<void> {
     try {
       const unlockedPersonalities = await this.storage.getUnlockedPersonalities();
+
       if (!unlockedPersonalities.includes(personalityId)) {
         unlockedPersonalities.push(personalityId);
         await this.storage.setUnlockedPersonalities(unlockedPersonalities);
+
+        // Also save to Supabase for authenticated users
+        try {
+          const authService = AuthService.getInstance();
+          if (authService.isSignedIn()) {
+            await authService.unlockPremiumFeature(`personality_${personalityId}`);
+          }
+        } catch (error) {
+          // Don't throw - local storage is still successful
+        }
       }
     } catch (error) {
       throw error;
@@ -594,30 +750,25 @@ export class PremiumService {
       }
 
       if (itemType === 'feature') {
-        // Unlock the feature
-        const unlockedFeatures = await this.getUnlockedFeatures();
-        if (!unlockedFeatures.includes(itemId)) {
-          unlockedFeatures.push(itemId);
-          await this.storage.setUnlockedFeatures(unlockedFeatures);
-        }
+        // Unlock the feature using the proper method (saves to both local and Supabase)
+        await this.unlockFeature(itemId);
       } else if (itemType === 'pack') {
         // Unlock all personalities in the pack
         const pack = this.getPersonalityPacks().find(p => p.id === itemId);
         if (pack) {
-          const unlockedPersonalities = await this.getUnlockedPersonalities();
           for (const personalityId of pack.personalities) {
-            if (!unlockedPersonalities.includes(personalityId)) {
-              unlockedPersonalities.push(personalityId);
-            }
+            await this.unlockPersonality(personalityId);
           }
-          await this.storage.setUnlockedPersonalities(unlockedPersonalities);
         }
       } else if (itemType === 'personality') {
-        // Unlock the personality
-        const unlockedPersonalities = await this.getUnlockedPersonalities();
-        if (!unlockedPersonalities.includes(itemId)) {
-          unlockedPersonalities.push(itemId);
-          await this.storage.setUnlockedPersonalities(unlockedPersonalities);
+        // Unlock the personality using the proper method (saves to both local and Supabase)
+        await this.unlockPersonality(itemId);
+      } else if (itemType === 'feature' && itemId.startsWith('chat_pack_')) {
+        // Handle chat pack purchases
+        const packSize = itemId === 'chat_pack_20' ? 20 : itemId === 'chat_pack_50' ? 50 : 0;
+        if (packSize > 0) {
+          const storage = (await import('./storageService')).StorageService.getInstance();
+          await (storage as any).addChatPack(packSize);
         }
       }
 

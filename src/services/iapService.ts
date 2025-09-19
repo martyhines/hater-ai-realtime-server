@@ -102,9 +102,18 @@ export class IAPService {
       }
 
       const productIds = getAllProductIds();
+
       const products = await getProducts({ skus: productIds });
 
-      return products.map((product: Product) => ({
+      if (products.length === 0) {
+        console.warn('⚠️ IAP: No products received from App Store. This could mean:');
+        console.warn('   - IAP products are not approved yet');
+        console.warn('   - Product IDs don\'t match exactly');
+        console.warn('   - Bundle ID doesn\'t match');
+        console.warn('   - App hasn\'t been submitted for review');
+      }
+
+      const mappedProducts = products.map((product: Product) => ({
         productId: product.productId,
         price: product.price,
         currency: product.currency,
@@ -112,7 +121,17 @@ export class IAPService {
         description: product.description,
         type: getProductType(product.productId),
       }));
+
+      return mappedProducts;
+
     } catch (error) {
+      console.error('❌ IAP: Error fetching products from App Store:', error);
+      console.error('❌ IAP: Full error details:', {
+        message: error.message,
+        code: error.code,
+        productId: error.productId,
+        stack: error.stack
+      });
       return [];
     }
   }
@@ -122,14 +141,34 @@ export class IAPService {
    */
   async purchaseProduct(productId: string): Promise<boolean> {
     try {
+
       if (!this.isInitialized) {
         await this.initialize();
       }
 
+      // First, let's check if the product is available
+      const products = await this.getAvailableProducts();
+      const productExists = products.some(p => p.productId === productId);
+
+      if (!productExists) {
+        console.error(`❌ IAP: Product ${productId} not found in available products!`);
+
+        // Let's also check the raw product IDs from config
+        const { getAllProductIds } = await import('../config/iapProducts');
+        const allConfiguredIds = getAllProductIds();
+
+        return false;
+      }
+
       // Request the purchase
       const purchase = await requestPurchase({ sku: productId });
+
+      // Note: The actual success/failure will be handled by the purchase listeners
+      // We return true here because the purchase request was successful
       return true;
+
     } catch (error) {
+      console.error(`❌ IAP: Purchase failed with error:`, error);
       this.handlePurchaseError(error as PurchaseError);
       return false;
     }
@@ -141,11 +180,19 @@ export class IAPService {
   private async handleSuccessfulPurchase(purchase: Purchase): Promise<void> {
     try {
       const productId = purchase.productId;
+      console.log(`✅ IAP: Purchase successful for product: ${productId}`, {
+        transactionId: purchase.transactionId,
+        purchaseTime: purchase.transactionDate,
+        receipt: purchase.transactionReceipt ? 'Present' : 'Missing'
+      });
+
       // Determine what was purchased and unlock the appropriate content
       if (productId.startsWith('pack_')) {
         await this.unlockPersonalityPack(productId);
       } else if (productId.startsWith('personality_')) {
         await this.unlockIndividualPersonality(productId);
+      } else if (productId.startsWith('chat_pack_')) {
+        await this.unlockPremiumFeature(productId);
       } else {
         await this.unlockPremiumFeature(productId);
       }
@@ -157,21 +204,36 @@ export class IAPService {
         [{ text: 'OK' }]
         );
     } catch (error) {
-      }
+      console.error(`❌ IAP: Error handling successful purchase:`, error);
+    }
   }
 
   /**
    * Handle purchase errors
    */
   private handlePurchaseError(error: PurchaseError): void {
+    console.error(`❌ IAP: Purchase error received:`, {
+      code: error.code,
+      message: error.message,
+      productId: error.productId,
+      fullError: error
+    });
+
     let errorMessage = 'Purchase failed. Please try again.';
-    
+
     if (error.code === 'E_USER_CANCELLED') {
       errorMessage = 'Purchase was cancelled.';
     } else if (error.code === 'E_ITEM_UNAVAILABLE') {
-      errorMessage = 'This item is not available for purchase.';
+      errorMessage = 'This item is not available for purchase. Check that the product ID is configured in App Store Connect.';
+      console.error(`❌ IAP: Product ${error.productId} not available - check App Store Connect configuration`);
     } else if (error.code === 'E_NETWORK_ERROR') {
       errorMessage = 'Network error. Please check your connection.';
+      console.error(`❌ IAP: Network error during purchase`);
+    } else if (error.code === 'E_ALREADY_OWNED') {
+      errorMessage = 'You already own this item.';
+    } else if (error.code === 'E_UNKNOWN') {
+      errorMessage = 'Unknown error occurred. Please try again.';
+      console.error(`❌ IAP: Unknown purchase error:`, error);
     }
 
     Alert.alert('Purchase Failed', errorMessage);
@@ -251,7 +313,31 @@ export class IAPService {
       }
   }
 
+  /**
+   * Check if running in iOS Simulator
+   */
+  private isSimulator(): boolean {
+    // Simple check for iOS simulator - in Expo builds, this is more reliable
+    // Check for simulator by looking for common simulator indicators
+    try {
+      const { Constants } = require('expo-constants');
+      // In Expo, we can check if we're in simulator through device info
+      const isSimulator = Constants.platform?.ios?.model?.includes('Simulator') ||
+                         Constants.deviceName?.includes('Simulator') ||
+                         false;
 
+      // Also check if we have simulator environment
+      const hasSimulatorEnv = typeof process !== 'undefined' &&
+                             (process.env?.SIMULATOR_DEVICE_NAME ||
+                              process.env?.SIMULATOR_ROOT ||
+                              false);
+
+      return isSimulator || hasSimulatorEnv;
+    } catch (error) {
+      // If we can't determine, assume physical device for safety
+      return false;
+    }
+  }
 
   /**
    * Check if IAP is available on this device
@@ -263,10 +349,8 @@ export class IAPService {
     }
 
     // iOS Simulator doesn't support IAPs
-    if (Platform.OS === 'ios' && __DEV__) {
-      // In development, we can try to detect if we're in simulator
-      // This is a simple heuristic - in production this would be more robust
-      return false; // Assume simulator for now
+    if (Platform.OS === 'ios' && this.isSimulator()) {
+      return false;
     }
 
     return true;
@@ -280,7 +364,7 @@ export class IAPService {
       return { available: false, reason: 'IAPs are only available on iOS and Android devices' };
     }
 
-    if (Platform.OS === 'ios' && __DEV__) {
+    if (Platform.OS === 'ios' && this.isSimulator()) {
       return { available: false, reason: 'IAPs are not available in iOS Simulator. Test on physical device or use TestFlight.' };
     }
 

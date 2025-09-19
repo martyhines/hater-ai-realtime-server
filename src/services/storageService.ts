@@ -308,7 +308,9 @@ export class StorageService {
   async getUnlockedPersonalities(): Promise<string[]> {
     try {
       const personalities = await AsyncStorage.getItem('unlocked_personalities');
-      return personalities ? JSON.parse(personalities) : [];
+      const result = personalities ? JSON.parse(personalities) : [];
+
+      return result;
     } catch (error) {
       return [];
     }
@@ -337,6 +339,145 @@ export class StorageService {
 
     } catch (error) {
       throw error;
+    }
+  }
+
+  // Chat usage tracking methods
+  async getChatUsage(): Promise<{ date: string; count: number; packChats: number }> {
+    try {
+      const usage = await AsyncStorage.getItem('chat_usage');
+      const today = new Date().toISOString().split('T')[0];
+
+      if (usage) {
+        const parsed = JSON.parse(usage);
+        // Reset count if it's a new day
+        if (parsed.date !== today) {
+          return { date: today, count: 0, packChats: parsed.packChats || 0 };
+        }
+        return parsed;
+      }
+
+      return { date: today, count: 0, packChats: 0 };
+    } catch (error) {
+      const today = new Date().toISOString().split('T')[0];
+      return { date: today, count: 0, packChats: 0 };
+    }
+  }
+
+  async incrementChatUsage(): Promise<{ date: string; count: number; packChats: number }> {
+    try {
+      const current = await this.getChatUsage();
+      const newCount = current.count + 1;
+      const updated = { ...current, count: newCount };
+
+      await AsyncStorage.setItem('chat_usage', JSON.stringify(updated));
+      return updated;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async addChatPack(amount: number): Promise<void> {
+    try {
+      const current = await this.getChatUsage();
+      const newPackChats = current.packChats + amount;
+      const updated = { ...current, packChats: newPackChats };
+
+      await AsyncStorage.setItem('chat_usage', JSON.stringify(updated));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getRemainingFreeChats(): Promise<number> {
+    try {
+      const usage = await this.getChatUsage();
+      const freeLimit = 7;
+      return Math.max(0, freeLimit - usage.count);
+    } catch (error) {
+      return 7;
+    }
+  }
+
+  async canSendMessage(): Promise<boolean> {
+    try {
+      const usage = await this.getChatUsage();
+      const premiumService = (await import('./premiumService')).PremiumService.getInstance();
+
+      // Check if user has active subscription (unlimited chats)
+      const hasSubscription = await premiumService.hasActiveSubscription();
+
+      if (hasSubscription) {
+        return true;
+      }
+
+      // Check if user has pack chats remaining
+      if (usage.packChats > 0) {
+        return true;
+      }
+
+      // Check free daily limit
+      const remainingFree = await this.getRemainingFreeChats();
+      return remainingFree > 0;
+    } catch (error) {
+      return true; // Allow on error to prevent blocking users
+    }
+  }
+
+  async consumeChatCredit(): Promise<boolean> {
+    try {
+      const usage = await this.getChatUsage();
+      const premiumService = (await import('./premiumService')).PremiumService.getInstance();
+
+      // Check if user has active subscription (unlimited chats)
+      const hasSubscription = await premiumService.hasActiveSubscription();
+
+      if (hasSubscription) {
+        return true; // No need to consume credits
+      }
+
+      // Try to use pack chats first
+      if (usage.packChats > 0) {
+        const updated = { ...usage, packChats: usage.packChats - 1 };
+        await AsyncStorage.setItem('chat_usage', JSON.stringify(updated));
+        return true;
+      }
+
+      // Use free daily chats
+      const remainingFree = await this.getRemainingFreeChats();
+      if (remainingFree > 0) {
+        await this.incrementChatUsage();
+        return true;
+      }
+
+      return false; // No credits available
+    } catch (error) {
+      return true; // Allow on error
+    }
+  }
+
+  // Reset chat usage for testing
+  async resetChatUsage(): Promise<void> {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await AsyncStorage.setItem('chat_usage', JSON.stringify({
+        date: today,
+        count: 0,
+        packChats: 0
+      }));
+      console.log('✅ Chat usage reset successfully');
+    } catch (error) {
+      console.error('❌ Failed to reset chat usage:', error);
+    }
+  }
+
+  // Debug method to check current chat usage
+  async debugChatUsage(): Promise<void> {
+    try {
+      const usage = await this.getChatUsage();
+      console.log('📊 Current chat usage:', usage);
+    } catch (error) {
+      console.error('❌ Failed to debug chat usage:', error);
     }
   }
 } 

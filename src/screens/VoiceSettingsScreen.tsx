@@ -181,6 +181,17 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
           <View style={styles.placeholder} />
         </View>
 
+        {/* Premium Voice Notice */}
+        <View style={styles.noticeCard}>
+          <View style={styles.noticeHeader}>
+            <Ionicons name="information-circle" size={24} color="#FFD700" />
+            <Text style={styles.noticeTitle}>Premium AI Voices Coming Soon!</Text>
+          </View>
+          <Text style={styles.noticeText}>
+            You're currently using basic Siri voices. We're working on premium AI voices with natural, emotive speech powered by advanced AI technology. These will be available as a premium subscription feature.
+          </Text>
+        </View>
+
         {/* Current Settings Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Current Voice</Text>
@@ -208,7 +219,7 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Select Voice</Text>
           <Text style={styles.cardSubtitle}>
-            Choose your preferred Siri voice for AI roasts
+            Basic voice features • Premium AI voices coming soon!
           </Text>
           <View style={styles.pickerContainer}>
             <Picker
@@ -243,7 +254,7 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
         </View>
 
         {/* Realtime Voice (beta) */}
-        <View style={styles.card}>
+        {/* <View style={styles.card}>
           <View style={styles.toggleContainer}>
             <View style={styles.toggleInfo}>
               <Text style={styles.toggleLabel}>Realtime Voice (OpenAI) — Beta</Text>
@@ -262,7 +273,7 @@ export default function VoiceSettingsScreen({ navigation }: VoiceSettingsScreenP
               disabled={!realtimeSupported}
             />
           </View>
-        </View>
+        </View> */}
 
         {/* Voice Parameters */}
         <View style={styles.card}>
@@ -495,5 +506,29 @@ const styles = StyleSheet.create({
   toggleDescription: {
     fontSize: 14,
     color: '#ccc',
+  },
+  noticeCard: {
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+  },
+  noticeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  noticeTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginLeft: 8,
+  },
+  noticeText: {
+    fontSize: 14,
+    color: '#fff',
+    lineHeight: 20,
   },
 }); 

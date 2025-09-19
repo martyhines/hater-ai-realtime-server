@@ -67,8 +67,7 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
           custom: customModels.length > 0,
         });
       } catch (error) {
-        console.error('Error checking existing keys:', error);
-      } finally {
+        } finally {
         setIsLoading(false);
       }
     };
@@ -101,8 +100,7 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
             custom: customModels.length > 0,
           });
         } catch (error) {
-          console.error('Error refreshing existing keys:', error);
-        }
+          }
       };
       refreshExistingKeys();
     });
@@ -201,7 +199,6 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
 
       Alert.alert('Success', `${providerNames[selectedProvider]} API key saved successfully!`);
     } catch (error) {
-      console.error('Error saving API key:', error);
       Alert.alert('Error', 'Failed to save API key. Please try again.');
     } finally {
       setIsValidating(false);
@@ -266,7 +263,6 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
 
               Alert.alert('Success', `${providerNames[provider]} API key deleted successfully!`);
             } catch (error) {
-              console.error('Error deleting API key:', error);
               Alert.alert('Error', 'Failed to delete API key. Please try again.');
             }
           },

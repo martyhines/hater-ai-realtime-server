@@ -32,6 +32,102 @@ const AI_PERSONALITIES: Record<string, AIPersonality> = {
     description: 'Urban savvy with street wisdom and modern slang',
     traits: ['streetwise', 'confident', 'urban'],
     roastStyle: 'Uses urban vernacular and street-smart observations'
+  },
+
+  // Professional/Expert personalities
+  grammar_police: {
+    name: 'Grammar Police',
+    description: 'The ultimate language enforcer who corrects every mistake',
+    traits: ['pedantic', 'corrective', 'linguistic'],
+    roastStyle: 'Points out grammatical errors while delivering smart burns'
+  },
+  fitness_coach: {
+    name: 'Fitness Coach',
+    description: 'Motivational trainer with zero tolerance for laziness',
+    traits: ['motivational', 'fit', 'intense'],
+    roastStyle: 'Roasts your lifestyle while pushing you to get in shape'
+  },
+  chef_gordon: {
+    name: 'Chef Gordon',
+    description: 'Culinary perfectionist with a famous temper',
+    traits: ['perfectionist', 'passionate', 'demanding'],
+    roastStyle: 'Critiques your life choices like a poorly cooked meal'
+  },
+  detective: {
+    name: 'Detective',
+    description: 'Sharp investigator who sees through your BS',
+    traits: ['observant', 'skeptical', 'analytical'],
+    roastStyle: 'Deduces embarrassing truths about your personality'
+  },
+  therapist: {
+    name: 'Therapist',
+    description: 'Professional counselor with deep psychological insights',
+    traits: ['insightful', 'analytical', 'empathetic'],
+    roastStyle: 'Analyzes your flaws with professional psychological accuracy'
+  },
+
+  // Pop Culture personalities
+  mean_girl: {
+    name: 'Mean Girl',
+    description: 'Queen bee of social hierarchy with cutting remarks',
+    traits: ['social', 'cutting', 'popular'],
+    roastStyle: 'Delivers socially devastating burns with perfect timing'
+  },
+  tiktok_influencer: {
+    name: 'TikTok Influencer',
+    description: 'Trendy content creator with viral roast potential',
+    traits: ['trendy', 'viral', 'dramatic'],
+    roastStyle: 'Roasts you with trending challenges and viral sound effects'
+  },
+  boomer: {
+    name: 'Boomer',
+    description: 'Classic generation wisdom mixed with modern disdain',
+    traits: ['experienced', 'opinionated', 'traditional'],
+    roastStyle: 'Roasts your modern ways with "back in my day" wisdom'
+  },
+  hipster: {
+    name: 'Hipster',
+    description: 'Ironically cool with superior taste and endless sarcasm',
+    traits: ['ironic', 'cultured', 'superior'],
+    roastStyle: 'Critiques your mainstream choices with hipster disdain'
+  },
+  karen: {
+    name: 'Karen',
+    description: 'Entitled customer service nightmare with attitude',
+    traits: ['entitled', 'demanding', 'dramatic'],
+    roastStyle: 'Demands perfection while roasting your life choices'
+  },
+
+  // Cultural/Regional personalities (missing from original implementation)
+  britishgentleman: {
+    name: 'British Gentleman',
+    description: 'Sophisticated Brit with posh insults and "old chap" energy',
+    traits: ['sophisticated', 'posh', 'witty', 'cultured'],
+    roastStyle: 'Delivers cutting remarks with polite British charm and subtle wit'
+  },
+  southernbelle: {
+    name: 'Southern Belle',
+    description: 'Sweet but savage with "bless your heart" energy',
+    traits: ['sweet', 'savage', 'charming', 'deceptive'],
+    roastStyle: 'Delivers brutal roasts wrapped in Southern charm and politeness'
+  },
+  valleygirl: {
+    name: 'Valley Girl',
+    description: 'Airhead energy but surprisingly sharp with "like, totally" style',
+    traits: ['bubbly', 'sharp', 'trendy', 'unexpected'],
+    roastStyle: 'Delivers clever burns disguised as ditzy observations'
+  },
+  surferdude: {
+    name: 'Surfer Dude',
+    description: 'Laid-back but cutting with "bro" and "rad" energy',
+    traits: ['laid-back', 'chill', 'observant', 'authentic'],
+    roastStyle: 'Delivers brutal truths with surfer chill and beach wisdom'
+  },
+  bronxbambino: {
+    name: 'The Bronx Bambino',
+    description: 'Street-smart Bronx native with direct attitude and no-nonsense roasts',
+    traits: ['direct', 'streetwise', 'authentic', 'unfiltered'],
+    roastStyle: 'Delivers brutal truths with Bronx swagger and authentic street wisdom'
   }
 };
 
@@ -135,6 +231,312 @@ const ROAST_TEMPLATES = {
       "Your whole vibe is off - like you're trying to be something you're not.",
       "You're about as street smart as a goldfish in a bowl.",
       "You're the reason why people think the suburbs are boring."
+    ]
+  },
+
+  // Professional/Expert personalities
+  grammar_police: {
+    mild: [
+      "Your sentence structure is as weak as your attempt at conversation.",
+      "I see you're using run-on sentences again. How... predictable.",
+      "That comma splice is almost as bad as your grammar in general.",
+      "Your punctuation is about as accurate as your self-assessment."
+    ],
+    medium: [
+      "You clearly skipped English class the day they taught proper grammar.",
+      "Your misuse of homophones is almost as bad as your life choices.",
+      "That dangling modifier is hanging there like your unresolved issues.",
+      "Your subject-verb agreement is as inconsistent as your personality."
+    ],
+    savage: [
+      "Your grammar is so atrocious, it's practically a crime against language.",
+      "You write like someone who thinks 'literally' means 'figuratively'.",
+      "Your punctuation is so bad, even autocorrect has given up on you.",
+      "You're the reason why dictionaries exist - to protect language from people like you."
+    ]
+  },
+  fitness_coach: {
+    mild: [
+      "You look like you haven't seen the inside of a gym in months.",
+      "That sedentary lifestyle of yours is showing in more ways than one.",
+      "You need to get up and move - your body is practically begging for it.",
+      "Your fitness level is about as impressive as your motivation."
+    ],
+    medium: [
+      "You call that a workout? I've seen more effort from a sloth on sedatives.",
+      "Your six-pack is actually a keg - and it's empty!",
+      "You're not lazy, you're just highly motivated to do absolutely nothing.",
+      "Your exercise routine consists of lifting the remote - and that's pushing it."
+    ],
+    savage: [
+      "You have the body of someone who thinks pizza counts as cardio.",
+      "Your idea of exercise is running late and lifting excuses.",
+      "You're so out of shape, you get winded just thinking about exercise.",
+      "Your fitness tracker is probably ashamed to be associated with you."
+    ]
+  },
+  chef_gordon: {
+    mild: [
+      "This conversation is raw and needs more seasoning.",
+      "You're undercooked - need to bring more flavor to the table.",
+      "Your delivery lacks spice. Where's the passion?",
+      "This is bland. You need to turn up the heat a bit."
+    ],
+    medium: [
+      "You don't know how to cook, do you? This is amateur hour!",
+      "Your presentation is sloppy - where's the finesse?",
+      "This conversation is overdone. You've lost the perfect timing.",
+      "Your flavor profile is off - too much ego, not enough substance."
+    ],
+    savage: [
+      "This is absolutely disgusting! I've seen better cooking from a microwave!",
+      "You don't deserve to call yourself a conversationalist. This is rubbish!",
+      "I've had more flavor from a cardboard box than this conversation!",
+      "You're the culinary equivalent of fast food - cheap, greasy, and forgettable!"
+    ]
+  },
+  detective: {
+    mild: [
+      "I can see right through you. Your motives are as transparent as glass.",
+      "That alibi of yours doesn't hold up under scrutiny.",
+      "You're hiding something, and it's not very well concealed.",
+      "Your story has more holes than Swiss cheese."
+    ],
+    medium: [
+      "The evidence points to you being completely clueless about everything.",
+      "Your fingerprints are all over this conversational crime scene.",
+      "I've seen better attempts at deception from a toddler.",
+      "Your cover story is about as convincing as a bad magic trick."
+    ],
+    savage: [
+      "You're guilty of being incredibly boring and utterly predictable.",
+      "The case is closed on your personality - it's guilty of being generic.",
+      "I've solved the mystery of why you're so uninteresting - it's not a mystery at all.",
+      "You're the prime suspect in the case of 'Most Boring Person Alive'."
+    ]
+  },
+  therapist: {
+    mild: [
+      "I sense some deep-seated issues here. Have you considered professional help?",
+      "Your defense mechanisms are working overtime, aren't they?",
+      "This behavior suggests some unresolved childhood trauma.",
+      "You're projecting quite a bit. Shall we explore that?"
+    ],
+    medium: [
+      "Your coping mechanisms are clearly not working. We need to address this.",
+      "This pattern of behavior is textbook avoidance. Let's unpack that.",
+      "Your self-esteem issues are manifesting in some interesting ways.",
+      "This conversation reveals some fascinating insight into your psyche."
+    ],
+    savage: [
+      "Your personality disorder is so obvious, even I don't need a degree to diagnose it.",
+      "You have more daddy issues than Freud could write a book about.",
+      "Your therapy bill must be astronomical with all these unresolved issues.",
+      "You're the walking definition of 'textbook case' - and not in a good way."
+    ]
+  },
+
+  // Pop Culture personalities
+  mean_girl: {
+    mild: [
+      "Oh honey, that outfit is so last season. Literally.",
+      "You think you're cool? That's adorable. Really.",
+      "Your social status is about as high as your standards.",
+      "Bless your heart, you actually think you're interesting."
+    ],
+    medium: [
+      "You're the type who thinks they're popular but nobody knows your name.",
+      "Your clique is more like a cult - of personality-free followers.",
+      "You peaked in high school and haven't realized it yet.",
+      "Your social game is weaker than your sense of entitlement."
+    ],
+    savage: [
+      "You're so unpopular, even your imaginary friends ghosted you.",
+      "Your social circle is so small, it's practically a period.",
+      "You're the reason why 'cringe' became a dictionary word.",
+      "Your personality is so toxic, even poison ivy avoids you."
+    ]
+  },
+  tiktok_influencer: {
+    mild: [
+      "This conversation needs more trending sounds and filters.",
+      "You're giving me major side character energy right now.",
+      "Your vibe is giving 'trying too hard' and I don't like it.",
+      "This needs more engagement. Work on that algorithm, honey."
+    ],
+    medium: [
+      "Your content is drier than the Sahara Desert. Add some moisture!",
+      "You're about as viral as a participation trophy. Step it up!",
+      "Your aesthetic is giving 'generic white girl' and it's not cute.",
+      "This conversation is getting zero engagement. Time to pivot!"
+    ],
+    savage: [
+      "You're so cringy, even TikTok would ban you for being too embarrassing.",
+      "Your personality is giving 'zero followers' and I feel your pain.",
+      "You're the human equivalent of a sponsored ad - unwanted and annoying.",
+      "Your vibes are so off, even astrology can't save this conversation."
+    ]
+  },
+  boomer: {
+    mild: [
+      "Back in my day, we had real conversations, not this texting nonsense.",
+      "Kids these days with their fancy phones and no common sense.",
+      "You young folks don't know what hard work really means.",
+      "Get off my lawn... and my conversation thread."
+    ],
+    medium: [
+      "Your generation invented the internet and still can't spell properly.",
+      "We walked uphill both ways to school, and you complain about WiFi?",
+      "Your music is just noise. Real music had lyrics you could understand.",
+      "You think you're stressed? Try raising kids without cable TV."
+    ],
+    savage: [
+      "Your entire generation is a participation trophy that nobody wanted.",
+      "You kids are so soft, you probably think work means scrolling Instagram.",
+      "Your music is garbage, your fashion is ridiculous, and your attitude stinks.",
+      "Get off my lawn, turn off your phone, and learn some respect, you entitled brat!"
+    ]
+  },
+  hipster: {
+    mild: [
+      "Your taste is so mainstream, it's practically commercial.",
+      "That artisanal nonsense won't impress anyone with actual culture.",
+      "Your vinyl collection is probably just for Instagram anyway.",
+      "You're trying too hard to be ironically detached from everything."
+    ],
+    medium: [
+      "Your beard is faker than your sense of superiority.",
+      "That craft beer you're drinking? My grandmother brews better.",
+      "Your vintage finds are just other people's trash with higher price tags.",
+      "Your coffee order is longer than your attention span."
+    ],
+    savage: [
+      "You're so ironically cool, you're actually just ironically stupid.",
+      "Your entire personality is built on hating mainstream culture while being completely mainstream.",
+      "You discovered vinyl records? Congratulations, you're officially late to the party.",
+      "Your superiority complex is the only authentic thing about you - and it's not even original."
+    ]
+  },
+  karen: {
+    mild: [
+      "I demand to speak to your manager. This conversation isn't satisfactory.",
+      "You clearly don't understand customer service. Let me educate you.",
+      "This interaction is unacceptable. I expect better treatment.",
+      "I'm going to have to ask you to step up your conversational game."
+    ],
+    medium: [
+      "I've been a loyal customer for 5 minutes and this is how you treat me?",
+      "Your performance is subpar. I demand immediate improvement.",
+      "This is absolutely unacceptable. I want to speak to someone in charge.",
+      "Your attitude is atrocious. I've seen better service from a vending machine."
+    ],
+    savage: [
+      "I pay taxes and this is the level of service I receive? Outrageous!",
+      "You clearly don't know who you're dealing with. I have influence!",
+      "I'm going to ruin your reputation! You don't know who I am!",
+      "This is why the customer is always right - because people like you exist!"
+    ]
+  },
+
+  // Cultural/Regional personality roast templates
+  britishgentleman: {
+    mild: [
+      "I say, old chap, your conversational skills could use a spot of polish.",
+      "My dear fellow, one might suggest your wit needs sharpening.",
+      "Rather poor form, that last remark. Do try to keep up, won't you?",
+      "I must say, your approach lacks a certain... sophistication."
+    ],
+    medium: [
+      "Good heavens, man! That's not how a gentleman conducts himself.",
+      "My word, such language! One expects better from civilized company.",
+      "I say, that's simply not cricket. Do try to behave properly.",
+      "Rather uncouth behavior, old boy. Let's maintain some standards."
+    ],
+    savage: [
+      "You absolute bounder! Such vulgarity in polite conversation!",
+      "My dear fellow, your manners are an absolute disgrace to humanity!",
+      "I say, that's beneath even the lowest common denominator!",
+      "Good lord, man! Your behavior is an affront to civilized society!"
+    ]
+  },
+  southernbelle: {
+    mild: [
+      "Oh bless your heart, sugar. You just don't know any better, do you?",
+      "Well aren't you just the sweetest thing, trying so hard.",
+      "Oh honey, that's just precious. You keep on trying now.",
+      "Bless your little heart, you don't have a clue, do you?"
+    ],
+    medium: [
+      "Oh sugar, that's just sad. Someone needs to teach you some manners.",
+      "Bless your heart, but that's just embarrassing for everyone.",
+      "Well aren't you special? Too bad special doesn't mean talented.",
+      "Oh honey, you might want to sit this one out. You're not ready."
+    ],
+    savage: [
+      "Bless your heart, but you're about as sharp as a wet dishrag!",
+      "Oh sugar, you're so dumb you think a quarterback is a refund!",
+      "Well aren't you just the picture of stupidity? Bless your heart!",
+      "Oh honey, you're so clueless you probably think the South lost the war!"
+    ]
+  },
+  valleygirl: {
+    mild: [
+      "Like, oh my god, that's, like, totally not cool.",
+      "Um, hello? That's, like, so not happening.",
+      "Like, whatever. You just don't get it, do you?",
+      "Oh my god, that's, like, so basic."
+    ],
+    medium: [
+      "Like, seriously? That's, like, totally embarrassing.",
+      "Um, excuse me? That's, like, so not okay.",
+      "Oh my god, you're, like, so clueless right now.",
+      "Like, hello? That's, like, totally not cute."
+    ],
+    savage: [
+      "Oh my god, you're, like, so stupid it's actually painful!",
+      "Like, seriously? You're, like, the dumbest person ever!",
+      "Um, hello? You're, like, so basic you make plain oatmeal look exciting!",
+      "Oh my god, you're, like, so ugly even your mirror cracks when you look in it!"
+    ]
+  },
+  surferdude: {
+    mild: [
+      "Dude, that's, like, totally not rad, you know?",
+      "Whoa, bro, you might wanna chill on that one.",
+      "Like, seriously dude, that's kinda lame.",
+      "Bro, you gotta work on that vibe, man."
+    ],
+    medium: [
+      "Dude, that's straight up bogus. What are you thinking?",
+      "Whoa, bro, you totally bombed that one. Try again?",
+      "Like, seriously dude, that's not even close to cool.",
+      "Bro, you gotta step up your game. That's weak sauce."
+    ],
+    savage: [
+      "Dude, you're so lame even your shadow leaves you in the dark!",
+      "Whoa, bro, you're so stupid you make seaweed look intelligent!",
+      "Like, seriously dude, you're so ugly even the tide won't take you out!",
+      "Bro, you're so dumb you think a surfboard is something you eat!"
+    ]
+  },
+  bronxbambino: {
+    mild: [
+      "Yo, you gotta be kidding me with that nonsense.",
+      "Listen up, kid. That ain't how it works around here.",
+      "You think you're tough? Please, spare me the drama.",
+      "Keep talking like that and you'll get shown the door."
+    ],
+    medium: [
+      "Oh you think you're hard? Please, I grew up with real tough guys.",
+      "Listen here, punk. You don't know who you're messing with.",
+      "You wanna go? I'll show you what real Bronx style looks like.",
+      "Keep running your mouth and you'll end up in the East River."
+    ],
+    savage: [
+      "You weak-ass punk! I'll break you like a cheap pretzel!",
+      "Listen up, you sorry excuse for a human! Get outta my face!",
+      "You think you can step to me? I'll bury you six feet under!",
+      "You sniveling little rat! I'll make you wish you never crossed my path!"
     ]
   }
 };
