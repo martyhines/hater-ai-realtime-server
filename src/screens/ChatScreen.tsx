@@ -538,19 +538,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   const renderMessage = ({ item }: { item: Message }) => {
     const isUser = item.sender === 'user';
     
-      const handleShareToTikTok = () => {
-    if (aiService) {
-      const settings = (aiService as any).settings || {
-        roastIntensity: 'medium',
-        aiPersonality: 'sarcastic',
-        allowCursing: false,
-      };
-      navigation.navigate('TikTokVideo', {
-        roastText: item.text,
-        settings,
-      });
-    }
-  };
 
   const handleShareRoast = async () => {
     try {
@@ -695,14 +682,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
                   >
                     <Ionicons name="mic" size={16} color="#FFD93D" />
                   </TouchableOpacity>
-                  {FEATURES.ENABLE_TIKTOK_VIDEO ? (
-                    <TouchableOpacity
-                      style={styles.shareButton}
-                      onPress={handleShareToTikTok}
-                    >
-                      <Ionicons name="videocam" size={16} color="#4ECDC4" />
-                    </TouchableOpacity>
-                  ) : null}
                   {/* <TouchableOpacity
                     style={styles.shareButton}
                     onPress={handleShareRoast}
