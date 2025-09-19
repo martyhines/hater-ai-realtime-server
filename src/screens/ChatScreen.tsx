@@ -25,7 +25,6 @@ import { CohereService } from '../services/cohereService';
 import { GeminiService } from '../services/geminiService';
 import { StorageService } from '../services/storageService';
 import TextToSpeechService from '../services/textToSpeechService';
-import SpeechToTextService from '../services/speechToTextService';
 import { AnalyticsService } from '../services/analyticsService';
 import { PremiumService } from '../services/premiumService';
 

@@ -23,24 +23,27 @@ interface Props {
 }
 
 const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
-  const [selectedProvider, setSelectedProvider] = useState<'openai' | 'cohere' | 'gemini'>('cohere');
+  const [selectedProvider, setSelectedProvider] = useState<'openai' | 'cohere' | 'gemini' | 'custom'>('cohere');
   const [apiKey, setApiKey] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [existingKeys, setExistingKeys] = useState<{
     openai: boolean;
     cohere: boolean;
     gemini: boolean;
+    custom: boolean;
   }>({
     openai: false,
     cohere: false,
     gemini: false,
+    custom: false,
   });
   const [isLoading, setIsLoading] = useState(true);
 
   const providerNames = {
     openai: 'OpenAI',
     cohere: 'Cohere',
-    gemini: 'Google Gemini'
+    gemini: 'Google Gemini',
+    custom: 'Custom Model'
   };
 
   // Check for existing API keys on component mount and when screen focuses
@@ -49,21 +52,17 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
       try {
         const storage = StorageService.getInstance();
 
-        const [openaiKey, huggingfaceKey, cohereKey, geminiKey, togetherAIKey, customModels] = await Promise.all([
+        const [openaiKey, cohereKey, geminiKey, customModels] = await Promise.all([
           storage.getOpenAIKey(),
-          storage.getHuggingFaceKey(),
           storage.getCohereKey(),
           storage.getGeminiKey(),
-          storage.getTogetherAIKey(),
           storage.getCustomModels(),
         ]);
 
         setExistingKeys({
           openai: !!openaiKey,
-          huggingface: !!huggingfaceKey,
           cohere: !!cohereKey,
           gemini: !!geminiKey,
-          togetherai: !!togetherAIKey,
           custom: customModels.length > 0,
         });
       } catch (error) {
@@ -82,21 +81,17 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
         try {
           const storage = StorageService.getInstance();
 
-          const [openaiKey, huggingfaceKey, cohereKey, geminiKey, togetherAIKey, customModels] = await Promise.all([
+          const [openaiKey, cohereKey, geminiKey, customModels] = await Promise.all([
             storage.getOpenAIKey(),
-            storage.getHuggingFaceKey(),
             storage.getCohereKey(),
             storage.getGeminiKey(),
-            storage.getTogetherAIKey(),
             storage.getCustomModels(),
           ]);
 
           setExistingKeys({
             openai: !!openaiKey,
-            huggingface: !!huggingfaceKey,
             cohere: !!cohereKey,
             gemini: !!geminiKey,
-            togetherai: !!togetherAIKey,
             custom: customModels.length > 0,
           });
         } catch (error) {
@@ -111,21 +106,16 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
   const validateApiKey = (key: string): boolean => {
     if (selectedProvider === 'openai') {
       return key.startsWith('sk-') && key.length > 20;
-    } else if (selectedProvider === 'huggingface') {
-      return key.startsWith('hf_') && key.length > 20;
     } else if (selectedProvider === 'gemini') {
       // Gemini API keys start with AIza and contain alphanumeric, hyphens, and underscores
       return /^AIza[a-zA-Z0-9_-]{35,}$/.test(key);
-    } else if (selectedProvider === 'togetherai') {
-      // Together AI API keys are alphanumeric and typically 40+ characters
-      return /^[a-zA-Z0-9]{40,}$/.test(key);
     } else {
       // Cohere API keys are alphanumeric and typically 40+ characters
       return /^[a-zA-Z0-9]{40,}$/.test(key);
     }
   };
 
-  const handleProviderSelect = (provider: 'openai' | 'huggingface' | 'cohere' | 'gemini' | 'togetherai' | 'custom') => {
+  const handleProviderSelect = (provider: 'openai' | 'cohere' | 'gemini' | 'custom') => {
     if (provider === 'custom') {
       // Navigate to custom models screen
       navigation.navigate('CustomModel');
@@ -158,17 +148,11 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
         case 'openai':
           await storage.saveOpenAIKey(apiKey);
           break;
-        case 'huggingface':
-          await storage.saveHuggingFaceKey(apiKey);
-          break;
         case 'cohere':
           await storage.saveCohereKey(apiKey);
           break;
         case 'gemini':
           await storage.saveGeminiKey(apiKey);
-          break;
-        case 'togetherai':
-          await storage.saveTogetherAIKey(apiKey);
           break;
         case 'custom':
           // Custom models are handled in CustomModelScreen
@@ -179,21 +163,17 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
       setSelectedProvider('cohere');
 
       // Refresh existing keys
-      const [openaiKey, huggingfaceKey, cohereKey, geminiKey, togetherAIKey, customModels] = await Promise.all([
+      const [openaiKey, cohereKey, geminiKey, customModels] = await Promise.all([
         storage.getOpenAIKey(),
-        storage.getHuggingFaceKey(),
         storage.getCohereKey(),
         storage.getGeminiKey(),
-        storage.getTogetherAIKey(),
         storage.getCustomModels(),
       ]);
 
       setExistingKeys({
         openai: !!openaiKey,
-        huggingface: !!huggingfaceKey,
         cohere: !!cohereKey,
         gemini: !!geminiKey,
-        togetherai: !!togetherAIKey,
         custom: customModels.length > 0,
       });
 
@@ -205,7 +185,7 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleDeleteApiKey = async (provider: 'openai' | 'huggingface' | 'cohere' | 'gemini' | 'togetherai' | 'custom') => {
+  const handleDeleteApiKey = async (provider: 'openai' | 'cohere' | 'gemini' | 'custom') => {
     Alert.alert(
       'Delete API Key',
       `Are you sure you want to delete your ${providerNames[provider]} API key?`,
@@ -225,17 +205,11 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
                 case 'openai':
                   await storage.deleteOpenAIKey();
                   break;
-                case 'huggingface':
-                  await storage.deleteHuggingFaceKey();
-                  break;
                 case 'cohere':
                   await storage.deleteCohereKey();
                   break;
                 case 'gemini':
                   await storage.deleteGeminiKey();
-                  break;
-                case 'togetherai':
-                  await storage.deleteTogetherAIKey();
                   break;
                 case 'custom':
                   // Custom models are handled in CustomModelScreen
@@ -243,21 +217,17 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
               }
 
               // Refresh existing keys
-              const [openaiKey, huggingfaceKey, cohereKey, geminiKey, togetherAIKey, customModels] = await Promise.all([
+              const [openaiKey, cohereKey, geminiKey, customModels] = await Promise.all([
                 storage.getOpenAIKey(),
-                storage.getHuggingFaceKey(),
                 storage.getCohereKey(),
                 storage.getGeminiKey(),
-                storage.getTogetherAIKey(),
                 storage.getCustomModels(),
               ]);
 
               setExistingKeys({
                 openai: !!openaiKey,
-                huggingface: !!huggingfaceKey,
                 cohere: !!cohereKey,
                 gemini: !!geminiKey,
-                togetherai: !!togetherAIKey,
                 custom: customModels.length > 0,
               });
 
@@ -277,14 +247,6 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
 
   const openOpenAIApiKeys = () => {
     Linking.openURL('https://platform.openai.com/api-keys');
-  };
-
-  const openHuggingFaceSignup = () => {
-    Linking.openURL('https://huggingface.co/join');
-  };
-
-  const openHuggingFaceTokens = () => {
-    Linking.openURL('https://huggingface.co/settings/tokens');
   };
 
   const openCohereSignup = () => {
@@ -384,79 +346,7 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
             )}
           </View>
 
-          <View style={styles.providerCardContainer}>
-            <TouchableOpacity
-              style={[
-                styles.providerCard,
-                selectedProvider === 'togetherai' && styles.selectedProviderCard,
-                existingKeys.togetherai && styles.providerCardWithKey
-              ]}
-              onPress={() => handleProviderSelect('togetherai')}
-            >
-              <View style={styles.providerHeader}>
-                <Ionicons name="server" size={24} color="#FF6B6B" />
-                <Text style={styles.providerName}>Together AI</Text>
-                {existingKeys.togetherai && (
-                  <View style={styles.keyIndicator}>
-                    <Ionicons name="checkmark-circle" size={20} color="#4ECDC4" />
-                    <Text style={styles.keyIndicatorText}>Ready</Text>
-                  </View>
-                )}
-              </View>
-              <Text style={styles.providerDescription}>
-                Free tier: Generous credits • Fast responses • Open source models
-              </Text>
-              <Text style={styles.providerKeyFormat}>Key format: 40+ character alphanumeric string</Text>
-              {existingKeys.togetherai && (
-                <Text style={styles.readyToUseText}>✅ Ready to use - tap to start chatting!</Text>
-              )}
-            </TouchableOpacity>
-            {existingKeys.togetherai && (
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteApiKey('togetherai')}
-              >
-                <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
-              </TouchableOpacity>
-            )}
-          </View>
 
-          <View style={styles.providerCardContainer}>
-            <TouchableOpacity
-              style={[
-                styles.providerCard,
-                selectedProvider === 'huggingface' && styles.selectedProviderCard,
-                existingKeys.huggingface && styles.providerCardWithKey
-              ]}
-              onPress={() => handleProviderSelect('huggingface')}
-            >
-              <View style={styles.providerHeader}>
-                <Ionicons name="logo-github" size={24} color="#4ECDC4" />
-                <Text style={styles.providerName}>Hugging Face</Text>
-                {existingKeys.huggingface && (
-                  <View style={styles.keyIndicator}>
-                    <Ionicons name="checkmark-circle" size={20} color="#4ECDC4" />
-                    <Text style={styles.keyIndicatorText}>Ready</Text>
-                  </View>
-                )}
-              </View>
-              <Text style={styles.providerDescription}>
-                Free tier: Limited model availability • Open source models
-              </Text>
-              <Text style={styles.providerKeyFormat}>Key format: hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</Text>
-              {existingKeys.huggingface && (
-                <Text style={styles.readyToUseText}>✅ Ready to use - tap to start chatting!</Text>
-              )}
-            </TouchableOpacity>
-            {existingKeys.huggingface && (
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteApiKey('huggingface')}
-              >
-                <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
-              </TouchableOpacity>
-            )}
-          </View>
 
           <View style={styles.providerCardContainer}>
             <TouchableOpacity
@@ -568,7 +458,7 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
               style={styles.textInput}
               value={apiKey}
               onChangeText={setApiKey}
-              placeholder={selectedProvider === 'openai' ? 'sk-...' : selectedProvider === 'huggingface' ? 'hf_...' : selectedProvider === 'gemini' ? 'Your Gemini API key...' : selectedProvider === 'togetherai' ? 'Your Together AI API key...' : 'Your Cohere API key...'}
+              placeholder={selectedProvider === 'openai' ? 'sk-...' : selectedProvider === 'gemini' ? 'Your Gemini API key...' : 'Your Cohere API key...'}
               placeholderTextColor="#666"
               secureTextEntry
               autoCapitalize="none"
@@ -646,18 +536,6 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
                   <Text style={styles.helpButtonText}>Get API Key</Text>
                 </TouchableOpacity>
               </>
-            ) : selectedProvider === 'huggingface' ? (
-              <>
-                <TouchableOpacity style={styles.helpButton} onPress={openHuggingFaceSignup}>
-                  <Ionicons name="person-add" size={16} color="#4ECDC4" />
-                  <Text style={styles.helpButtonText}>Create Hugging Face Account</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.helpButton} onPress={openHuggingFaceTokens}>
-                  <Ionicons name="key-outline" size={16} color="#4ECDC4" />
-                  <Text style={styles.helpButtonText}>Get Access Token</Text>
-                </TouchableOpacity>
-              </>
             ) : selectedProvider === 'gemini' ? (
               <>
                 <TouchableOpacity style={styles.helpButton} onPress={openGeminiSignup}>
@@ -666,18 +544,6 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.helpButton} onPress={openGeminiApiKeys}>
-                  <Ionicons name="key-outline" size={16} color="#4ECDC4" />
-                  <Text style={styles.helpButtonText}>Get API Key</Text>
-                </TouchableOpacity>
-              </>
-            ) : selectedProvider === 'togetherai' ? (
-              <>
-                <TouchableOpacity style={styles.helpButton} onPress={openTogetherAISignup}>
-                  <Ionicons name="person-add" size={16} color="#4ECDC4" />
-                  <Text style={styles.helpButtonText}>Create Together AI Account</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.helpButton} onPress={openTogetherAIApiKeys}>
                   <Ionicons name="key-outline" size={16} color="#4ECDC4" />
                   <Text style={styles.helpButtonText}>Get API Key</Text>
                 </TouchableOpacity>
@@ -705,13 +571,9 @@ const ApiKeyScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.costText}>
               {selectedProvider === 'cohere'
                 ? 'Cohere offers 5 free requests per minute! Perfect for testing and casual use. No credit card required.'
-                : selectedProvider === 'huggingface'
-                  ? 'Hugging Face offers 30,000 free requests per month! Perfect for testing and casual use.'
-                  : selectedProvider === 'gemini'
-                    ? 'Google Gemini offers 60 free requests per minute! Perfect for testing and casual use. No credit card required.'
-                    : selectedProvider === 'togetherai'
-                      ? 'Together AI offers generous free credits! Perfect for testing and casual use. No credit card required.'
-                      : 'OpenAI charges ~$0.03 per 1K tokens. A typical roast uses about 50-100 tokens, so you can get hundreds of roasts for just a few dollars!'
+                : selectedProvider === 'gemini'
+                  ? 'Google Gemini offers 60 free requests per minute! Perfect for testing and casual use. No credit card required.'
+                  : 'OpenAI charges ~$0.03 per 1K tokens. A typical roast uses about 50-100 tokens, so you can get hundreds of roasts for just a few dollars!'
               }
             </Text>
           </View>
