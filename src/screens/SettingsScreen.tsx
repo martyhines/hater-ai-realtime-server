@@ -51,7 +51,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   // Build type detection
   const getBuildInfo = () => {
-    const appOwnership = Constants.appOwnership;
+    const appOwnership = Constants.appOwnership as string | null;
     const isDevelopment = __DEV__;
     const isProduction = !isDevelopment;
 
