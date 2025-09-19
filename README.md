@@ -28,7 +28,7 @@
 - **Streak Tracking**: Daily chat streaks and achievements
 
 ### 🤖 AI Integration
-- **Multiple AI Providers**: Cohere, Gemini, OpenAI, Together AI
+- **Multiple AI Providers**: Cohere, Gemini, OpenAI
 - **Fallback System**: Graceful degradation when services unavailable
 - **Context Analysis**: Smart personality and topic detection
 - **Conversation History**: Persistent chat memory
