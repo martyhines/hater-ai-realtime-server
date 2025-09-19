@@ -15,13 +15,6 @@ export interface VoiceSettings {
   autoPlay: boolean;
 }
 
-export interface SpeechToTextSettings {
-  language: string;
-  autoSend: boolean;
-  continuous: boolean;
-  timeout: number;
-}
-
 export interface UserSettings {
   roastIntensity: RoastIntensity;
   aiPersonality: AIPersonalityType;

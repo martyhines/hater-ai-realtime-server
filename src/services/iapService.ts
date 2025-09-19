@@ -124,13 +124,13 @@ export class IAPService {
 
       return mappedProducts;
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ IAP: Error fetching products from App Store:', error);
       console.error('❌ IAP: Full error details:', {
-        message: error.message,
-        code: error.code,
-        productId: error.productId,
-        stack: error.stack
+        message: error?.message,
+        code: error?.code,
+        productId: error?.productId,
+        stack: error?.stack
       });
       return [];
     }

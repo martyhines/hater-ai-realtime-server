@@ -891,21 +891,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
             <Ionicons name="chevron-forward" size={24} color="#ccc" />
           </TouchableOpacity>
 
-          {/* <TouchableOpacity
-            style={styles.preferenceItem}
-            onPress={() => navigation.navigate('SpeechToTextSettings')}
-          >
-            <View style={styles.preferenceInfo}>
-              <Ionicons name="mic-outline" size={24} color="#4ECDC4" />
-              <View style={styles.preferenceText}>
-                <Text style={styles.preferenceTitle}>Speech-to-Text Settings</Text>
-                <Text style={styles.preferenceDescription}>
-                  Configure voice recognition for hands-free chatting
-                </Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={24} color="#ccc" />
-          </TouchableOpacity> */}
           </View>
         )}
 

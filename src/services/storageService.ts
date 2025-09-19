@@ -183,28 +183,6 @@ export class StorageService {
     }
   }
 
-  // Save speech-to-text settings
-  async saveSpeechToTextSettings(speechToTextSettings: any): Promise<void> {
-    try {
-      const settings = await this.getSettings() || {};
-      settings.speechToTextSettings = speechToTextSettings;
-      await AsyncStorage.setItem('userSettings', JSON.stringify(settings));
-
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // Get speech-to-text settings
-  async getSpeechToTextSettings(): Promise<any | null> {
-    try {
-      const settings = await this.getSettings();
-      return settings?.speechToTextSettings || null;
-    } catch (error) {
-      return null;
-    }
-  }
-
   // Check if any API key exists (for backward compatibility)
   async hasApiKey(): Promise<boolean> {
     try {
