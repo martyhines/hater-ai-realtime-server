@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
 import {
   View,
@@ -24,10 +24,10 @@ import { OpenAIService } from '../services/openaiService';
 import { CohereService } from '../services/cohereService';
 import { GeminiService } from '../services/geminiService';
 import { StorageService } from '../services/storageService';
-import { TikTokVideoService } from '../services/tikTokVideoService';
+// import { TikTokVideoService } from '../services/tikTokVideoService';
 import TextToSpeechService from '../services/textToSpeechService';
 import SpeechToTextService from '../services/speechToTextService';
-import { ScreenshotService } from '../services/screenshotService';
+// import { ScreenshotService } from '../services/screenshotService';
 import { AnalyticsService } from '../services/analyticsService';
 import { PremiumService } from '../services/premiumService';
 
@@ -37,6 +37,25 @@ type ChatScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Chat'>;
 interface Props {
   navigation: ChatScreenNavigationProp;
 }
+
+interface TypingIndicatorProps {
+  isTyping: boolean;
+}
+
+const TypingIndicator = React.memo<TypingIndicatorProps>(({ isTyping }) => {
+  if (!isTyping) return null;
+
+  return (
+    <View style={[styles.messageContainer, styles.aiMessage]}>
+      <View style={[styles.messageBubble, styles.aiBubble]}>
+        <View style={styles.typingContainer}>
+          <ActivityIndicator size="small" color="#FF6B6B" />
+          <Text style={styles.typingText}>AI is crafting your roast...</Text>
+        </View>
+      </View>
+    </View>
+  );
+});
 
 const ChatScreen: React.FC<Props> = ({ navigation }) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -811,20 +830,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
     );
   };
 
-  const renderTypingIndicator = () => {
-    if (!isTyping) return null;
-    
-    return (
-      <View style={[styles.messageContainer, styles.aiMessage]}>
-        <View style={[styles.messageBubble, styles.aiBubble]}>
-          <View style={styles.typingContainer}>
-            <ActivityIndicator size="small" color="#FF6B6B" />
-            <Text style={styles.typingText}>AI is crafting your roast...</Text>
-          </View>
-        </View>
-      </View>
-    );
-  };
 
   // Helper to get current personality name
   const getModelName = () => {
@@ -940,7 +945,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           style={styles.messagesList}
           contentContainerStyle={styles.messagesContent}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-          ListFooterComponent={renderTypingIndicator}
+          ListFooterComponent={<TypingIndicator isTyping={isTyping} />}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         />
