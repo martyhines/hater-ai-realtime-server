@@ -20,6 +20,7 @@ export interface EventData {
   hasEmoji?: boolean;
   isVoice?: boolean;
   responseTimeMs?: number;
+  responseLength?: number;
   oldValue?: any;
   newValue?: any;
   featureId?: string;
@@ -226,7 +227,7 @@ export class AnalyticsService {
       // Get total messages and personality usage
       const { data: events, error } = await supabase
         .from('user_events')
-        .select('event_type, event_data')
+        .select('event_type, event_data, created_at')
         .eq('user_id', targetUserId)
         .order('created_at', { ascending: false });
 

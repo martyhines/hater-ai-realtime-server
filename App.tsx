@@ -42,7 +42,8 @@ export type RootStackParamList = {
   Screenshot: {
     roastText: string;
     userName?: string;
-    messages?: any[];
+    userPrompt?: string;
+    isForSharing?: boolean;
   };
   VoiceSettings: undefined;
   SpeechToTextSettings: undefined;

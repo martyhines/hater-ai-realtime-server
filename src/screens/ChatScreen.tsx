@@ -683,7 +683,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         navigation.navigate('Screenshot', {
           roastText: item.text,
           userName: settings?.userName,
-          userPrompt: userPrompt, // Pass only the serializable userPrompt instead of entire messages array
+          userPrompt: userPrompt || undefined, // Convert null to undefined for navigation type
           // Add a flag to indicate this is for sharing (not just saving)
           isForSharing: true
         });
@@ -751,7 +751,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       navigation.navigate('Screenshot', {
         roastText: item.text,
         userName: settings?.userName,
-        userPrompt: userPrompt, // Pass only the serializable userPrompt instead of entire messages array
+        userPrompt: userPrompt || undefined, // Convert null to undefined for navigation type
         // isForSharing defaults to false for camera button
       });
     }
