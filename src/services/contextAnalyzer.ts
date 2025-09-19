@@ -224,7 +224,7 @@ export class ContextAnalyzer {
       prompts.push(`The user mentioned they work as a ${context.profession}.`);
     }
 
-    if (context.personality.length > 0) {
+    if (context.personality && context.personality.length > 0) {
       prompts.push(`They described themselves as: ${context.personality.join(', ')}.`);
     }
 
@@ -232,19 +232,19 @@ export class ContextAnalyzer {
       prompts.push(`They're from ${context.location}.`);
     }
 
-    if (context.interests.length > 0) {
+    if (context.interests && context.interests.length > 0) {
       prompts.push(`They're interested in: ${context.interests.join(', ')}.`);
     }
 
-    if (context.characteristics.length > 0) {
+    if (context.characteristics && context.characteristics.length > 0) {
       prompts.push(`Physical characteristics: ${context.characteristics.join(', ')}.`);
     }
 
-    if (context.circumstances.length > 0) {
+    if (context.circumstances && context.circumstances.length > 0) {
       prompts.push(`Life circumstances: ${context.circumstances.join(', ')}.`);
     }
 
-    if (context.mentionedTopics.length > 0) {
+    if (context.mentionedTopics && context.mentionedTopics.length > 0) {
       prompts.push(`They mentioned: ${context.mentionedTopics.join(', ')}.`);
     }
 
