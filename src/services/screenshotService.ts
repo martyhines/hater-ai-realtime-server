@@ -110,7 +110,6 @@ export class ScreenshotService {
       return dataUrl;
 
     } catch (error) {
-      console.error('Failed to generate roast image:', error);
       throw new Error('Failed to generate roast image');
     }
   }

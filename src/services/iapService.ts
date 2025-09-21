@@ -106,12 +106,7 @@ export class IAPService {
       const products = await getProducts({ skus: productIds });
 
       if (products.length === 0) {
-        console.warn('⚠️ IAP: No products received from App Store. This could mean:');
-        console.warn('   - IAP products are not approved yet');
-        console.warn('   - Product IDs don\'t match exactly');
-        console.warn('   - Bundle ID doesn\'t match');
-        console.warn('   - App hasn\'t been submitted for review');
-      }
+        }
 
       const mappedProducts = products.map((product: Product) => ({
         productId: product.productId,
@@ -125,13 +120,6 @@ export class IAPService {
       return mappedProducts;
 
     } catch (error: any) {
-      console.error('❌ IAP: Error fetching products from App Store:', error);
-      console.error('❌ IAP: Full error details:', {
-        message: error?.message,
-        code: error?.code,
-        productId: error?.productId,
-        stack: error?.stack
-      });
       return [];
     }
   }
@@ -151,8 +139,6 @@ export class IAPService {
       const productExists = products.some(p => p.productId === productId);
 
       if (!productExists) {
-        console.error(`❌ IAP: Product ${productId} not found in available products!`);
-
         // Let's also check the raw product IDs from config
         const { getAllProductIds } = await import('../config/iapProducts');
         const allConfiguredIds = getAllProductIds();
@@ -168,7 +154,6 @@ export class IAPService {
       return true;
 
     } catch (error) {
-      console.error(`❌ IAP: Purchase failed with error:`, error);
       this.handlePurchaseError(error as PurchaseError);
       return false;
     }
@@ -199,37 +184,26 @@ export class IAPService {
         [{ text: 'OK' }]
         );
     } catch (error) {
-      console.error(`❌ IAP: Error handling successful purchase:`, error);
-    }
+      }
   }
 
   /**
    * Handle purchase errors
    */
   private handlePurchaseError(error: PurchaseError): void {
-    console.error(`❌ IAP: Purchase error received:`, {
-      code: error.code,
-      message: error.message,
-      productId: error.productId,
-      fullError: error
-    });
-
     let errorMessage = 'Purchase failed. Please try again.';
 
     if (error.code === 'E_USER_CANCELLED') {
       errorMessage = 'Purchase was cancelled.';
     } else if (error.code === 'E_ITEM_UNAVAILABLE') {
       errorMessage = 'This item is not available for purchase. Check that the product ID is configured in App Store Connect.';
-      console.error(`❌ IAP: Product ${error.productId} not available - check App Store Connect configuration`);
-    } else if (error.code === 'E_NETWORK_ERROR') {
+      } else if (error.code === 'E_NETWORK_ERROR') {
       errorMessage = 'Network error. Please check your connection.';
-      console.error(`❌ IAP: Network error during purchase`);
-    } else if (error.code === 'E_ALREADY_OWNED') {
+      } else if (error.code === 'E_ALREADY_OWNED') {
       errorMessage = 'You already own this item.';
     } else if (error.code === 'E_UNKNOWN') {
       errorMessage = 'Unknown error occurred. Please try again.';
-      console.error(`❌ IAP: Unknown purchase error:`, error);
-    }
+      }
 
     Alert.alert('Purchase Failed', errorMessage);
   }

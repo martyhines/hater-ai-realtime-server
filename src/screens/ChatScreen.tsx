@@ -99,8 +99,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         setRemainingFreeChats(0); // No chats available
       }
     } catch (error) {
-      console.error('❌ Error updating chat usage:', error);
-    }
+      }
   };
 
 
@@ -435,8 +434,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       await updateChatUsage();
     } catch (error) {
       // Rate limiting error - allow message to proceed
-      console.error('Rate limiting error:', error);
-    }
+      }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -504,8 +502,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         }
       } catch (error) {
         // Voice error - continue without voice
-        console.error('Voice error:', error);
-      }
+        }
     } catch (error) {
       // Track error
       await AnalyticsService.trackEvent('ai_response_error', {
@@ -566,8 +563,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           }
         } catch (e) {
           // Ignore extraction errors; prompt simply won't be shown
-          console.log('⚠️ Could not extract user prompt for screenshot');
-        }
+          }
 
         navigation.navigate('Screenshot', {
           roastText: item.text,
@@ -590,7 +586,6 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       }
 
     } catch (error) {
-      console.error('💥 Error sharing roast:', error);
       Alert.alert('Sharing Error', 'Unable to share roast. Please try again.');
     }
   };
@@ -627,8 +622,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         }
       } catch (e) {
         // Ignore extraction errors; prompt simply won't be shown
-        console.log('⚠️ Could not extract user prompt for screenshot');
-      }
+        }
 
       navigation.navigate('Screenshot', {
         roastText: item.text,

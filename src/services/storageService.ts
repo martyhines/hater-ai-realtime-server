@@ -444,8 +444,7 @@ export class StorageService {
         packChats: 0
       }));
     } catch (error) {
-      console.error('❌ Failed to reset chat usage:', error);
-    }
+      }
   }
 
 } 

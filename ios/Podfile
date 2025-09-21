@@ -50,6 +50,15 @@ target 'HaterAI' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
     )
+    installer.aggregate_targets.each do |agg|
+      agg.user_project.native_targets.each do |t|
+        t.build_configurations.each do |config|
+          config.build_settings['CLANG_ENABLE_STD_MODULES'] = 'NO'
+          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'gnu++17'
+          config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
+        end
+      end
+    end
 
     # This is necessary for Xcode 14, because it signs resource bundles by default
     # when building for devices.

@@ -52,7 +52,6 @@ export default function App() {
   useEffect(() => {
     const initializeServices = async () => {
       try {
-        console.log('🚀 Initializing services...');
 
         // Initialize Auth Service first
         const authService = AuthService.getInstance();
@@ -61,7 +60,6 @@ export default function App() {
         // Then initialize Analytics (depends on Auth)
         await AnalyticsService.initialize();
 
-        console.log('✅ All services initialized');
       } catch (error) {
         console.error('❌ Failed to initialize services:', error);
       }
@@ -73,15 +71,12 @@ export default function App() {
   // Handle app state changes for session management
   useEffect(() => {
     const handleAppStateChange = async (nextAppState: string) => {
-      console.log('📱 App state changed:', nextAppState);
 
       if (nextAppState === 'active') {
         // App came to foreground - start new session
-        console.log('🎯 Starting new session...');
         await AnalyticsService.startSession();
       } else if (nextAppState === 'background' || nextAppState === 'inactive') {
         // App went to background - end current session
-        console.log('🛑 Ending current session...');
         await AnalyticsService.endSession();
       }
     };
@@ -93,19 +88,16 @@ export default function App() {
     if (__DEV__) {
       // Add to global for testing
       (global as any).testEndSession = async () => {
-        console.log('🧪 Manual session end triggered');
         await AnalyticsService.endSession();
       };
 
       (global as any).testStartSession = async () => {
-        console.log('🧪 Manual session start triggered');
         await AnalyticsService.startSession();
       };
     }
 
     // Also handle app close/unmount
     const handleAppClose = async () => {
-      console.log('🚪 App closing, ending session...');
       await AnalyticsService.endSession();
     };
 

@@ -139,7 +139,6 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
       }
 
     } catch (error) {
-      console.error('💥 Screenshot capture error:', error);
       Alert.alert('Error', 'Failed to capture screenshot. Please try again.');
     } finally {
       setIsCapturing(false);
