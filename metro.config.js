@@ -21,7 +21,7 @@ config.resolver.nodeModulesPaths = [
 ];
 
 // Ensure proper module resolution for src directory
-config.resolver.unstable_enableSymlinks = false;
+//config.resolver.unstable_enableSymlinks = false; //expo-doctor complained about this
 
 // Keep your existing settings
 config.resolver.platforms = ['ios', 'android', 'native', 'web'];
