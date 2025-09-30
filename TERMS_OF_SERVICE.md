@@ -36,4 +36,4 @@ We shall not be liable for any indirect, incidental, or consequential damages.
 We may modify these terms at any time. Continued use constitutes acceptance.
 
 ## Contact
-For questions about these terms, contact: [Your Email] 
+For questions about these terms, contact: mhines76@gmail.com
