@@ -18,11 +18,11 @@ Links (also shown in‑app):
 - Privacy Policy: https://martyhines.github.io/hater-ai-realtime-server/PRIVACY_POLICY.md
 - Terms of Service: https://martyhines.github.io/hater-ai-realtime-server/TERMS_OF_SERVICE.md
 
-## 4) Bring Your Own Key (BYOK) — Third‑Party AI Providers - *Currently still in development*
+## 4) Bring Your Own Key (BYOK) — Third‑Party AI Providers - *Currently in development*
 - The App can connect to third‑party AI services (e.g., OpenAI, Cohere, Google Gemini) if you choose to provide your own API key. Use of any third‑party service is governed by that provider’s own terms and privacy policies.
 - You are responsible for any costs incurred with third‑party providers, including usage fees and rate limits. We do not control third‑party availability, quality, or billing.
 
-## 5) Features Not Present
+## 5) Features Not Present *Currently in development*
 - No speech‑to‑text recording, no real‑time audio input.
 - No video generation or TikTok video export.
 - No third‑party advertising SDKs; no cross‑app tracking.
