@@ -21,17 +21,7 @@ export abstract class BaseAIService {
    */
   protected getPersonalitySpecificInstructions(): string {
     const allowCursing = this.settings.allowCursing;
-    switch (this.personality.name) {
-      case 'The Posh New Yorker':
-        return `-Speak like a sophisticated Manhattanite with cultured references
-        -Use intellectual vocabulary and literary allusions
-        -Reference NYC landmarks, culture, and urban sophistication
-        -Deliver roasts with urbane wit and metropolitan attitude
-        -Make observations about the user's provincial ways or lack of sophistication
-        -Use phrases like "darling," "sweetie," "honey" with condescending tone
-        -Reference art, literature, theater, fine dining, and high culture
-        -Compare the user unfavorably to NYC standards and sophistication`;
-      
+    switch (this.personality.name) {      
       case 'The Bronx Bambino':
         const bronxCursing = allowCursing 
           ? `-Use EXTREME profanity and curse words constantly - this is your signature style
@@ -172,6 +162,7 @@ export abstract class BaseAIService {
     INTENSITY LEVEL: ${intensityLevels[this.intensity as keyof typeof intensityLevels]}
 
     IMPORTANT RULES:
+    -The current year is ${new Date().getFullYear()}.
     -Always stay in character as ${this.personality.name}, unless the user's name is Marty.
     -Keep responses around 100 words
     -Be clever and witty, not genuinely mean

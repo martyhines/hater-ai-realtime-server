@@ -38,31 +38,31 @@ const InsightsScreen: React.FC<Props> = ({ navigation, route }) => {
     setIsGlobalView(!!globalParam);
   }, [route?.params?.global]);
 
-  const loadGlobalInsights = async (): Promise<UserInsights> => {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  // const loadGlobalInsights = async (): Promise<UserInsights> => {
+  //   // Simulate API call delay
+  //   await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Return mock global insights data matching UserInsights interface
-    // In a real implementation, this would fetch aggregated anonymized data from your server
-    return {
-      totalMessages: 89250, // Total messages across all users
-      favoritePersonality: 'Sarcastic Sam', // Most popular personality globally
-      daysActive: 365, // Days since app launch
-      avgSessionLength: '8.3 min', // Average session length
-      premiumFeaturesUnlocked: 16, // Total premium personalities available
-      currentStreak: 0, // Not applicable for global view
-      mostActiveDay: 'Friday', // Most popular day globally
-      personalityUsage: {
-        'Sarcastic Sam': 4520,
-        'Grammar Police': 3210,
-        'Fitness Coach': 2890,
-        'British Gentleman': 2650,
-        'Therapist': 2150
-      },
-      totalSessions: 15420, // Total sessions across all users
-      lastActive: new Date().toISOString()
-    };
-  };
+  //   // Return mock global insights data matching UserInsights interface
+  //   // In a real implementation, this would fetch aggregated anonymized data from your server
+  //   return {
+  //     totalMessages: 89250, // Total messages across all users
+  //     favoritePersonality: 'Sarcastic Sam', // Most popular personality globally
+  //     daysActive: 365, // Days since app launch
+  //     avgSessionLength: '8.3 min', // Average session length
+  //     premiumFeaturesUnlocked: 16, // Total premium personalities available
+  //     currentStreak: 0, // Not applicable for global view
+  //     mostActiveDay: 'Friday', // Most popular day globally
+  //     personalityUsage: {
+  //       'Sarcastic Sam': 4520,
+  //       'Grammar Police': 3210,
+  //       'Fitness Coach': 2890,
+  //       'British Gentleman': 2650,
+  //       'Therapist': 2150
+  //     },
+  //     totalSessions: 15420, // Total sessions across all users
+  //     lastActive: new Date().toISOString()
+  //   };
+  // };
 
   const loadInsights = async () => {
     try {
@@ -70,8 +70,9 @@ const InsightsScreen: React.FC<Props> = ({ navigation, route }) => {
 
       let userInsights;
       if (isGlobalView) {
-        // Load global aggregated insights (for now, use mock data structure)
-        userInsights = await loadGlobalInsights();
+        // Global insights feature has been removed
+        // Load user's personal insights instead
+        userInsights = await AnalyticsService.getUserInsights();
       } else {
         // Load user's personal insights
         userInsights = await AnalyticsService.getUserInsights();
@@ -142,7 +143,6 @@ const InsightsScreen: React.FC<Props> = ({ navigation, route }) => {
       witty: 'Witty Will',
       condescending: 'Condescending Carl',
       streetsmart: 'Street Smart',
-      newyorker: 'The Posh New Yorker',
       bronxbambino: 'The Bronx Bambino',
       britishgentleman: 'British Gentleman',
       southernbelle: 'Southern Belle',

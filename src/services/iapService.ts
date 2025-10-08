@@ -7,6 +7,7 @@ import {
   finishTransaction,
   purchaseUpdatedListener,
   purchaseErrorListener,
+  getAvailablePurchases,
   type Product,
   type Purchase,
   type PurchaseError,
@@ -342,6 +343,51 @@ export class IAPService {
     }
 
     return { available: true };
+  }
+
+  /**
+   * Get purchase history for restore functionality
+   */
+  async getPurchaseHistory(): Promise<IAPPurchase[]> {
+    try {
+      if (!this.isInitialized) {
+        await this.initialize();
+      }
+
+      const purchases = await getAvailablePurchases();
+      
+      return purchases.map((purchase: Purchase) => ({
+        productId: purchase.productId,
+        transactionId: purchase.transactionId || '',
+        transactionDate: purchase.transactionDate || Date.now(),
+        transactionReceipt: purchase.transactionReceipt || '',
+      }));
+    } catch (error) {
+      console.error('Failed to get purchase history:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Verify a purchase is valid
+   */
+  async verifyPurchase(purchase: IAPPurchase): Promise<boolean> {
+    try {
+      // Basic validation - check if we have required fields
+      if (!purchase.productId || !purchase.transactionId) {
+        return false;
+      }
+
+      // In a production app, you would typically verify the receipt with Apple's servers
+      // For now, we'll do basic validation
+      const products = await this.getAvailableProducts();
+      const productExists = products.some(p => p.productId === purchase.productId);
+      
+      return productExists;
+    } catch (error) {
+      console.error('Failed to verify purchase:', error);
+      return false;
+    }
   }
 
   /**

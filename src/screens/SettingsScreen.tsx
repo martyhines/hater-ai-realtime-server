@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Image,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,56 +50,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
   const [streak, setStreak] = useState(0);
   const [activeTab, setActiveTab] = useState<'personalities' | 'intensity' | 'preferences' | 'premium'>('personalities');
 
-  // Build type detection
-  const getBuildInfo = () => {
-    const appOwnership = Constants.appOwnership as string | null;
-    const isDevelopment = __DEV__;
-    const isProduction = !isDevelopment;
-
-    // Check for development client indicators
-    const isDevClient = Constants.executionEnvironment === 'storeClient';
-
-    // More robust detection logic
-    if (isDevClient && isDevelopment) {
-      return {
-        type: 'Development Build',
-        color: '#4ECDC4',
-        icon: 'construct',
-        description: 'Full IAP support'
-      };
-    } else if (appOwnership === 'expo' && isDevelopment) {
-      return {
-        type: 'Expo Go (Dev)',
-        color: '#FF6B35',
-        icon: 'logo-react',
-        description: 'Limited IAP support'
-      };
-    } else if (appOwnership === 'standalone' && isDevelopment) {
-      return {
-        type: 'Development Build',
-        color: '#4ECDC4',
-        icon: 'construct',
-        description: 'Full IAP support'
-      };
-    } else if (isProduction) {
-      return {
-        type: 'Production Build',
-        color: '#45B7D1',
-        icon: 'checkmark-circle',
-        description: 'Live app'
-      };
-    } else {
-      // Fallback detection
-      return {
-        type: 'Development Build',
-        color: '#4ECDC4',
-        icon: 'construct',
-        description: 'Full IAP support'
-      };
-    }
-  };
-
-  const buildInfo = getBuildInfo();
 
   const personalities = [
     {
@@ -135,13 +86,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
       emoji: '🔥',
       description: 'Urban savvy with street wisdom and modern slang',
       traits: ['Streetwise', 'Confident', 'Urban'],
-    },
-    {
-      id: 'newyorker',
-      name: 'The Posh New Yorker',
-      emoji: '🗽',
-      description: 'Sophisticated Manhattanite with cultured wit and NYC attitude',
-      traits: ['Sophisticated', 'Cultured', 'Witty', 'Urbane'],
     },
     {
       id: 'bronxbambino',
@@ -505,6 +449,43 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
+  const handleRestorePurchases = async () => {
+    setIsPremiumLoading(true);
+    try {
+      const premiumService = PremiumService.getInstance();
+      const success = await premiumService.restorePurchases();
+      
+      if (success) {
+        // Reload unlocked features and personalities
+        const features = await premiumService.getUnlockedFeatures();
+        const personalities = await premiumService.getUnlockedPersonalities();
+        
+        setUnlockedFeatures(features);
+        setUnlockedPersonalities(personalities);
+        
+        Alert.alert(
+          'Purchases Restored! 🎉',
+          'Your previous purchases have been successfully restored.',
+          [{ text: 'Great!' }]
+        );
+      } else {
+        Alert.alert(
+          'No Purchases Found',
+          'No previous purchases were found to restore. Make sure you\'re signed in with the same Apple ID used for the original purchase.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      Alert.alert(
+        'Restore Failed',
+        'Unable to restore purchases. Please check your internet connection and try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsPremiumLoading(false);
+    }
+  };
+
   const handleIndividualPersonalityPurchase = async (personalityId: string) => {
     setIsPremiumLoading(true);
     try {
@@ -623,22 +604,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Build Indicator */}
-      <TouchableOpacity
-        style={[styles.buildIndicator, { backgroundColor: buildInfo.color }]}
-        onPress={() => {
-          Alert.alert(
-            'Build Information',
-            `Type: ${buildInfo.type}\nDescription: ${buildInfo.description}\n\nApp Ownership: ${Constants.appOwnership}\nExecution Environment: ${Constants.executionEnvironment}\nDevelopment Mode: ${__DEV__}`,
-            [{ text: 'OK' }]
-          );
-        }}
-      >
-        <Ionicons name={buildInfo.icon as any} size={16} color="white" />
-        <Text style={styles.buildText}>
-          {buildInfo.type} - {buildInfo.description}
-        </Text>
-        <Ionicons name="information-circle" size={14} color="white" style={{ opacity: 0.7 }} />
-      </TouchableOpacity>
+
 
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
@@ -925,6 +891,12 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
                   <Text style={styles.subscriptionPrice}>
                     ${plan.price}/{plan.duration === 'lifetime' ? 'once' : plan.duration}
                   </Text>
+                  {/* Apple Required Subscription Info */}
+                  <Text style={styles.subscriptionTerms}>
+                    Auto-renewable subscription • Length: {plan.duration === 'month' ? '1 month' : plan.duration === 'year' ? '1 year' : 'Lifetime'} • 
+                    <Text style={styles.linkText} onPress={() => Linking.openURL('https://martyhines.github.io/hater-ai-realtime-server/PRIVACY_POLICY.md')}> Privacy Policy</Text> • 
+                    <Text style={styles.linkText} onPress={() => Linking.openURL('https://martyhines.github.io/hater-ai-realtime-server/TERMS_OF_SERVICE.md')}> Terms of Use</Text>
+                  </Text>
                 </View>
                 <View style={styles.subscriptionFeatures}>
                   {plan.features.slice(0, 3).map((feature, index) => (
@@ -941,6 +913,18 @@ const SettingsScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
             </TouchableOpacity>
           ))}
+
+          {/* Restore Purchases Button */}
+          <TouchableOpacity
+            style={styles.restoreButton}
+            onPress={handleRestorePurchases}
+            disabled={isPremiumLoading}
+          >
+            <Ionicons name="refresh" size={20} color="#FFD700" />
+            <Text style={styles.restoreButtonText}>
+              {isPremiumLoading ? 'Restoring...' : 'Restore Purchases'}
+            </Text>
+          </TouchableOpacity>
 
           {/* Divider */}
           <View style={styles.divider}>
@@ -1218,24 +1202,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
-  },
-  buildIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 10,
-    borderRadius: 20,
-    gap: 8,
-  },
-  buildText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
   },
   testSection: {
     marginBottom: 32,
@@ -1598,6 +1564,33 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFD700',
     marginBottom: 8,
+  },
+  subscriptionTerms: {
+    fontSize: 11,
+    color: '#888',
+    marginTop: 4,
+    lineHeight: 16,
+  },
+  linkText: {
+    color: '#2a7ae2',
+    textDecorationLine: 'underline',
+  },
+  restoreButton: {
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  restoreButtonText: {
+    color: '#FFD700',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   subscriptionFeatures: {
     marginLeft: 16,

@@ -115,7 +115,6 @@ export class PremiumService {
         description: 'Complete premium experience with unlimited chats and advanced features',
         features: [
           'all_basic_features',
-          'advanced_analytics',
           'unlimited_chats'
         ],
         badge: 'Best Value',
@@ -129,7 +128,6 @@ export class PremiumService {
         description: 'Save 17% with annual Pro subscription and unlimited chats',
         features: [
           'all_basic_features',
-          'advanced_analytics',
           'unlimited_chats'
         ],
         badge: 'Save 17%'
@@ -142,7 +140,6 @@ export class PremiumService {
         description: 'One-time payment, lifetime access with unlimited chats',
         features: [
           'all_basic_features',
-          'advanced_analytics',
           'unlimited_chats',
           'lifetime_support'
         ],
@@ -319,9 +316,6 @@ export class PremiumService {
           for (const featureId of basicFeatures) {
             await this.unlockFeature(featureId);
           }
-        } else if (featureId === 'advanced_analytics') {
-          // Unlock analytics features
-          await this.unlockFeature('advanced_analytics');
         } else if (featureId === 'lifetime_support') {
           // Lifetime support (just a feature flag)
           await this.unlockFeature('lifetime_support');
@@ -777,6 +771,121 @@ export class PremiumService {
     } catch (error) {
       Alert.alert('Simulation Failed', 'Failed to simulate purchase');
       return false;
+    }
+  }
+
+  /**
+   * Restore previous purchases
+   */
+  async restorePurchases(): Promise<boolean> {
+    try {
+      const iapService = IAPService.getInstance();
+      
+      // If IAPs are not available, simulate restore for testing
+      if (!iapService.isAvailable()) {
+        // In development/testing mode, just return true
+        return true;
+      }
+
+      // Initialize IAP if needed
+      const initialized = await iapService.initialize();
+      if (!initialized) {
+        throw new Error('Failed to initialize IAP service');
+      }
+
+      // Get available products
+      const products = await iapService.getAvailableProducts();
+      if (products.length === 0) {
+        throw new Error('No products available for restore');
+      }
+
+      // Get purchase history
+      const purchaseHistory = await iapService.getPurchaseHistory();
+      
+      if (purchaseHistory.length === 0) {
+        return false; // No purchases to restore
+      }
+
+      // Process each purchase
+      let restoredCount = 0;
+      for (const purchase of purchaseHistory) {
+        try {
+          // Verify the purchase is valid
+          const isValid = await iapService.verifyPurchase(purchase);
+          if (isValid) {
+            // Restore the purchase based on product type
+            if (purchase.productId.includes('subscription')) {
+              // Restore subscription
+              await this.restoreSubscription(purchase.productId);
+            } else if (purchase.productId.includes('personality')) {
+              // Restore personality
+              await this.unlockPersonality(purchase.productId);
+            } else if (purchase.productId.includes('feature')) {
+              // Restore feature
+              await this.unlockFeature(purchase.productId);
+            } else if (purchase.productId.includes('pack')) {
+              // Restore personality pack
+              const pack = this.getPersonalityPacks().find(p => p.id === purchase.productId);
+              if (pack) {
+                for (const personalityId of pack.personalities) {
+                  await this.unlockPersonality(personalityId);
+                }
+              }
+            }
+            restoredCount++;
+          }
+        } catch (error) {
+          console.warn(`Failed to restore purchase ${purchase.productId}:`, error);
+        }
+      }
+
+      return restoredCount > 0;
+    } catch (error) {
+      console.error('Restore purchases failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Restore subscription status
+   */
+  private async restoreSubscription(productId: string): Promise<void> {
+    try {
+      // Find the subscription plan
+      const plan = this.getSubscriptionPlans().find(p => p.id === productId);
+      if (!plan) return;
+
+      // Set subscription status
+      await this.storage.setSubscriptionStatus({
+        planId: plan.id,
+        isActive: true,
+        startDate: new Date(),
+        endDate: plan.duration === 'lifetime' ? null : new Date(Date.now() + (plan.duration === 'month' ? 30 : 365) * 24 * 60 * 60 * 1000),
+        autoRenew: plan.duration !== 'lifetime'
+      });
+
+      // Unlock all premium features for this subscription
+      const features = await this.getUnlockedFeatures();
+      const allPremiumFeatures = this.getPremiumFeatures().map(f => f.id);
+      const allPremiumPersonalities = this.getPersonalityPacks().flatMap(p => p.personalities);
+      
+      // Add any missing premium features
+      for (const featureId of allPremiumFeatures) {
+        if (!features.includes(featureId)) {
+          await this.unlockFeature(featureId);
+        }
+      }
+
+      // Add any missing premium personalities
+      const personalities = await this.getUnlockedPersonalities();
+      for (const personalityId of allPremiumPersonalities) {
+        if (!personalities.includes(personalityId)) {
+          await this.unlockPersonality(personalityId);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to restore subscription:', error);
+      throw error;
     }
   }
 }

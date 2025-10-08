@@ -57,9 +57,9 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     navigation.navigate('Insights');
   };
 
-  const handleGlobalInsights = () => {
-    navigation.navigate('Insights', { global: true });
-  };
+  // const handleGlobalInsights = () => {
+  //   navigation.navigate('Insights', { global: true });
+  // };
 
   const handleNavigateToIntensitySettings = () => {
     navigation.navigate('Settings', { initialTab: 'intensity' });
@@ -237,8 +237,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.insightsButtonText}>Your Insights</Text>
           </TouchableOpacity>
 
-          {/* Global Insights Button */}
-          <TouchableOpacity
+          {/* Global Insights Button - Commented out */}
+          {/* <TouchableOpacity
             style={styles.globalInsightsButton}
             onPress={handleGlobalInsights}
             activeOpacity={0.7}
@@ -246,7 +246,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <Ionicons name="earth" size={24} color="#FFD700" />
             <Ionicons name="lock-closed" size={12} color="#FFD700" style={styles.lockIcon} />
             <Text style={styles.globalInsightsButtonText}>Global Insights</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Voice Settings Button */}
           {/* <TouchableOpacity
