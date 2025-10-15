@@ -577,7 +577,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         // Fallback to text-only sharing if no AI service
 
         const shareOptions = {
-          message: `🤖 "${item.text.length > 100 ? item.text.substring(0, 100) + '...' : item.text}" #AIRoast\n\nGet the app: https://apps.apple.com/app/hater-ai`,
+          message: `🤖 "${item.text.length > 100 ? item.text.substring(0, 100) + '...' : item.text}" #AIRoast\n\nGet the app: https://apps.apple.com/us/app/hater-ai/id6752276381`,
           title: 'Share your Hater AI roast'
         };
 

@@ -173,7 +173,7 @@ export default function ScreenshotScreen({ navigation, route }: ScreenshotScreen
 
     try {
       const hook = 'Got roasted by Hater AI 😈';
-      const link = 'https://hater.ai';
+      const link = 'https://apps.apple.com/us/app/hater-ai/id6752276381';
       const caption = `${hook} ${link}`;
       const success = await screenshotService.shareScreenshot(screenshotPath, caption);
       if (success) {
